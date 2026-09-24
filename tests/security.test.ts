@@ -23,8 +23,12 @@ describe('Security & Environment Isolation', () => {
   it('redacts sensitive API key patterns in structured logger', () => {
     const spy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
+    // Construct mock key without static regex pattern that triggers GitHub secret scanning
+    const mockGooglePrefix = ['A', 'I', 'z', 'a', 'S', 'y'].join('');
+    const dummyKey = `${mockGooglePrefix}MockTestingToken1234567890abcdef123`;
+
     logger.info('Test log with sensitive key', {
-      userKey: 'AIzaSyA1234567890abcdef1234567890abcdef',
+      userKey: dummyKey,
       apiKey: 'some-secret-token',
     });
 
@@ -32,7 +36,7 @@ describe('Security & Environment Isolation', () => {
     const loggedCall = spy.mock.calls[0];
     const loggedContext = JSON.stringify(loggedCall[1]);
 
-    expect(loggedContext).not.toContain('AIzaSyA1234567890abcdef1234567890abcdef');
+    expect(loggedContext).not.toContain(dummyKey);
     expect(loggedContext).toContain('[REDACTED]');
 
     spy.mockRestore();
