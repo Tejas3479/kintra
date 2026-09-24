@@ -4,6 +4,7 @@ import React from 'react';
 import { Header } from '@/components/layout/Header';
 import { StageTracker } from '@/components/workflow/StageTracker';
 import { DiscoveryWorkspace } from '@/components/discovery/DiscoveryWorkspace';
+import { EvidenceWorkspace } from '@/components/research/EvidenceWorkspace';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 
 export default function Home() {
@@ -11,9 +12,12 @@ export default function Home() {
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans selection:bg-indigo-500/30 selection:text-indigo-200">
       <Header />
       <StageTracker />
-      <main className="flex-1">
+      <main className="flex-1 space-y-6 pb-12">
         <ErrorBoundary fallbackTitle="Workspace Encountered an Error">
           <DiscoveryWorkspace />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <EvidenceWorkspace />
+          </div>
         </ErrorBoundary>
       </main>
       <footer className="border-t border-zinc-900 py-6 text-center text-xs text-zinc-500">

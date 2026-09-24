@@ -11,10 +11,7 @@ export const StageTracker: React.FC = () => {
     {
       id: 'intake',
       name: '1. Raw Idea Intake',
-      status:
-        project.stage === 'intake'
-          ? 'active'
-          : 'completed',
+      status: project.stage === 'intake' ? 'active' : 'completed',
     },
     {
       id: 'discovery',
@@ -27,10 +24,20 @@ export const StageTracker: React.FC = () => {
           : 'completed',
     },
     {
-      id: 'brief_review',
-      name: '3. Strategic Brief Review',
+      id: 'research',
+      name: '3. Evidence Ledger',
       status:
         project.stage === 'intake' || project.stage === 'discovery'
+          ? 'upcoming'
+          : project.stage === 'research'
+          ? 'active'
+          : 'completed',
+    },
+    {
+      id: 'brief_review',
+      name: '4. Strategic Brief Review',
+      status:
+        project.stage === 'intake' || project.stage === 'discovery' || project.stage === 'research'
           ? 'upcoming'
           : project.stage === 'brief_review'
           ? 'active'
@@ -38,7 +45,7 @@ export const StageTracker: React.FC = () => {
     },
     {
       id: 'strategy_locked',
-      name: '4. Strategy Baseline Locked',
+      name: '5. Strategy Baseline Locked',
       status: project.stage === 'strategy_locked' ? 'active' : 'upcoming',
     },
   ];
@@ -49,6 +56,7 @@ export const StageTracker: React.FC = () => {
   const unresolvedQuestionsCount = project.unresolvedQuestions.filter((q) => !q.resolved).length;
   const factsCount = project.extractedFacts.length;
   const assumptionsCount = project.hypotheses.length;
+  const evidenceCount = project.marketLandscape?.evidenceRecords.length || 0;
 
   return (
     <div className="bg-zinc-900/60 border-b border-zinc-800/80 px-4 sm:px-6 lg:px-8 py-3">
@@ -88,6 +96,10 @@ export const StageTracker: React.FC = () => {
           <span className="text-zinc-700">•</span>
           <div className="flex items-center gap-1" title="Unverified Hypotheses">
             <span className="font-semibold text-amber-400">{assumptionsCount}</span> Hypotheses
+          </div>
+          <span className="text-zinc-700">•</span>
+          <div className="flex items-center gap-1" title="Grounded Evidence Sources">
+            <span className="font-semibold text-emerald-400">{evidenceCount}</span> Sources
           </div>
           <span className="text-zinc-700">•</span>
           <div
