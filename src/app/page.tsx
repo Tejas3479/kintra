@@ -16,15 +16,15 @@ import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans selection:bg-indigo-500/30 selection:text-indigo-200">
+    <div className="min-h-screen bg-obsidian-mesh text-zinc-100 flex flex-col font-sans selection:bg-champagne-500/30 selection:text-champagne-200">
       <Header />
       <StageTracker />
-      <main className="flex-1 space-y-6 pb-12">
+      <main className="flex-1 space-y-8 pb-16">
         <ErrorBoundary fallbackTitle="Workspace Encountered an Error">
           <section id="stage-discovery">
             <DiscoveryWorkspace />
           </section>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
             <section id="stage-research">
               <EvidenceWorkspace />
             </section>
@@ -50,10 +50,18 @@ export default function Home() {
         </ErrorBoundary>
       </main>
       <PresentationModeModal />
-      <footer className="border-t border-zinc-900 py-6 text-center text-xs text-zinc-500">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>KINTRA Brand Intelligence Engine — Inkloom Challenge 2026</span>
-          <span className="font-mono text-zinc-600">Stateful Decision Model v1.0</span>
+      <footer className="border-t border-white/[0.06] bg-obsidian-950/80 backdrop-blur py-8 text-center text-xs text-zinc-500">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-zinc-400">KINTRA</span>
+            <span>—</span>
+            <span>Autonomous Brand Intelligence & Consistency Engine</span>
+          </div>
+          <div className="flex items-center gap-3 font-mono text-[11px] text-zinc-500">
+            <span>Inkloom Challenge 2026</span>
+            <span>•</span>
+            <span className="text-champagne-400/80">Stateful Decision Model v1.0</span>
+          </div>
         </div>
       </footer>
     </div>

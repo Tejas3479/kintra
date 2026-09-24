@@ -113,31 +113,31 @@ export const StageTracker: React.FC = () => {
   };
 
   return (
-    <div className="bg-zinc-900/60 border-b border-zinc-800/80 px-4 sm:px-6 lg:px-8 py-3">
+    <div className="bg-obsidian-900/90 border-b border-white/[0.06] backdrop-blur-xl px-4 sm:px-6 lg:px-8 py-3 sticky top-16 z-30 shadow-md">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
         {/* Stage Timeline */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
           {stages.map((st, i) => (
             <React.Fragment key={st.id}>
-              {i > 0 && <div className="h-0.5 w-4 bg-zinc-800 shrink-0" />}
+              {i > 0 && <div className="h-px w-3 bg-white/[0.08] shrink-0" />}
               <button
                 type="button"
                 onClick={() => scrollToStage(st.id)}
                 title={`Jump to ${st.name}`}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer hover:scale-105 ${
                   st.status === 'completed'
-                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20'
+                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 hover:bg-emerald-500/20'
                     : st.status === 'active'
-                    ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 ring-1 ring-indigo-500/30 hover:bg-indigo-500/30'
-                    : 'bg-zinc-900 text-zinc-500 border border-zinc-800 hover:text-zinc-300 hover:border-zinc-700'
+                    ? 'bg-champagne-500/15 text-champagne-300 border border-champagne-500/40 ring-1 ring-champagne-500/30 hover:bg-champagne-500/25 shadow-sm shadow-champagne-500/10'
+                    : 'bg-obsidian-950 text-zinc-500 border border-white/[0.05] hover:text-zinc-300 hover:border-white/[0.12]'
                 }`}
               >
                 {st.status === 'completed' ? (
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                 ) : st.status === 'active' ? (
-                  <Clock className="w-3.5 h-3.5 text-indigo-400 animate-pulse" />
+                  <Clock className="w-3.5 h-3.5 text-champagne-400 animate-pulse" />
                 ) : (
-                  <span className="w-2 h-2 rounded-full bg-zinc-700" />
+                  <span className="w-2 h-2 rounded-full bg-white/[0.12]" />
                 )}
                 {st.name}
               </button>
@@ -146,33 +146,33 @@ export const StageTracker: React.FC = () => {
         </div>
 
         {/* State Badges / Telemetry */}
-        <div className="flex items-center gap-3 text-xs text-zinc-400 shrink-0">
-          <div className="flex items-center gap-1" title="Extracted Facts">
+        <div className="flex items-center gap-3 text-xs text-zinc-400 shrink-0 font-mono">
+          <div className="flex items-center gap-1.5" title="Extracted Facts">
             <span className="font-semibold text-zinc-200">{factsCount}</span> Facts
           </div>
           <span className="text-zinc-700">•</span>
-          <div className="flex items-center gap-1" title="Unverified Hypotheses">
+          <div className="flex items-center gap-1.5" title="Unverified Hypotheses">
             <span className="font-semibold text-amber-400">{assumptionsCount}</span> Hypotheses
           </div>
           <span className="text-zinc-700">•</span>
-          <div className="flex items-center gap-1" title="Grounded Evidence Sources">
+          <div className="flex items-center gap-1.5" title="Grounded Evidence Sources">
             <span className="font-semibold text-emerald-400">{evidenceCount}</span> Sources
           </div>
           <span className="text-zinc-700">•</span>
           <div
-            className={`flex items-center gap-1 ${
-              pendingDecisionsCount > 0 ? 'text-amber-300 font-semibold' : ''
+            className={`flex items-center gap-1.5 ${
+              pendingDecisionsCount > 0 ? 'text-champagne-400 font-semibold' : ''
             }`}
             title="Decisions awaiting founder approval"
           >
             <FileText className="w-3.5 h-3.5" />
-            <span>{pendingDecisionsCount} Pending Approval</span>
+            <span>{pendingDecisionsCount} Pending</span>
           </div>
           {unresolvedQuestionsCount > 0 && (
             <>
               <span className="text-zinc-700">•</span>
-              <div className="flex items-center gap-1 text-cyan-400" title="Unresolved Questions">
-                <HelpCircle className="w-3.5 h-3.5" />
+              <div className="flex items-center gap-1.5 text-slate-300" title="Unresolved Questions">
+                <HelpCircle className="w-3.5 h-3.5 text-champagne-400" />
                 <span>{unresolvedQuestionsCount} Open Unknowns</span>
               </div>
             </>
