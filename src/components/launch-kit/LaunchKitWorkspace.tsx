@@ -5,45 +5,44 @@ import { useBrandStore } from '@/store/useBrandStore';
 import {
   Rocket,
   BookOpen,
-  FileCode,
   Download,
   Copy,
   Check,
   Printer,
-  ShieldCheck,
-  Terminal,
   ChevronRight,
-  Eye,
+  ShieldCheck,
   RefreshCw,
-  AlertCircle,
+  Eye,
   FileText,
+  FileCode,
+  Terminal,
+  AlertCircle,
   X,
 } from 'lucide-react';
 
 export const LaunchKitWorkspace: React.FC = () => {
   const {
     project,
-    launchKit,
     selectedLaunchItemId,
-    exportContent,
-    isLoading,
-    loadingMessage,
-    error,
     generateLaunchKit,
     selectLaunchItem,
     exportLaunchKit,
-    togglePresentationMode,
     clearExport,
+    togglePresentationMode,
+    isLoading,
+    loadingMessage,
+    error,
     clearError,
+    exportContent,
   } = useBrandStore();
 
   const [activeTab, setActiveTab] = useState<'deliverables' | 'guidelines'>('deliverables');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [copiedExport, setCopiedExport] = useState(false);
 
-  const kit = launchKit || (project.launchKit as typeof launchKit);
+  const kit = project.launchKit;
   const selectedItem =
-    kit?.items.find((i) => i.id === selectedLaunchItemId) || kit?.items[0] || null;
+    kit?.items.find((item) => item.id === selectedLaunchItemId) || kit?.items[0];
 
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -54,17 +53,15 @@ export const LaunchKitWorkspace: React.FC = () => {
   const handleDownloadExport = () => {
     if (!exportContent) return;
     const blob = new Blob([exportContent.content], {
-      type: exportContent.format === 'markdown' ? 'text/markdown' : 'application/json',
+      type: exportContent.format === 'json' ? 'application/json' : 'text/markdown',
     });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${(project.metadata?.name || 'kintra').toLowerCase()}-brand-book.${
-      exportContent.format === 'markdown' ? 'md' : 'json'
+    a.download = `${project.metadata.slug}-brand-${exportContent.format}.${
+      exportContent.format === 'json' ? 'json' : 'md'
     }`;
-    document.body.appendChild(a);
     a.click();
-    document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
 
@@ -79,14 +76,14 @@ export const LaunchKitWorkspace: React.FC = () => {
     <section
       id="launch-kit-workspace"
       aria-label="Launch Kit and Brand Guidelines"
-      className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl relative"
+      className="monolith-card rounded-2xl p-6 sm:p-8 space-y-6 relative"
     >
       {/* Workspace Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-zinc-800/80">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-white/[0.06]">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-indigo-400 bg-indigo-950/60 px-2 py-0.5 rounded border border-indigo-800/60 flex items-center gap-1.5">
-              <Rocket className="w-3.5 h-3.5 text-indigo-400" />
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-champagne-400 bg-champagne-500/10 px-2.5 py-0.5 rounded border border-champagne-500/25 flex items-center gap-1.5">
+              <Rocket className="w-3.5 h-3.5 text-champagne-400" />
               <span>Stage 8: Practical Output Layer</span>
             </span>
             <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-900/40 flex items-center gap-1">
@@ -95,7 +92,7 @@ export const LaunchKitWorkspace: React.FC = () => {
             </span>
           </div>
           <h2 className="text-2xl font-bold text-white tracking-tight">
-            Launch Kit & Brand Guidelines
+            <span className="text-titanium-shimmer">Launch Kit & Brand Guidelines</span>
           </h2>
           <p className="text-xs text-zinc-400 mt-1 max-w-2xl">
             Autonomous synthesis of 8 practical go-to-market launch assets and a concise, usable brand book with zero generic marketing fluff.
@@ -107,7 +104,7 @@ export const LaunchKitWorkspace: React.FC = () => {
           <button
             onClick={() => generateLaunchKit()}
             disabled={isLoading}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg text-xs font-semibold flex items-center gap-2 transition-all shadow-md shadow-indigo-900/20 focus-visible:ring-2 focus-visible:ring-indigo-500"
+            className="btn-monolith-primary px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 disabled:opacity-50"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
             <span>{kit ? 'Regenerate Kit' : 'Synthesize Launch Kit'}</span>
@@ -115,17 +112,17 @@ export const LaunchKitWorkspace: React.FC = () => {
 
           <button
             onClick={() => togglePresentationMode(true)}
-            className="px-3.5 py-2 bg-zinc-900 hover:bg-zinc-850 text-zinc-200 border border-zinc-700 hover:border-zinc-600 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500"
+            className="px-3.5 py-2 bg-obsidian-900 hover:bg-obsidian-850 text-zinc-200 border border-white/[0.08] hover:border-champagne-500/30 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-colors"
             title="Open distraction-free presentation deck for judges and team"
           >
-            <Eye className="w-3.5 h-3.5 text-indigo-400" />
+            <Eye className="w-3.5 h-3.5 text-champagne-400" />
             <span>Presentation Mode</span>
           </button>
 
           <button
             onClick={() => exportLaunchKit('markdown')}
             disabled={!kit}
-            className="px-3 py-2 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-40 text-zinc-300 border border-zinc-800 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500"
+            className="px-3 py-2 bg-obsidian-900 hover:bg-obsidian-800 disabled:opacity-40 text-zinc-300 border border-white/[0.06] rounded-xl text-xs font-medium flex items-center gap-1.5 transition-colors"
             title="Export Brand Book as Markdown (.md)"
           >
             <FileText className="w-3.5 h-3.5 text-emerald-400" />
@@ -135,7 +132,7 @@ export const LaunchKitWorkspace: React.FC = () => {
           <button
             onClick={() => exportLaunchKit('json')}
             disabled={!kit}
-            className="px-3 py-2 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-40 text-zinc-300 border border-zinc-800 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500"
+            className="px-3 py-2 bg-obsidian-900 hover:bg-obsidian-800 disabled:opacity-40 text-zinc-300 border border-white/[0.06] rounded-xl text-xs font-medium flex items-center gap-1.5 transition-colors"
             title="Export Complete Brand State & Launch Kit as JSON (.json)"
           >
             <FileCode className="w-3.5 h-3.5 text-amber-400" />
@@ -145,7 +142,7 @@ export const LaunchKitWorkspace: React.FC = () => {
           <button
             onClick={() => window.print()}
             disabled={!kit}
-            className="p-2 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-40 text-zinc-400 hover:text-zinc-200 border border-zinc-800 rounded-lg text-xs transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500"
+            className="p-2 bg-obsidian-900 hover:bg-obsidian-800 disabled:opacity-40 text-zinc-400 hover:text-zinc-200 border border-white/[0.06] rounded-xl text-xs transition-colors"
             title="Print or Save Brand Book as PDF"
             aria-label="Print Brand Book"
           >
@@ -172,9 +169,9 @@ export const LaunchKitWorkspace: React.FC = () => {
 
       {/* Loading Progress State */}
       {isLoading && (
-        <div className="bg-indigo-950/20 border border-indigo-800/40 rounded-xl p-6 text-center space-y-3">
-          <RefreshCw className="w-6 h-6 text-indigo-400 animate-spin mx-auto" />
-          <h4 className="text-sm font-semibold text-zinc-200">
+        <div className="bg-champagne-500/10 border border-champagne-500/25 rounded-2xl p-6 text-center space-y-3">
+          <RefreshCw className="w-6 h-6 text-champagne-400 animate-spin mx-auto" />
+          <h4 className="text-sm font-semibold text-zinc-200 font-mono">
             {loadingMessage || 'Synthesizing Launch Kit & Brand Guidelines...'}
           </h4>
           <p className="text-xs text-zinc-400 max-w-md mx-auto">
@@ -186,8 +183,8 @@ export const LaunchKitWorkspace: React.FC = () => {
       {/* Main Content Area */}
       {!kit && !isLoading ? (
         /* Empty State */
-        <div className="bg-zinc-900/30 border border-dashed border-zinc-800 rounded-2xl p-12 text-center space-y-4">
-          <div className="w-12 h-12 rounded-full bg-indigo-950/50 border border-indigo-800/50 flex items-center justify-center mx-auto text-indigo-400">
+        <div className="bg-obsidian-950/70 border border-dashed border-white/[0.08] rounded-2xl p-12 text-center space-y-4">
+          <div className="w-12 h-12 rounded-full bg-champagne-500/10 border border-champagne-500/25 flex items-center justify-center mx-auto text-champagne-400">
             <Rocket className="w-6 h-6" />
           </div>
           <div className="space-y-1">
@@ -198,7 +195,7 @@ export const LaunchKitWorkspace: React.FC = () => {
           </div>
           <button
             onClick={() => generateLaunchKit()}
-            className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold shadow-lg shadow-indigo-900/30 transition-all focus-visible:ring-2 focus-visible:ring-indigo-500"
+            className="btn-monolith-primary px-5 py-2.5 rounded-xl text-xs font-semibold"
           >
             Generate Complete Launch Kit
           </button>
@@ -207,12 +204,12 @@ export const LaunchKitWorkspace: React.FC = () => {
         kit && (
           <div className="space-y-6">
             {/* View Tabs */}
-            <div className="flex border-b border-zinc-800">
+            <div className="flex border-b border-white/[0.06]">
               <button
                 onClick={() => setActiveTab('deliverables')}
                 className={`px-4 py-2.5 text-xs font-semibold flex items-center gap-2 border-b-2 transition-colors ${
                   activeTab === 'deliverables'
-                    ? 'border-indigo-500 text-indigo-400'
+                    ? 'border-champagne-400 text-champagne-400'
                     : 'border-transparent text-zinc-400 hover:text-zinc-200'
                 }`}
               >
@@ -224,7 +221,7 @@ export const LaunchKitWorkspace: React.FC = () => {
                 onClick={() => setActiveTab('guidelines')}
                 className={`px-4 py-2.5 text-xs font-semibold flex items-center gap-2 border-b-2 transition-colors ${
                   activeTab === 'guidelines'
-                    ? 'border-indigo-500 text-indigo-400'
+                    ? 'border-champagne-400 text-champagne-400'
                     : 'border-transparent text-zinc-400 hover:text-zinc-200'
                 }`}
               >
@@ -248,10 +245,10 @@ export const LaunchKitWorkspace: React.FC = () => {
                         <button
                           key={item.id}
                           onClick={() => selectLaunchItem(item.id)}
-                          className={`w-full text-left p-3 rounded-xl border transition-all flex items-center justify-between ${
+                          className={`w-full text-left p-3.5 rounded-xl border transition-all flex items-center justify-between ${
                             isSelected
-                              ? 'bg-indigo-950/30 border-indigo-800/80 text-white shadow-sm'
-                              : 'bg-zinc-900/40 border-zinc-850 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/80'
+                              ? 'monolith-card-gold ring-1 ring-champagne-400/80 text-white shadow-sm'
+                              : 'bg-obsidian-950/70 border-white/[0.05] text-zinc-400 hover:text-zinc-200 hover:bg-obsidian-900/80'
                           }`}
                         >
                           <div className="space-y-0.5 truncate pr-2">
@@ -261,13 +258,13 @@ export const LaunchKitWorkspace: React.FC = () => {
                               </span>
                               <span className="text-xs font-medium truncate">{item.title}</span>
                             </div>
-                            <span className="text-[10px] text-zinc-500 truncate block">
+                            <span className="text-[10px] text-zinc-500 truncate block font-mono">
                               {item.suggestedChannels[0]}
                             </span>
                           </div>
                           <ChevronRight
                             className={`w-4 h-4 shrink-0 transition-transform ${
-                              isSelected ? 'text-indigo-400 translate-x-0.5' : 'text-zinc-600'
+                              isSelected ? 'text-champagne-400 translate-x-0.5' : 'text-zinc-600'
                             }`}
                           />
                         </button>
@@ -279,13 +276,13 @@ export const LaunchKitWorkspace: React.FC = () => {
                 {/* Right: Selected Artifact Preview & Lineage */}
                 <div className="lg:col-span-8 space-y-4">
                   {selectedItem && (
-                    <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-5 space-y-4">
+                    <div className="bg-obsidian-950/80 border border-white/[0.06] rounded-xl p-5 space-y-4">
                       {/* Item Header */}
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-zinc-800 gap-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-white/[0.05] gap-2">
                         <div>
                           <div className="flex items-center gap-2">
                             <h3 className="text-sm font-bold text-white">{selectedItem.title}</h3>
-                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-300">
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-obsidian-900 border border-white/[0.06] text-champagne-400">
                               {selectedItem.type}
                             </span>
                           </div>
@@ -294,12 +291,12 @@ export const LaunchKitWorkspace: React.FC = () => {
 
                         <button
                           onClick={() => handleCopy(selectedItem.content, selectedItem.id)}
-                          className="self-start sm:self-auto px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg text-xs font-mono flex items-center gap-1.5 transition-colors shrink-0"
+                          className="self-start sm:self-auto px-3 py-1.5 bg-obsidian-900 hover:bg-obsidian-850 text-zinc-200 rounded-xl text-xs font-mono flex items-center gap-1.5 transition-colors shrink-0 border border-white/[0.06]"
                         >
                           {copiedId === selectedItem.id ? (
                             <Check className="w-3.5 h-3.5 text-emerald-400" />
                           ) : (
-                            <Copy className="w-3.5 h-3.5" />
+                            <Copy className="w-3.5 h-3.5 text-champagne-400" />
                           )}
                           <span>{copiedId === selectedItem.id ? 'Copied' : 'Copy Deliverable'}</span>
                         </button>
@@ -307,14 +304,14 @@ export const LaunchKitWorkspace: React.FC = () => {
 
                       {/* Content Box */}
                       <div className="relative">
-                        <pre className="w-full bg-zinc-950 p-4 rounded-xl border border-zinc-800 text-xs font-mono text-zinc-200 whitespace-pre-wrap leading-relaxed overflow-x-auto shadow-inner">
+                        <pre className="w-full bg-obsidian-900 p-4 rounded-xl border border-white/[0.06] text-xs font-mono text-zinc-200 whitespace-pre-wrap leading-relaxed overflow-x-auto shadow-inner">
                           {selectedItem.content}
                         </pre>
                       </div>
 
                       {/* Channels & Persona */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs">
-                        <div className="bg-zinc-950/60 p-3 rounded-lg border border-zinc-850">
+                        <div className="bg-obsidian-900/60 p-3 rounded-xl border border-white/[0.04]">
                           <span className="text-[10px] font-mono uppercase text-zinc-500 block mb-1">
                             Target Audience Calibration
                           </span>
@@ -323,7 +320,7 @@ export const LaunchKitWorkspace: React.FC = () => {
                           </span>
                         </div>
 
-                        <div className="bg-zinc-950/60 p-3 rounded-lg border border-zinc-850">
+                        <div className="bg-obsidian-900/60 p-3 rounded-xl border border-white/[0.04]">
                           <span className="text-[10px] font-mono uppercase text-zinc-500 block mb-1">
                             Recommended Channels
                           </span>
@@ -331,7 +328,7 @@ export const LaunchKitWorkspace: React.FC = () => {
                             {selectedItem.suggestedChannels.map((c, i) => (
                               <span
                                 key={i}
-                                className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-900 text-indigo-300 border border-zinc-800"
+                                className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-obsidian-950 text-champagne-300 border border-white/[0.05]"
                               >
                                 {c}
                               </span>
@@ -341,7 +338,7 @@ export const LaunchKitWorkspace: React.FC = () => {
                       </div>
 
                       {/* Causal Lineage Stamp */}
-                      <div className="p-3 bg-zinc-950/80 rounded-lg border border-zinc-800/80 text-[11px] font-mono text-zinc-400 space-y-1">
+                      <div className="p-3 bg-obsidian-900/80 rounded-xl border border-white/[0.05] text-[11px] font-mono text-zinc-400 space-y-1">
                         <div className="flex items-center justify-between text-zinc-300 font-semibold">
                           <span className="flex items-center gap-1.5 text-emerald-400">
                             <ShieldCheck className="w-3.5 h-3.5" />
@@ -354,7 +351,7 @@ export const LaunchKitWorkspace: React.FC = () => {
                         <div className="text-[10px] text-zinc-500 flex flex-wrap gap-x-4 gap-y-1 pt-1">
                           <span>
                             World:{' '}
-                            <span className="text-indigo-300">
+                            <span className="text-champagne-300">
                               {selectedItem.lineage.worldArchetype}
                             </span>
                           </span>
@@ -382,13 +379,13 @@ export const LaunchKitWorkspace: React.FC = () => {
             {activeTab === 'guidelines' && (
               <div className="space-y-6">
                 {/* 1. Positioning */}
-                <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-5 space-y-3">
-                  <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
+                <div className="bg-obsidian-950/80 border border-white/[0.06] rounded-xl p-5 space-y-3">
+                  <div className="flex items-center justify-between border-b border-white/[0.05] pb-2">
                     <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                      <Terminal className="w-4 h-4 text-indigo-400" />
+                      <Terminal className="w-4 h-4 text-champagne-400" />
                       <span>1. Strategic Positioning Thesis</span>
                     </h3>
-                    <span className="text-xs font-mono text-indigo-300">
+                    <span className="text-xs font-mono text-champagne-300">
                       {kit.guidelines.positioning.archetype}
                     </span>
                   </div>
@@ -398,7 +395,7 @@ export const LaunchKitWorkspace: React.FC = () => {
                       <span className="text-[10px] font-mono text-zinc-500 uppercase">
                         Problem Framing
                       </span>
-                      <p className="text-zinc-300 bg-zinc-950 p-2.5 rounded border border-zinc-850">
+                      <p className="text-zinc-300 bg-obsidian-900 p-2.5 rounded-lg border border-white/[0.04]">
                         {kit.guidelines.positioning.problemFraming}
                       </p>
                     </div>
@@ -407,14 +404,14 @@ export const LaunchKitWorkspace: React.FC = () => {
                       <span className="text-[10px] font-mono text-zinc-500 uppercase">
                         Value Proposition
                       </span>
-                      <p className="text-zinc-300 bg-zinc-950 p-2.5 rounded border border-zinc-850">
+                      <p className="text-zinc-300 bg-obsidian-900 p-2.5 rounded-lg border border-white/[0.04]">
                         {kit.guidelines.positioning.valueProposition}
                       </p>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs pt-1">
-                    <div className="p-2.5 bg-zinc-950 rounded border border-zinc-850">
+                    <div className="p-2.5 bg-obsidian-900 rounded-lg border border-white/[0.04]">
                       <span className="text-[10px] font-mono text-zinc-500 uppercase block">
                         Category Frame
                       </span>
@@ -423,16 +420,16 @@ export const LaunchKitWorkspace: React.FC = () => {
                       </span>
                     </div>
 
-                    <div className="p-2.5 bg-zinc-950 rounded border border-zinc-850">
+                    <div className="p-2.5 bg-obsidian-900 rounded-lg border border-white/[0.04]">
                       <span className="text-[10px] font-mono text-zinc-500 uppercase block">
                         Core Differentiator
                       </span>
-                      <span className="text-indigo-300 font-medium">
+                      <span className="text-champagne-300 font-medium">
                         {kit.guidelines.positioning.differentiator}
                       </span>
                     </div>
 
-                    <div className="p-2.5 bg-zinc-950 rounded border border-zinc-850">
+                    <div className="p-2.5 bg-obsidian-900 rounded-lg border border-white/[0.04]">
                       <span className="text-[10px] font-mono text-zinc-500 uppercase block">
                         AST Proof Mechanism
                       </span>
@@ -446,15 +443,15 @@ export const LaunchKitWorkspace: React.FC = () => {
                 {/* 2. Personality & Voice */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Personality Traits */}
-                  <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-5 space-y-3">
-                    <h3 className="text-sm font-bold text-white border-b border-zinc-800 pb-2">
+                  <div className="bg-obsidian-950/80 border border-white/[0.06] rounded-xl p-5 space-y-3">
+                    <h3 className="text-sm font-bold text-white border-b border-white/[0.05] pb-2 font-mono">
                       2. Personality Traits
                     </h3>
                     <div className="space-y-2">
                       {kit.guidelines.personality.traits.map((trait, i) => (
-                        <div key={i} className="p-3 bg-zinc-950 rounded-lg border border-zinc-850 space-y-1">
+                        <div key={i} className="p-3 bg-obsidian-900 rounded-lg border border-white/[0.04] space-y-1">
                           <div className="flex items-center justify-between text-xs">
-                            <span className="font-bold text-indigo-300">{trait.name}</span>
+                            <span className="font-bold text-champagne-300">{trait.name}</span>
                             <span className="text-[10px] font-mono text-zinc-500">Trait 0{i + 1}</span>
                           </div>
                           <p className="text-xs text-zinc-300">{trait.definition}</p>
@@ -467,8 +464,8 @@ export const LaunchKitWorkspace: React.FC = () => {
                   </div>
 
                   {/* Voice Rules & Banned Words */}
-                  <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-5 space-y-3">
-                    <h3 className="text-sm font-bold text-white border-b border-zinc-800 pb-2">
+                  <div className="bg-obsidian-950/80 border border-white/[0.06] rounded-xl p-5 space-y-3">
+                    <h3 className="text-sm font-bold text-white border-b border-white/[0.05] pb-2 font-mono">
                       3. Voice & Vocabulary Rules
                     </h3>
                     <div className="space-y-3">
@@ -476,7 +473,7 @@ export const LaunchKitWorkspace: React.FC = () => {
                         <span className="text-[10px] font-mono text-zinc-500 uppercase block mb-1">
                           Tonal Register
                         </span>
-                        <p className="text-xs font-mono text-indigo-300 bg-zinc-950 p-2 rounded border border-zinc-850">
+                        <p className="text-xs font-mono text-champagne-300 bg-obsidian-900 p-2 rounded-lg border border-white/[0.04]">
                           {kit.guidelines.voice.tonalRegister}
                         </p>
                       </div>
@@ -517,29 +514,29 @@ export const LaunchKitWorkspace: React.FC = () => {
                 </div>
 
                 {/* 3. Visual Identity */}
-                <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-5 space-y-4">
-                  <h3 className="text-sm font-bold text-white border-b border-zinc-800 pb-2">
+                <div className="bg-obsidian-950/80 border border-white/[0.06] rounded-xl p-5 space-y-4">
+                  <h3 className="text-sm font-bold text-white border-b border-white/[0.05] pb-2 font-mono">
                     4. Visual Identity & Typography Tokens
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {/* Palette */}
-                    <div className="p-3 bg-zinc-950 rounded-lg border border-zinc-850 space-y-2">
+                    <div className="p-3 bg-obsidian-900 rounded-lg border border-white/[0.04] space-y-2">
                       <span className="text-[10px] font-mono uppercase text-zinc-500 block">
                         Palette
                       </span>
                       <div className="flex items-center gap-2">
                         <div
-                          className="w-6 h-6 rounded border border-zinc-700"
+                          className="w-6 h-6 rounded border border-white/20"
                           style={{ backgroundColor: kit.guidelines.visualDirection.primaryColor }}
                           title="Primary Dominant"
                         />
                         <div
-                          className="w-6 h-6 rounded border border-zinc-700"
+                          className="w-6 h-6 rounded border border-white/20"
                           style={{ backgroundColor: kit.guidelines.visualDirection.secondaryColor }}
                           title="Secondary Brand"
                         />
                         <div
-                          className="w-6 h-6 rounded border border-zinc-700"
+                          className="w-6 h-6 rounded border border-white/20"
                           style={{ backgroundColor: kit.guidelines.visualDirection.accentColor }}
                           title="Accent Invariant"
                         />
@@ -550,30 +547,30 @@ export const LaunchKitWorkspace: React.FC = () => {
                     </div>
 
                     {/* Typography */}
-                    <div className="p-3 bg-zinc-950 rounded-lg border border-zinc-850 space-y-1">
+                    <div className="p-3 bg-obsidian-900 rounded-lg border border-white/[0.04] space-y-1">
                       <span className="text-[10px] font-mono uppercase text-zinc-500 block">
                         Type Pairing
                       </span>
                       <p className="text-xs text-zinc-300">
-                        <span className="text-zinc-500">Display:</span>{' '}
+                        <span className="text-zinc-500 font-mono text-[10px]">Display:</span>{' '}
                         {kit.guidelines.visualDirection.typographyPairing.headingFont}
                       </p>
                       <p className="text-xs text-zinc-300">
-                        <span className="text-zinc-500">Body:</span>{' '}
+                        <span className="text-zinc-500 font-mono text-[10px]">Body:</span>{' '}
                         {kit.guidelines.visualDirection.typographyPairing.bodyFont}
                       </p>
                       <p className="text-xs text-emerald-400 font-mono">
-                        <span className="text-zinc-500">Code:</span>{' '}
+                        <span className="text-zinc-500 font-mono text-[10px]">Code:</span>{' '}
                         {kit.guidelines.visualDirection.typographyPairing.monoFont}
                       </p>
                     </div>
 
                     {/* Shapes */}
-                    <div className="p-3 bg-zinc-950 rounded-lg border border-zinc-850 space-y-1">
+                    <div className="p-3 bg-obsidian-900 rounded-lg border border-white/[0.04] space-y-1">
                       <span className="text-[10px] font-mono uppercase text-zinc-500 block">
                         UI Shape & Corner Radius
                       </span>
-                      <p className="text-xs font-mono text-indigo-300">
+                      <p className="text-xs font-mono text-champagne-300">
                         {kit.guidelines.visualDirection.uiCornerRadius}
                       </p>
                       <p className="text-[11px] text-zinc-500">
@@ -584,15 +581,15 @@ export const LaunchKitWorkspace: React.FC = () => {
                 </div>
 
                 {/* 4. Do & Don't Matrix */}
-                <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-5 space-y-3">
-                  <h3 className="text-sm font-bold text-white border-b border-zinc-800 pb-2">
+                <div className="bg-obsidian-950/80 border border-white/[0.06] rounded-xl p-5 space-y-3">
+                  <h3 className="text-sm font-bold text-white border-b border-white/[0.05] pb-2 font-mono">
                     5. Editorial Do and Don’t Matrix
                   </h3>
                   <div className="space-y-3">
                     {kit.guidelines.doAndDontExamples.map((ex, i) => (
-                      <div key={i} className="p-3 bg-zinc-950 rounded-lg border border-zinc-850 space-y-2">
+                      <div key={i} className="p-3 bg-obsidian-900 rounded-lg border border-white/[0.04] space-y-2">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="font-mono text-indigo-400 font-bold uppercase">
+                          <span className="font-mono text-champagne-400 font-bold uppercase">
                             {ex.category}
                           </span>
                           <span className="text-[10px] text-zinc-500 italic">{ex.explanation}</span>
@@ -623,19 +620,19 @@ export const LaunchKitWorkspace: React.FC = () => {
           role="dialog"
           aria-modal="true"
           aria-label="Export Brand Artifact"
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in"
         >
-          <div className="bg-zinc-950 border border-zinc-800 rounded-2xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/50">
+          <div className="monolith-card rounded-2xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden border border-white/[0.1]">
+            <div className="px-6 py-4 border-b border-white/[0.06] flex items-center justify-between bg-obsidian-900/60">
               <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-indigo-400" />
+                <FileText className="w-4 h-4 text-champagne-400" />
                 <h3 className="text-sm font-semibold text-white">
                   Export Brand Book ({exportContent.format.toUpperCase()})
                 </h3>
               </div>
               <button
                 onClick={clearExport}
-                className="p-1 rounded text-zinc-400 hover:text-white hover:bg-zinc-800"
+                className="p-1 rounded text-zinc-400 hover:text-white hover:bg-obsidian-800"
                 aria-label="Close export dialog"
               >
                 <X className="w-4 h-4" />
@@ -643,30 +640,30 @@ export const LaunchKitWorkspace: React.FC = () => {
             </div>
 
             <div className="p-6 overflow-y-auto flex-1">
-              <pre className="text-xs font-mono text-zinc-300 bg-zinc-900 p-4 rounded-xl border border-zinc-800 whitespace-pre-wrap leading-relaxed">
+              <pre className="text-xs font-mono text-zinc-300 bg-obsidian-950 p-4 rounded-xl border border-white/[0.06] whitespace-pre-wrap leading-relaxed">
                 {exportContent.content}
               </pre>
             </div>
 
-            <div className="px-6 py-4 border-t border-zinc-800 flex items-center justify-between bg-zinc-900/50">
+            <div className="px-6 py-4 border-t border-white/[0.06] flex items-center justify-between bg-obsidian-900/60">
               <span className="text-xs font-mono text-zinc-500">
                 {exportContent.content.length} characters
               </span>
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleCopyExport}
-                  className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg text-xs font-mono flex items-center gap-1.5"
+                  className="px-3 py-1.5 bg-obsidian-900 hover:bg-obsidian-800 text-zinc-200 rounded-lg text-xs font-mono flex items-center gap-1.5 border border-white/[0.06]"
                 >
                   {copiedExport ? (
                     <Check className="w-3.5 h-3.5 text-emerald-400" />
                   ) : (
-                    <Copy className="w-3.5 h-3.5" />
+                    <Copy className="w-3.5 h-3.5 text-champagne-400" />
                   )}
                   <span>{copiedExport ? 'Copied' : 'Copy All'}</span>
                 </button>
                 <button
                   onClick={handleDownloadExport}
-                  className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow"
+                  className="btn-monolith-primary px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow"
                 >
                   <Download className="w-3.5 h-3.5" />
                   <span>Download .{exportContent.format === 'markdown' ? 'md' : 'json'}</span>

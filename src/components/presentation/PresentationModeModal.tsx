@@ -15,48 +15,45 @@ import {
 } from 'lucide-react';
 
 export const PresentationModeModal: React.FC = () => {
-  const { isPresentationModeOpen, togglePresentationMode, launchKit, project } = useBrandStore();
-
+  const { project, isPresentationModeOpen, togglePresentationMode } = useBrandStore();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
-  const kit = launchKit || (project.launchKit as typeof launchKit);
+  const kit = project.launchKit;
   const guidelines = kit?.guidelines;
-  const brandName = guidelines?.brandName || project.metadata?.name || 'Kintra';
-  const tagline = guidelines?.tagline || 'Deterministic pull request intelligence';
+  const brandName = guidelines?.naming.approvedName || project.metadata.name;
+  const tagline = guidelines?.naming.approvedTagline || 'Autonomous Brand Intelligence';
 
   const slides = [
-    { id: 'cover', title: 'Executive Overview' },
-    { id: 'strategy', title: 'Strategic Thesis & Sacrifice' },
-    { id: 'identity', title: 'Personality & Voice System' },
-    { id: 'visual', title: 'Visual & Design Direction' },
-    { id: 'dodont', title: 'Do & Don’t Editorial Standards' },
-    { id: 'launchkit', title: 'Launch Deliverables' },
-    { id: 'audit', title: 'Causal Governance Ledger' },
+    { id: 'cover', title: 'Executive Summary & Pitch' },
+    { id: 'positioning', title: 'Positioning & Sacrifice' },
+    { id: 'personality', title: 'Personality & Voice System' },
+    { id: 'visual', title: 'Visual Mark & Design Tokens' },
+    { id: 'do_dont', title: 'Do & Don’t Standards' },
+    { id: 'deliverables', title: 'Production Launch Deliverables' },
+    { id: 'governance', title: 'Deterministic Governance' },
   ];
 
   const totalSlides = slides.length;
 
   const nextSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev < totalSlides - 1 ? prev + 1 : prev));
+    setCurrentSlide((prev) => Math.min(prev + 1, totalSlides - 1));
   }, [totalSlides]);
 
   const prevSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev > 0 ? prev - 1 : prev));
+    setCurrentSlide((prev) => Math.max(prev - 1, 0));
   }, []);
 
-  // Keyboard Navigation: Esc to close, Arrow keys to navigate slides
+  // Keyboard navigation: Escape to exit, Arrows to change slide
   useEffect(() => {
     if (!isPresentationModeOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         togglePresentationMode(false);
-      } else if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
-        e.preventDefault();
+      } else if (e.key === 'ArrowRight' || e.key === 'Space') {
         nextSlide();
-      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
-        e.preventDefault();
+      } else if (e.key === 'ArrowLeft') {
         prevSlide();
       }
     };
@@ -81,9 +78,9 @@ export const PresentationModeModal: React.FC = () => {
       className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl flex flex-col justify-between text-zinc-100 select-none overflow-hidden animate-in fade-in duration-200"
     >
       {/* Top Bar */}
-      <header className="px-8 py-5 flex items-center justify-between border-b border-zinc-800/80 bg-zinc-950/80">
+      <header className="px-8 py-5 flex items-center justify-between border-b border-white/[0.06] bg-obsidian-950/80">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-indigo-600/30 border border-indigo-500/50 flex items-center justify-center text-indigo-400 font-mono text-sm font-bold shadow-inner">
+          <div className="w-8 h-8 rounded-lg bg-champagne-500/10 border border-champagne-500/30 flex items-center justify-center text-champagne-400 font-mono text-sm font-bold shadow-inner">
             K
           </div>
           <div>
@@ -108,8 +105,8 @@ export const PresentationModeModal: React.FC = () => {
               onClick={() => setCurrentSlide(idx)}
               className={`h-2 rounded-full transition-all duration-200 ${
                 currentSlide === idx
-                  ? 'w-8 bg-indigo-500'
-                  : 'w-2 bg-zinc-800 hover:bg-zinc-700'
+                  ? 'w-8 bg-champagne-400'
+                  : 'w-2 bg-obsidian-800 hover:bg-obsidian-700'
               }`}
               title={s.title}
               aria-label={`Go to slide ${idx + 1}: ${s.title}`}
@@ -119,13 +116,13 @@ export const PresentationModeModal: React.FC = () => {
 
         {/* Exit Button */}
         <div className="flex items-center gap-3">
-          <span className="hidden sm:inline-block text-[11px] font-mono text-zinc-400 bg-zinc-900 px-2.5 py-1 rounded border border-zinc-800">
+          <span className="hidden sm:inline-block text-[11px] font-mono text-zinc-400 bg-obsidian-900 px-2.5 py-1 rounded border border-white/[0.06]">
             Esc to exit · ← → to navigate
           </span>
           <button
             onClick={() => togglePresentationMode(false)}
             aria-label="Close presentation mode"
-            className="p-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 hover:text-zinc-100 transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500"
+            className="p-2 rounded-lg bg-obsidian-900 hover:bg-obsidian-800 border border-white/[0.06] text-zinc-400 hover:text-zinc-100 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -137,95 +134,89 @@ export const PresentationModeModal: React.FC = () => {
         {/* SLIDE 1: Cover & Elevator Pitch */}
         {currentSlide === 0 && (
           <div className="space-y-8 animate-in fade-in zoom-in-95 duration-200 text-center">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-950/60 border border-indigo-800/80 text-xs font-mono text-indigo-300">
-              <Sparkles className="w-3.5 h-3.5" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-champagne-500/10 border border-champagne-500/25 text-xs font-mono text-champagne-300">
+              <Sparkles className="w-3.5 h-3.5 text-champagne-400" />
               <span>{guidelines?.positioning.archetype || 'The Engineering Purist'} Archetype</span>
             </div>
 
             <div className="space-y-3">
               <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-white">
-                {brandName}
+                <span className="text-titanium-shimmer">{brandName}</span>
               </h1>
-              <p className="text-xl sm:text-2xl text-indigo-300 font-light max-w-3xl mx-auto">
+              <p className="text-xl sm:text-2xl text-champagne-300 font-light max-w-3xl mx-auto">
                 {tagline}
               </p>
             </div>
 
             {/* Spoken Pitch Card */}
-            <div className="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-6 sm:p-8 max-w-3xl mx-auto text-left space-y-4 shadow-2xl backdrop-blur-md">
+            <div className="monolith-card rounded-2xl p-6 sm:p-8 max-w-3xl mx-auto text-left space-y-4 shadow-2xl backdrop-blur-md">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-mono text-zinc-400 uppercase tracking-wider flex items-center gap-2">
                   <Terminal className="w-4 h-4 text-emerald-400" />
                   <span>30-Second Spoken Pitch</span>
                 </span>
-                <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-900/40">
+                <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-900/60">
                   Investor & Partner Ready
                 </span>
               </div>
-              <blockquote className="text-sm sm:text-base text-zinc-200 italic leading-relaxed">
-                {kit?.items.find((i) => i.type === 'elevator_pitch')?.content ||
-                  `"We build ${brandName}. As developers use AI to generate more code faster, reviewing pull requests has become the mission-critical bottleneck. Linters are too dumb to catch multi-file semantic bugs, while AI chatbots hallucinate false positives. ${brandName} replaces guesswork with deterministic AST verification in CI runners—giving engineering teams verifiable correctness guarantees before code merges."`}
-              </blockquote>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto pt-4 text-xs font-mono">
-              <div className="p-3 bg-zinc-950/80 rounded-xl border border-zinc-800">
-                <span className="text-zinc-500 block">Target Audience</span>
-                <span className="text-zinc-200 font-semibold">{guidelines?.positioning.targetAudience}</span>
-              </div>
-              <div className="p-3 bg-zinc-950/80 rounded-xl border border-zinc-800">
-                <span className="text-zinc-500 block">Differentiator</span>
-                <span className="text-indigo-300 font-semibold">{guidelines?.positioning.differentiator}</span>
-              </div>
-              <div className="p-3 bg-zinc-950/80 rounded-xl border border-zinc-800">
-                <span className="text-zinc-500 block">Proof Mechanism</span>
-                <span className="text-emerald-300 font-semibold">{guidelines?.positioning.proofMechanism}</span>
+              <p className="text-sm sm:text-base text-zinc-200 leading-relaxed font-sans italic border-l-2 border-champagne-500/80 pl-4 py-1">
+                &ldquo;{kit?.items.find((i) => i.id === 'spoken_pitch')?.content ||
+                  'PRGuard is the autonomous code review guardian that acts as a merciless principal engineer on every pull request.'}&rdquo;
+              </p>
+              <div className="flex items-center justify-between pt-2 border-t border-white/[0.04] text-xs font-mono text-zinc-500">
+                <span>Proof: AST-based call-graph taint analysis</span>
+                <span>Zero Hallucinations</span>
               </div>
             </div>
           </div>
         )}
 
-        {/* SLIDE 2: Strategic Thesis & Sacrifice */}
+        {/* SLIDE 2: Positioning & Sacrifice */}
         {currentSlide === 1 && (
           <div className="space-y-6 animate-in fade-in zoom-in-95 duration-200">
-            <div className="border-b border-zinc-800 pb-3">
-              <h2 className="text-2xl font-bold text-white">Strategic Thesis & The Strategic Sacrifice</h2>
-              <p className="text-xs text-zinc-400 font-mono mt-1">
-                Strategy is fundamentally defined by what a brand chooses NOT to do.
-              </p>
+            <div className="border-b border-white/[0.06] pb-3">
+              <div className="flex items-center gap-2 text-xs font-mono uppercase text-champagne-400">
+                <span>Strategic Territory</span>
+                <span>•</span>
+                <span>{guidelines?.positioning.archetype}</span>
+              </div>
+              <h2 className="text-2xl font-bold text-white mt-1">Positioning & Explicit Sacrifice</h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Problem vs Value Proposition */}
-              <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-5 space-y-4">
-                <div>
-                  <span className="text-xs font-mono uppercase tracking-wider text-red-400 block mb-1">
-                    The Problem Framing
-                  </span>
-                  <p className="text-sm text-zinc-200 leading-relaxed bg-red-950/10 border border-red-900/20 p-3 rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+              {/* The Core Thesis */}
+              <div className="monolith-card rounded-xl p-5 space-y-4">
+                <div className="space-y-1">
+                  <span className="text-xs font-mono text-zinc-400 uppercase">Problem Framing:</span>
+                  <p className="text-sm text-zinc-200 leading-relaxed bg-obsidian-950 p-3 rounded-lg border border-white/[0.04]">
                     {guidelines?.positioning.problemFraming}
                   </p>
                 </div>
 
-                <div>
-                  <span className="text-xs font-mono uppercase tracking-wider text-emerald-400 block mb-1">
-                    Value Proposition & Thesis
-                  </span>
-                  <p className="text-sm text-zinc-200 leading-relaxed bg-emerald-950/10 border border-emerald-900/20 p-3 rounded-lg">
+                <div className="space-y-1">
+                  <span className="text-xs font-mono text-zinc-400 uppercase">Core Differentiator:</span>
+                  <p className="text-sm text-emerald-300 font-semibold bg-obsidian-950 p-3 rounded-lg border border-white/[0.04]">
+                    {guidelines?.positioning.differentiator}
+                  </p>
+                </div>
+
+                <div className="space-y-1">
+                  <span className="text-xs font-mono text-zinc-400 uppercase">Claimed Value Proposition:</span>
+                  <p className="text-sm text-zinc-300 leading-relaxed bg-obsidian-950 p-3 rounded-lg border border-white/[0.04]">
                     {guidelines?.positioning.valueProposition}
                   </p>
                 </div>
               </div>
 
               {/* The Explicit Tradeoff / Sacrifice */}
-              <div className="bg-zinc-900/60 border border-indigo-900/40 rounded-xl p-5 flex flex-col justify-between space-y-4">
+              <div className="monolith-card rounded-xl p-5 flex flex-col justify-between space-y-4">
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-indigo-400 text-xs font-mono uppercase tracking-wider">
+                  <div className="flex items-center gap-2 text-champagne-400 text-xs font-mono uppercase tracking-wider">
                     <Sliders className="w-4 h-4" />
                     <span>The Real Strategic Sacrifice</span>
                   </div>
 
-                  <div className="p-4 bg-indigo-950/20 border border-indigo-800/40 rounded-lg space-y-3">
+                  <div className="p-4 bg-obsidian-950 border border-white/[0.06] rounded-lg space-y-3">
                     <div>
                       <span className="text-[10px] font-mono text-zinc-400 uppercase">What We Emphasize:</span>
                       <p className="text-sm font-semibold text-white">
@@ -233,7 +224,7 @@ export const PresentationModeModal: React.FC = () => {
                       </p>
                     </div>
 
-                    <div className="border-t border-indigo-900/40 pt-2">
+                    <div className="border-t border-white/[0.06] pt-2">
                       <span className="text-[10px] font-mono text-red-300 uppercase">What We Explicitly Sacrifice:</span>
                       <p className="text-sm text-zinc-300">
                         Generic conversational AI bots, superficial hype slogans, and consumer commodity workflows.
@@ -242,7 +233,7 @@ export const PresentationModeModal: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="text-[11px] font-mono text-zinc-400 bg-zinc-950 p-2.5 rounded border border-zinc-800">
+                <div className="text-[11px] font-mono text-zinc-400 bg-obsidian-950 p-2.5 rounded border border-white/[0.05]">
                   <span className="text-emerald-400 font-semibold">Category Framing: </span>
                   <span>{guidelines?.positioning.categoryFraming}</span>
                 </div>
@@ -254,7 +245,7 @@ export const PresentationModeModal: React.FC = () => {
         {/* SLIDE 3: Personality & Voice System */}
         {currentSlide === 2 && (
           <div className="space-y-6 animate-in fade-in zoom-in-95 duration-200">
-            <div className="border-b border-zinc-800 pb-3">
+            <div className="border-b border-white/[0.06] pb-3">
               <h2 className="text-2xl font-bold text-white">Brand Personality & Tonal Voice System</h2>
               <p className="text-xs text-zinc-400 font-mono mt-1">
                 Calibrated against senior practitioners who instantly dismiss artificial marketing speech.
@@ -263,13 +254,13 @@ export const PresentationModeModal: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {guidelines?.personality.traits.map((trait, i) => (
-                <div key={i} className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4 space-y-3">
+                <div key={i} className="monolith-card rounded-xl p-4 space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-indigo-300">{trait.name}</span>
+                    <span className="text-sm font-bold text-champagne-300">{trait.name}</span>
                     <span className="text-[10px] font-mono text-zinc-500">Trait 0{i + 1}</span>
                   </div>
                   <p className="text-xs text-zinc-300 leading-relaxed">{trait.definition}</p>
-                  <div className="border-t border-zinc-800 pt-2 text-[11px]">
+                  <div className="border-t border-white/[0.04] pt-2 text-[11px]">
                     <span className="text-zinc-500 block">Avoids Anti-Pattern:</span>
                     <span className="text-red-400 font-mono">{trait.avoid}</span>
                   </div>
@@ -278,10 +269,10 @@ export const PresentationModeModal: React.FC = () => {
             </div>
 
             {/* Voice & Vocabulary */}
-            <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-5 space-y-4">
-              <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
+            <div className="monolith-card rounded-xl p-5 space-y-4">
+              <div className="flex items-center justify-between pb-2 border-b border-white/[0.05]">
                 <span className="text-xs font-mono text-zinc-400 uppercase">Tonal Register:</span>
-                <span className="text-xs font-mono text-indigo-300 font-semibold">{guidelines?.voice.tonalRegister}</span>
+                <span className="text-xs font-mono text-champagne-300 font-semibold">{guidelines?.voice.tonalRegister}</span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -300,7 +291,7 @@ export const PresentationModeModal: React.FC = () => {
 
                 <div>
                   <span className="text-xs font-mono text-red-400 uppercase block mb-1.5">
-                    ✕ Strictly Banned Marketing Buzzwords:
+                    ✕ Strictly Forbidden Banned Buzzwords:
                   </span>
                   <div className="flex flex-wrap gap-1.5">
                     {guidelines?.voice.vocabularyRules.forbiddenWords.map((w, idx) => (
@@ -315,100 +306,106 @@ export const PresentationModeModal: React.FC = () => {
           </div>
         )}
 
-        {/* SLIDE 4: Visual & Design Direction */}
+        {/* SLIDE 4: Visual Identity & Design Tokens */}
         {currentSlide === 3 && (
           <div className="space-y-6 animate-in fade-in zoom-in-95 duration-200">
-            <div className="border-b border-zinc-800 pb-3">
-              <h2 className="text-2xl font-bold text-white">Visual Identity & Design Direction</h2>
+            <div className="border-b border-white/[0.06] pb-3">
+              <h2 className="text-2xl font-bold text-white">Visual Design System & Invariant Tokens</h2>
               <p className="text-xs text-zinc-400 font-mono mt-1">
-                Obsidian terminal foundation with high-contrast diagnostic indicators.
+                Deterministic visual tokens engineered for dark-mode IDE and developer console environments.
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Color Palette */}
-              <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-5 space-y-3">
-                <span className="text-xs font-mono uppercase tracking-wider text-zinc-400 block">
-                  Core Color Hierarchy
+              {/* Palette */}
+              <div className="monolith-card rounded-xl p-5 space-y-3">
+                <span className="text-xs font-mono text-zinc-400 uppercase tracking-wider block">
+                  Tokenized Color Palette
                 </span>
                 <div className="space-y-2">
-                  <div className="flex items-center gap-3 p-2 rounded bg-zinc-950 border border-zinc-800">
-                    <div
-                      className="w-8 h-8 rounded border border-zinc-700 shrink-0"
-                      style={{ backgroundColor: guidelines?.visualDirection.primaryColor }}
-                    />
-                    <div>
-                      <span className="text-xs font-semibold block text-white">Dominant Base</span>
-                      <span className="text-[10px] font-mono text-zinc-400">{guidelines?.visualDirection.primaryColor}</span>
+                  <div className="p-3 bg-obsidian-950 rounded-lg border border-white/[0.04] flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="w-7 h-7 rounded border border-white/20"
+                        style={{ backgroundColor: guidelines?.visualDirection.primaryColor }}
+                      />
+                      <div>
+                        <div className="text-xs font-bold text-white">Primary Canvas</div>
+                        <div className="text-[10px] font-mono text-zinc-400">{guidelines?.visualDirection.primaryColor}</div>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 p-2 rounded bg-zinc-950 border border-zinc-800">
-                    <div
-                      className="w-8 h-8 rounded border border-zinc-700 shrink-0"
-                      style={{ backgroundColor: guidelines?.visualDirection.secondaryColor }}
-                    />
-                    <div>
-                      <span className="text-xs font-semibold block text-white">Brand Indigo</span>
-                      <span className="text-[10px] font-mono text-zinc-400">{guidelines?.visualDirection.secondaryColor}</span>
+                  <div className="p-3 bg-obsidian-950 rounded-lg border border-white/[0.04] flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="w-7 h-7 rounded border border-white/20"
+                        style={{ backgroundColor: guidelines?.visualDirection.secondaryColor }}
+                      />
+                      <div>
+                        <div className="text-xs font-bold text-white">Secondary Accent</div>
+                        <div className="text-[10px] font-mono text-zinc-400">{guidelines?.visualDirection.secondaryColor}</div>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 p-2 rounded bg-zinc-950 border border-zinc-800">
-                    <div
-                      className="w-8 h-8 rounded border border-zinc-700 shrink-0"
-                      style={{ backgroundColor: guidelines?.visualDirection.accentColor }}
-                    />
-                    <div>
-                      <span className="text-xs font-semibold block text-white">Invariant Emerald</span>
-                      <span className="text-[10px] font-mono text-zinc-400">{guidelines?.visualDirection.accentColor}</span>
+                  <div className="p-3 bg-obsidian-950 rounded-lg border border-white/[0.04] flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="w-7 h-7 rounded border border-white/20"
+                        style={{ backgroundColor: guidelines?.visualDirection.accentColor }}
+                      />
+                      <div>
+                        <div className="text-xs font-bold text-white">Accent Highlight</div>
+                        <div className="text-[10px] font-mono text-zinc-400">{guidelines?.visualDirection.accentColor}</div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Typography */}
-              <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-5 space-y-4">
-                <span className="text-xs font-mono uppercase tracking-wider text-zinc-400 block">
-                  Typography Pairing
+              <div className="monolith-card rounded-xl p-5 space-y-3">
+                <span className="text-xs font-mono text-zinc-400 uppercase tracking-wider block">
+                  Typeface Pairings
                 </span>
                 <div className="space-y-3">
-                  <div>
-                    <span className="text-[10px] font-mono text-zinc-500 uppercase">Display / Heading</span>
-                    <p className="text-base font-bold text-white tracking-tight">
+                  <div className="p-3 bg-obsidian-950 rounded-lg border border-white/[0.04]">
+                    <span className="text-[10px] font-mono text-zinc-500 uppercase block">Headings</span>
+                    <span className="text-base font-bold text-white">
                       {guidelines?.visualDirection.typographyPairing.headingFont}
-                    </p>
+                    </span>
                   </div>
-                  <div>
-                    <span className="text-[10px] font-mono text-zinc-500 uppercase">Body Reading</span>
-                    <p className="text-sm text-zinc-300">
+                  <div className="p-3 bg-obsidian-950 rounded-lg border border-white/[0.04]">
+                    <span className="text-[10px] font-mono text-zinc-500 uppercase block">Body Interface</span>
+                    <span className="text-sm text-zinc-200">
                       {guidelines?.visualDirection.typographyPairing.bodyFont}
-                    </p>
+                    </span>
                   </div>
-                  <div>
-                    <span className="text-[10px] font-mono text-zinc-500 uppercase">Code & Telemetry</span>
-                    <p className="text-sm font-mono text-emerald-400">
+                  <div className="p-3 bg-obsidian-950 rounded-lg border border-white/[0.04]">
+                    <span className="text-[10px] font-mono text-emerald-400 uppercase block">Code & Telemetry</span>
+                    <span className="text-sm font-mono text-emerald-300">
                       {guidelines?.visualDirection.typographyPairing.monoFont}
-                    </p>
+                    </span>
                   </div>
                 </div>
               </div>
 
-              {/* Naming & Mark Rules */}
-              <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-5 space-y-3">
-                <span className="text-xs font-mono uppercase tracking-wider text-zinc-400 block">
+              {/* Logo / Geometry */}
+              <div className="monolith-card rounded-xl p-5 space-y-3">
+                <span className="text-xs font-mono text-zinc-400 uppercase tracking-wider block">
                   Brand Name & Mark
                 </span>
-                <div className="p-3 bg-zinc-950 rounded-lg border border-zinc-800 space-y-1.5">
+                <div className="p-3 bg-obsidian-950 rounded-lg border border-white/[0.04] space-y-1.5">
                   <div className="flex items-center justify-between">
                     <span className="text-lg font-bold text-white tracking-wide">{guidelines?.naming.approvedName}</span>
-                    <span className="text-xs font-mono text-indigo-400">{guidelines?.naming.pronunciation}</span>
+                    <span className="text-xs font-mono text-champagne-400">{guidelines?.naming.pronunciation}</span>
                   </div>
                   <p className="text-[11px] text-zinc-400 leading-snug">
                     {guidelines?.naming.semanticRationale}
                   </p>
                 </div>
-                <div className="text-[11px] text-zinc-400 font-mono bg-zinc-950/60 p-2.5 rounded border border-zinc-850">
+                <div className="text-[11px] text-zinc-400 font-mono bg-obsidian-950 p-2.5 rounded border border-white/[0.04]">
                   <span className="text-zinc-500 block mb-1">Corner Radius:</span>
                   <span className="text-zinc-200">{guidelines?.visualDirection.uiCornerRadius}</span>
                 </div>
@@ -420,7 +417,7 @@ export const PresentationModeModal: React.FC = () => {
         {/* SLIDE 5: Do & Don't Standards */}
         {currentSlide === 4 && (
           <div className="space-y-6 animate-in fade-in zoom-in-95 duration-200">
-            <div className="border-b border-zinc-800 pb-3">
+            <div className="border-b border-white/[0.06] pb-3">
               <h2 className="text-2xl font-bold text-white">Editorial Do and Don’t Matrix</h2>
               <p className="text-xs text-zinc-400 font-mono mt-1">
                 Concrete guardrails enforcing practitioner authenticity across all public touchpoints.
@@ -429,9 +426,9 @@ export const PresentationModeModal: React.FC = () => {
 
             <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
               {guidelines?.doAndDontExamples.map((ex, i) => (
-                <div key={i} className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4 space-y-2">
+                <div key={i} className="monolith-card rounded-xl p-4 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono text-indigo-400 font-semibold uppercase">
+                    <span className="text-xs font-mono text-champagne-400 font-semibold uppercase">
                       {ex.category}
                     </span>
                     <span className="text-[10px] text-zinc-500 italic">{ex.explanation}</span>
@@ -457,7 +454,7 @@ export const PresentationModeModal: React.FC = () => {
         {/* SLIDE 6: Launch Deliverables Showcase */}
         {currentSlide === 5 && (
           <div className="space-y-6 animate-in fade-in zoom-in-95 duration-200">
-            <div className="border-b border-zinc-800 pb-3">
+            <div className="border-b border-white/[0.06] pb-3">
               <h2 className="text-2xl font-bold text-white">Generated Launch Deliverables</h2>
               <p className="text-xs text-zinc-400 font-mono mt-1">
                 8 canonical launch deliverables grounded in the KINTRA Decision Graph.
@@ -466,7 +463,7 @@ export const PresentationModeModal: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2">
               {kit?.items.slice(0, 4).map((item, idx) => (
-                <div key={item.id} className="bg-zinc-900/70 border border-zinc-800 rounded-xl p-4 flex flex-col justify-between space-y-3">
+                <div key={item.id} className="monolith-card rounded-xl p-4 flex flex-col justify-between space-y-3">
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-zinc-200">{item.title}</span>
@@ -478,18 +475,18 @@ export const PresentationModeModal: React.FC = () => {
                         {copiedIndex === idx ? (
                           <Check className="w-3.5 h-3.5 text-emerald-400" />
                         ) : (
-                          <Copy className="w-3.5 h-3.5" />
+                          <Copy className="w-3.5 h-3.5 text-champagne-400" />
                         )}
                         <span>{copiedIndex === idx ? 'Copied' : 'Copy'}</span>
                       </button>
                     </div>
-                    <pre className="text-xs font-mono text-zinc-300 bg-zinc-950 p-3 rounded-lg border border-zinc-850 whitespace-pre-wrap leading-relaxed max-h-40 overflow-y-auto">
+                    <pre className="text-xs font-mono text-zinc-300 bg-obsidian-950 p-3 rounded-lg border border-white/[0.04] whitespace-pre-wrap leading-relaxed max-h-40 overflow-y-auto">
                       {item.content}
                     </pre>
                   </div>
-                  <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 pt-2 border-t border-zinc-850">
+                  <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 pt-2 border-t border-white/[0.04]">
                     <span>{item.targetAudience}</span>
-                    <span className="text-indigo-400">{item.suggestedChannels[0]}</span>
+                    <span className="text-champagne-400">{item.suggestedChannels[0]}</span>
                   </div>
                 </div>
               ))}
@@ -506,7 +503,7 @@ export const PresentationModeModal: React.FC = () => {
 
             <div className="space-y-2">
               <h2 className="text-3xl font-bold text-white tracking-tight">
-                Deterministic Brand Governance
+                <span className="text-titanium-shimmer">Deterministic Brand Governance</span>
               </h2>
               <p className="text-sm text-zinc-400 font-mono">
                 Every deliverable is cryptographically linked to empirical evidence and approved decisions.
@@ -514,36 +511,36 @@ export const PresentationModeModal: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-left">
-              <div className="p-4 bg-zinc-900/60 rounded-xl border border-zinc-800">
+              <div className="p-4 bg-obsidian-950 rounded-xl border border-white/[0.05]">
                 <span className="text-[10px] font-mono text-zinc-500 uppercase block">Governance</span>
                 <span className="text-xl font-bold text-white">100%</span>
-                <span className="text-[10px] text-emerald-400 block">Guardian Passed</span>
+                <span className="text-[10px] text-emerald-400 block font-mono">Guardian Passed</span>
               </div>
-              <div className="p-4 bg-zinc-900/60 rounded-xl border border-zinc-800">
+              <div className="p-4 bg-obsidian-950 rounded-xl border border-white/[0.05]">
                 <span className="text-[10px] font-mono text-zinc-500 uppercase block">Decision Nodes</span>
-                <span className="text-xl font-bold text-indigo-400">
+                <span className="text-xl font-bold text-champagne-400 font-mono">
                   {Object.keys(project.decisionGraph?.nodes || {}).length || 5}
                 </span>
-                <span className="text-[10px] text-zinc-400 block">Locked Invariants</span>
+                <span className="text-[10px] text-zinc-400 block font-mono">Locked Invariants</span>
               </div>
-              <div className="p-4 bg-zinc-900/60 rounded-xl border border-zinc-800">
+              <div className="p-4 bg-obsidian-950 rounded-xl border border-white/[0.05]">
                 <span className="text-[10px] font-mono text-zinc-500 uppercase block">Empirical Sources</span>
-                <span className="text-xl font-bold text-white">
+                <span className="text-xl font-bold text-white font-mono">
                   {project.marketLandscape?.evidenceRecords.length || 4}
                 </span>
-                <span className="text-[10px] text-zinc-400 block">Evidence Records</span>
+                <span className="text-[10px] text-zinc-400 block font-mono">Evidence Records</span>
               </div>
-              <div className="p-4 bg-zinc-900/60 rounded-xl border border-zinc-800">
+              <div className="p-4 bg-obsidian-950 rounded-xl border border-white/[0.05]">
                 <span className="text-[10px] font-mono text-zinc-500 uppercase block">Version</span>
-                <span className="text-xl font-bold text-emerald-400">
+                <span className="text-xl font-bold text-emerald-400 font-mono">
                   v{project.metadata?.version || 1}.0
                 </span>
-                <span className="text-[10px] text-zinc-400 block">Snapshot Validated</span>
+                <span className="text-[10px] text-zinc-400 block font-mono">Snapshot Validated</span>
               </div>
             </div>
 
-            <div className="p-4 bg-zinc-950 rounded-xl border border-zinc-800 text-xs font-mono text-zinc-400 text-left space-y-1">
-              <div className="text-indigo-300 font-semibold mb-1 flex items-center gap-1.5">
+            <div className="p-4 bg-obsidian-950 rounded-xl border border-white/[0.05] text-xs font-mono text-zinc-400 text-left space-y-1">
+              <div className="text-champagne-300 font-semibold mb-1 flex items-center gap-1.5">
                 <Terminal className="w-3.5 h-3.5" />
                 <span>Verification Audit Fingerprint:</span>
               </div>
@@ -556,11 +553,11 @@ export const PresentationModeModal: React.FC = () => {
       </main>
 
       {/* Bottom Navigation Controls */}
-      <footer className="px-8 py-4 border-t border-zinc-800/80 bg-zinc-950/80 flex items-center justify-between">
+      <footer className="px-8 py-4 border-t border-white/[0.06] bg-obsidian-950/80 flex items-center justify-between">
         <button
           onClick={prevSlide}
           disabled={currentSlide === 0}
-          className="px-4 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed border border-zinc-800 text-xs font-medium text-zinc-300 flex items-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500"
+          className="px-4 py-2 rounded-xl bg-obsidian-900 hover:bg-obsidian-800 disabled:opacity-30 disabled:cursor-not-allowed border border-white/[0.06] text-xs font-medium text-zinc-300 flex items-center gap-2 transition-colors"
         >
           <ChevronLeft className="w-4 h-4" />
           <span>Previous Slide</span>
@@ -573,7 +570,7 @@ export const PresentationModeModal: React.FC = () => {
         <button
           onClick={nextSlide}
           disabled={currentSlide === totalSlides - 1}
-          className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-30 disabled:cursor-not-allowed text-white text-xs font-medium flex items-center gap-2 transition-colors shadow-lg shadow-indigo-900/30 focus-visible:ring-2 focus-visible:ring-indigo-500"
+          className="btn-monolith-primary px-4 py-2 rounded-xl disabled:opacity-30 disabled:cursor-not-allowed text-xs font-medium flex items-center gap-2 shadow-lg"
         >
           <span>Next Slide</span>
           <ChevronRight className="w-4 h-4" />
