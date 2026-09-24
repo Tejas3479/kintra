@@ -39,6 +39,8 @@ import {
 } from '@/types/evolution';
 import { ScenarioLabEngine } from '@/lib/evolution/scenario-lab-engine';
 import { BrandEvolutionEngine } from '@/lib/evolution/brand-evolution-engine';
+import { LaunchKit } from '@/types/launch-kit';
+import { LaunchKitEngine } from '@/lib/launch-kit/launch-kit-engine';
 import { CanonicalBrandStateSchema } from '@/lib/schemas/brand-schemas';
 import { INITIAL_DEMO_PROJECT } from '@/fixtures/demo-brands';
 
@@ -144,6 +146,19 @@ interface BrandStoreState {
   switchBranch: (branchId: string) => boolean;
   compareBranches: (baseBranchId: string, targetBranchId: string) => BranchComparisonDiff | null;
 
+  // Launch Kit & Brand Guidelines State (Prompt 11)
+  launchKit: LaunchKit | null;
+  selectedLaunchItemId: string | null;
+  isPresentationModeOpen: boolean;
+  exportContent: { format: 'markdown' | 'json'; content: string } | null;
+
+  // Actions: Launch Kit & Guidelines
+  generateLaunchKit: () => Promise<boolean>;
+  selectLaunchItem: (itemId: string | null) => void;
+  exportLaunchKit: (format: 'markdown' | 'json') => string;
+  togglePresentationMode: (open?: boolean) => void;
+  clearExport: () => void;
+
   // Actions: User Control & Editing
   updateFact: (factId: string, statement: string, verified: boolean) => void;
   deleteFact: (factId: string) => void;
@@ -196,6 +211,7 @@ const DEFAULT_EMPTY_PROJECT: CanonicalBrandState = {
   selectedScenarioId: null,
   branches: [],
   currentBranchId: undefined,
+  launchKit: null,
   validationHistory: [],
 };
 
@@ -210,6 +226,10 @@ export const useBrandStore = create<BrandStoreState>()(
       impactReport: null,
       branches: [],
       activeBranchId: null,
+      launchKit: null,
+      selectedLaunchItemId: null,
+      isPresentationModeOpen: false,
+      exportContent: null,
       isLoading: false,
       loadingMessage: '',
       error: null,
@@ -2166,6 +2186,73 @@ export const useBrandStore = create<BrandStoreState>()(
 
         return BrandEvolutionEngine.compareBranches(base, target);
       },
+
+      generateLaunchKit: async () => {
+        set({ isLoading: true, loadingMessage: 'Synthesizing Launch Kit & Brand Guidelines...', error: null });
+        try {
+          const state = get().project;
+          let launchKit: LaunchKit;
+
+          try {
+            const res = await fetch('/api/launch-kit', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'generate', state }),
+            });
+            if (res.ok) {
+              const data = await res.json();
+              launchKit = data.launchKit;
+            } else {
+              launchKit = LaunchKitEngine.generateLaunchKit(state);
+            }
+          } catch {
+            launchKit = LaunchKitEngine.generateLaunchKit(state);
+          }
+
+          set((s) => ({
+            launchKit,
+            selectedLaunchItemId: launchKit.items[0]?.id || null,
+            project: {
+              ...s.project,
+              stage: 'launch_kit',
+              launchKit,
+            },
+            isLoading: false,
+            loadingMessage: '',
+          }));
+          return true;
+        } catch (err: any) {
+          set({
+            error: err.message || 'Failed to generate Launch Kit',
+            isLoading: false,
+            loadingMessage: '',
+          });
+          return false;
+        }
+      },
+
+      selectLaunchItem: (itemId: string | null) => {
+        set({ selectedLaunchItemId: itemId });
+      },
+
+      exportLaunchKit: (format: 'markdown' | 'json') => {
+        const kit = get().launchKit || (get().project.launchKit as LaunchKit | null);
+        if (!kit) return '';
+        const content =
+          format === 'markdown'
+            ? LaunchKitEngine.exportToMarkdown(kit)
+            : LaunchKitEngine.exportToJson(kit);
+        set({ exportContent: { format, content } });
+        return content;
+      },
+
+      togglePresentationMode: (open?: boolean) => {
+        set((s) => ({
+          isPresentationModeOpen: open !== undefined ? open : !s.isPresentationModeOpen,
+        }));
+      },
+
+      clearExport: () => set({ exportContent: null }),
     }),
     {
       name: 'kintra_brand_state_v1',
@@ -2195,6 +2282,7 @@ export const useBrandStore = create<BrandStoreState>()(
         scenarioArtifacts: state.scenarioArtifacts,
         branches: state.branches,
         activeBranchId: state.activeBranchId,
+        launchKit: state.launchKit,
       }),
     }
   )

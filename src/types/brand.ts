@@ -171,6 +171,7 @@ import { PositioningWorld, DecisionGraphState, ContradictionAlert } from './stra
 import { CreativeIdentity } from './identity';
 import { BrandArtifact } from './guardian';
 import { ScenarioArtifact, BrandBranch } from './evolution';
+import { LaunchKit } from './launch-kit';
 
 export interface CanonicalBrandState {
   metadata: ProjectMetadata;
@@ -186,7 +187,8 @@ export interface CanonicalBrandState {
     | 'guardian'
     | 'guardian_locked'
     | 'scenario_lab'
-    | 'evolution';
+    | 'evolution'
+    | 'launch_kit';
   rawFounderInput: string;
   extractedFacts: ExtractedFact[];
   unresolvedQuestions: UnresolvedQuestion[];
@@ -207,5 +209,6 @@ export interface CanonicalBrandState {
   selectedScenarioId?: string | null;
   branches?: BrandBranch[];
   currentBranchId?: string;
+  launchKit?: LaunchKit | null;
   validationHistory: ValidationResult[];
 }

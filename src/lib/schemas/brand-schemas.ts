@@ -169,6 +169,7 @@ import {
 import { CreativeIdentitySchema } from './identity-schemas';
 import { BrandArtifactSchema } from './guardian-schemas';
 import { ScenarioArtifactSchema } from './evolution-schemas';
+import { LaunchKitSchema } from './launch-kit-schemas';
 
 export const CanonicalBrandStateSchema = z.object({
   metadata: ProjectMetadataSchema,
@@ -185,6 +186,7 @@ export const CanonicalBrandStateSchema = z.object({
     'guardian_locked',
     'scenario_lab',
     'evolution',
+    'launch_kit',
   ]),
   rawFounderInput: z.string(),
   extractedFacts: z.array(ExtractedFactSchema),
@@ -206,6 +208,7 @@ export const CanonicalBrandStateSchema = z.object({
   selectedScenarioId: z.string().nullable().optional().default(null),
   branches: z.array(z.any()).optional().default([]),
   currentBranchId: z.string().optional(),
+  launchKit: LaunchKitSchema.nullable().optional().default(null),
   validationHistory: z.array(ValidationResultSchema),
 });
 

@@ -245,8 +245,8 @@ The ${brandName} Team`,
 
 3. IDENTITY PILLARS:
 • Personality: ${identity?.personalityTraits.map((t) => t.name).join(', ') || 'Surgical Rigor, Defensible Pragmatism'}
-• Voice Register: ${identity?.voiceSystem.tonalRegister || 'Direct, unadorned engineering precision'}
-• Primary Visual Palette: ${identity?.visualStyle.primaryColor || '#09090b'} (Obsidian Dark) with ${identity?.visualStyle.accentColor || '#10b981'} (Emerald Invariant)
+• Voice Register: ${identity?.voiceSystem?.sentenceBehavior?.cadenceDescription || 'Direct, unadorned engineering precision'}
+• Primary Visual Palette: ${identity?.visualSystem?.palette?.primary?.hex || '#09090b'} (Obsidian Dark) with ${identity?.visualSystem?.palette?.accent?.hex || '#10b981'} (Emerald Invariant)
 
 4. GOVERNANCE LINEAGE:
 Governed by ${governingDecisionIds.length} approved decisions in KINTRA Decision Graph and supported by ${evidenceIds.length} verified empirical evidence records.`,
@@ -346,7 +346,7 @@ Governed by ${governingDecisionIds.length} approved decisions in KINTRA Decision
         ],
       },
       voice: {
-        tonalRegister: identity?.voiceSystem.tonalRegister || 'Direct, unadorned engineering precision',
+        tonalRegister: identity?.voiceSystem?.sentenceBehavior?.cadenceDescription || 'Direct, unadorned engineering precision',
         attributes: [
           'Direct and unadorned',
           'Technically rigorous',
@@ -375,16 +375,16 @@ Governed by ${governingDecisionIds.length} approved decisions in KINTRA Decision
         },
       },
       visualDirection: {
-        primaryColor: identity?.visualStyle.primaryColor || '#09090b',
-        secondaryColor: identity?.visualStyle.secondaryColor || '#4f46e5',
-        accentColor: identity?.visualStyle.accentColor || '#10b981',
-        backgroundStyle: identity?.visualStyle.backgroundStyle || 'Terminal Deep Obsidian Dark Mode',
+        primaryColor: identity?.visualSystem?.palette?.primary?.hex || '#09090b',
+        secondaryColor: identity?.visualSystem?.palette?.secondary?.hex || '#4f46e5',
+        accentColor: identity?.visualSystem?.palette?.accent?.hex || '#10b981',
+        backgroundStyle: identity?.visualSystem?.imagery?.artDirection || 'Terminal Deep Obsidian Dark Mode',
         typographyPairing: {
-          headingFont: identity?.visualStyle.typography.headingFont || 'Space Grotesk',
-          bodyFont: identity?.visualStyle.typography.bodyFont || 'Inter',
-          monoFont: identity?.visualStyle.typography.monoFont || 'JetBrains Mono',
+          headingFont: identity?.visualSystem?.typography?.headline?.family || 'Space Grotesk',
+          bodyFont: identity?.visualSystem?.typography?.body?.family || 'Inter',
+          monoFont: identity?.visualSystem?.typography?.code?.family || 'JetBrains Mono',
         },
-        uiCornerRadius: identity?.visualStyle.uiStyling.cornerRadius || '6px',
+        uiCornerRadius: identity?.visualSystem?.shapes?.borderRadius || '6px',
         logoRules:
           'Display monospaced geometric glyph with sharp corner treatments. Never apply drop shadows or bevels.',
       },
