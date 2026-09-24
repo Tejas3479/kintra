@@ -70,28 +70,28 @@ export const DiscoveryWorkspace: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* ========================================================================= */}
       {/* SECTION 1: RAW IDEA INTAKE                                                */}
       {/* ========================================================================= */}
-      <section className="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-6 sm:p-8 shadow-xl">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+      <section className="monolith-card rounded-2xl p-6 sm:p-8 space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
           <div>
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-indigo-400" />
-              1. Raw Idea Intake
+              <Sparkles className="w-5 h-5 text-champagne-400" />
+              <span className="text-titanium-shimmer">1. Raw Idea Intake</span>
             </h2>
-            <p className="text-sm text-zinc-400 mt-1">
+            <p className="text-xs text-zinc-400 mt-1">
               Enter your incomplete founder, startup, or product idea in 1–3 rough sentences.
             </p>
           </div>
 
           {/* Quick Pre-seed Buttons */}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-zinc-500">Quick Try:</span>
+            <span className="text-xs text-zinc-500 font-mono">Quick Try:</span>
             <button
               onClick={() => handleQuickPreFill(DEMO_BRAND_PRGUARD.rawIdea)}
-              className="text-xs px-2.5 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors"
+              className="text-xs px-2.5 py-1 rounded-lg bg-obsidian-900 hover:bg-obsidian-800 text-zinc-300 border border-white/[0.08] hover:border-champagne-500/30 transition-all font-mono"
             >
               PRGuard (DevSecOps)
             </button>
@@ -101,7 +101,7 @@ export const DiscoveryWorkspace: React.FC = () => {
                   'A paid subscriber community and live workshop platform for boutique indie coffee roasters and home baristas.'
                 )
               }
-              className="text-xs px-2.5 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors"
+              className="text-xs px-2.5 py-1 rounded-lg bg-obsidian-900 hover:bg-obsidian-800 text-zinc-300 border border-white/[0.08] hover:border-champagne-500/30 transition-all font-mono"
             >
               Artisan Roast (Creator)
             </button>
@@ -115,11 +115,11 @@ export const DiscoveryWorkspace: React.FC = () => {
             disabled={isLoading || project.stage !== 'intake'}
             placeholder="e.g. An AI-powered tool that audits GitHub pull requests for subtle logic bugs so developers don't have to wait for senior reviews..."
             rows={3}
-            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-4 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all disabled:opacity-60"
+            className="w-full bg-obsidian-950 border border-white/[0.08] rounded-xl p-4 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-champagne-400 transition-all disabled:opacity-60"
           />
 
-          <div className="flex items-center justify-between pt-2">
-            <div className="text-xs text-zinc-500">
+          <div className="flex items-center justify-between pt-1">
+            <div className="text-xs text-zinc-500 font-mono">
               {ideaInput.length} characters {ideaInput.length < 10 && '(min 10 required)'}
             </div>
 
@@ -127,7 +127,7 @@ export const DiscoveryWorkspace: React.FC = () => {
               <button
                 onClick={handleStartAnalysis}
                 disabled={isLoading || ideaInput.trim().length < 10}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium text-sm text-white bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 transition-all shadow-lg shadow-indigo-600/20"
+                className="btn-monolith-primary inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold disabled:opacity-50"
               >
                 {isLoading ? (
                   <>
@@ -143,13 +143,13 @@ export const DiscoveryWorkspace: React.FC = () => {
               </button>
             ) : (
               <div className="flex items-center gap-2">
-                <span className="text-xs px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5 font-medium">
+                <span className="text-xs px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 flex items-center gap-1.5 font-medium">
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   Idea Deconstructed
                 </span>
                 <button
                   onClick={() => useBrandStore.getState().resetProject()}
-                  className="text-xs text-zinc-400 hover:text-zinc-200 underline ml-2"
+                  className="text-xs text-zinc-400 hover:text-champagne-300 underline ml-2 transition-colors"
                 >
                   Start Over
                 </button>
@@ -163,21 +163,21 @@ export const DiscoveryWorkspace: React.FC = () => {
       {/* SECTION 2: ADAPTIVE DISCOVERY INTERVIEW                                  */}
       {/* ========================================================================= */}
       {project.stage !== 'intake' && (
-        <section className="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-6 sm:p-8 shadow-xl">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <section className="monolith-card rounded-2xl p-6 sm:p-8 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
             <div>
               <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <HelpCircle className="w-5 h-5 text-cyan-400" />
-                2. Adaptive Discovery Interview
+                <HelpCircle className="w-5 h-5 text-champagne-400" />
+                <span className="text-titanium-shimmer">2. Adaptive Discovery Interview</span>
               </h2>
-              <p className="text-sm text-zinc-400 mt-1">
+              <p className="text-xs text-zinc-400 mt-1">
                 KINTRA dynamically identifies high-value strategic unknowns rather than asking a blind questionnaire.
               </p>
             </div>
 
             {/* Questions Progress */}
             <div className="flex items-center gap-2">
-              <span className="text-xs px-3 py-1 rounded-full bg-zinc-800 text-zinc-300 font-mono">
+              <span className="text-xs px-3 py-1 rounded-full bg-obsidian-900 border border-white/[0.06] text-champagne-400 font-mono">
                 {isInterviewComplete
                   ? 'Interview Complete'
                   : `Question ${project.interviewState.currentQuestionIndex + 1} of ${
@@ -188,11 +188,11 @@ export const DiscoveryWorkspace: React.FC = () => {
           </div>
 
           {!isInterviewComplete && activeQuestion ? (
-            <div className="bg-zinc-950 border border-zinc-800/80 rounded-xl p-6 space-y-6">
+            <div className="bg-obsidian-950/80 border border-white/[0.06] rounded-xl p-6 space-y-6">
               {/* Question Header */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs uppercase tracking-wider font-semibold text-cyan-400 px-2.5 py-0.5 rounded bg-cyan-950/60 border border-cyan-800/40">
+                  <span className="text-xs uppercase font-mono tracking-wider font-semibold text-champagne-400 px-2.5 py-0.5 rounded bg-champagne-500/10 border border-champagne-500/25">
                     Topic: {activeQuestion.topic}
                   </span>
                 </div>
@@ -202,10 +202,10 @@ export const DiscoveryWorkspace: React.FC = () => {
               </div>
 
               {/* Strategic Rationale: Explains WHY the AI asks this */}
-              <div className="bg-zinc-900/90 border border-zinc-800 rounded-lg p-3.5 text-xs text-zinc-300 flex items-start gap-2.5">
-                <ShieldCheck className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
+              <div className="bg-obsidian-900/90 border border-white/[0.06] rounded-xl p-3.5 text-xs text-zinc-300 flex items-start gap-2.5">
+                <ShieldCheck className="w-4 h-4 text-champagne-400 shrink-0 mt-0.5" />
                 <div>
-                  <span className="font-semibold text-indigo-300">Why KINTRA is asking this: </span>
+                  <span className="font-semibold text-champagne-300 font-mono text-[11px]">Why KINTRA is asking this: </span>
                   {activeQuestion.whyAsking}
                 </div>
               </div>
@@ -221,7 +221,7 @@ export const DiscoveryWorkspace: React.FC = () => {
                       <button
                         key={i}
                         onClick={() => handleAnswerQuestion(opt)}
-                        className="text-left p-3 rounded-lg bg-zinc-900 hover:bg-indigo-950/50 hover:border-indigo-600/60 border border-zinc-800 text-xs text-zinc-200 transition-all leading-normal"
+                        className="text-left p-3.5 rounded-xl bg-obsidian-900/90 hover:bg-obsidian-850 hover:border-champagne-500/40 border border-white/[0.06] text-xs text-zinc-200 transition-all leading-normal shadow-sm"
                       >
                         {opt}
                       </button>
@@ -241,7 +241,7 @@ export const DiscoveryWorkspace: React.FC = () => {
                     value={customAnswer}
                     onChange={(e) => setCustomAnswer(e.target.value)}
                     placeholder="Type custom answer..."
-                    className="flex-1 bg-zinc-900 border border-zinc-800 rounded-lg px-3.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500"
+                    className="flex-1 bg-obsidian-900 border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-champagne-400"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && customAnswer.trim()) {
                         handleAnswerQuestion(customAnswer.trim());
@@ -251,13 +251,13 @@ export const DiscoveryWorkspace: React.FC = () => {
                   <button
                     onClick={() => handleAnswerQuestion(customAnswer.trim())}
                     disabled={!customAnswer.trim()}
-                    className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-40 text-white rounded-lg text-xs font-medium transition-colors"
+                    className="btn-monolith-primary px-4 py-2 rounded-xl text-xs font-medium disabled:opacity-40"
                   >
                     Submit
                   </button>
                   <button
                     onClick={handleSkipQuestion}
-                    className="px-3 py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 rounded-lg text-xs transition-colors"
+                    className="px-3 py-2 bg-obsidian-900 hover:bg-obsidian-800 text-zinc-400 hover:text-zinc-200 rounded-xl text-xs transition-colors border border-white/[0.06]"
                   >
                     Skip
                   </button>
@@ -265,17 +265,17 @@ export const DiscoveryWorkspace: React.FC = () => {
               </div>
 
               {/* Early Synthesis Override */}
-              <div className="pt-2 border-t border-zinc-900 flex justify-end">
+              <div className="pt-2 border-t border-white/[0.04] flex justify-end">
                 <button
                   onClick={() => synthesizeBrief()}
-                  className="text-xs text-zinc-400 hover:text-indigo-300 underline"
+                  className="text-xs text-zinc-400 hover:text-champagne-300 underline transition-colors"
                 >
                   I have provided enough detail — synthesize Strategic Brief now &rarr;
                 </button>
               </div>
             </div>
           ) : (
-            <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="bg-obsidian-950/80 border border-white/[0.06] rounded-xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
                   <CheckCircle2 className="w-5 h-5" />
@@ -292,7 +292,7 @@ export const DiscoveryWorkspace: React.FC = () => {
                 <button
                   onClick={() => synthesizeBrief()}
                   disabled={isLoading}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium text-sm text-white bg-indigo-600 hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-600/20"
+                  className="btn-monolith-primary inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold"
                 >
                   {isLoading ? (
                     <>
@@ -318,12 +318,13 @@ export const DiscoveryWorkspace: React.FC = () => {
       {project.stage !== 'intake' && (
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Column A: Verified Facts */}
-          <div className="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-6 shadow-xl space-y-4">
-            <div className="flex items-center justify-between">
+          <div className="monolith-card rounded-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-white/[0.05] pb-3">
               <div>
                 <h3 className="text-base font-bold text-white flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                  Verified Facts ({project.extractedFacts.length})
+                  <span>Verified Facts</span>
+                  <span className="text-xs text-zinc-400 font-normal">({project.extractedFacts.length})</span>
                 </h3>
                 <p className="text-xs text-zinc-400 mt-0.5">
                   Invariants asserted by founder. Edit or verify to anchor strategy.
@@ -335,14 +336,14 @@ export const DiscoveryWorkspace: React.FC = () => {
               {project.extractedFacts.map((fact) => (
                 <div
                   key={fact.id}
-                  className="p-3 bg-zinc-950 border border-zinc-800/80 rounded-xl flex items-start justify-between gap-3 text-xs"
+                  className="p-3 bg-obsidian-950/80 border border-white/[0.05] rounded-xl flex items-start justify-between gap-3 text-xs"
                 >
                   <div className="flex items-start gap-2.5 flex-1">
                     <input
                       type="checkbox"
                       checked={fact.verifiedByUser}
                       onChange={(e) => updateFact(fact.id, fact.statement, e.target.checked)}
-                      className="mt-0.5 rounded border-zinc-700 bg-zinc-900 text-indigo-600 focus:ring-0 cursor-pointer"
+                      className="mt-0.5 rounded border-zinc-700 bg-obsidian-900 text-champagne-500 focus:ring-0 cursor-pointer accent-champagne-500"
                       title="Verify as confirmed fact"
                     />
                     <input
@@ -364,13 +365,13 @@ export const DiscoveryWorkspace: React.FC = () => {
             </div>
 
             {/* Add Fact Form */}
-            <div className="flex gap-2 pt-2 border-t border-zinc-800/80">
+            <div className="flex gap-2 pt-2 border-t border-white/[0.05]">
               <input
                 type="text"
                 placeholder="Add another invariant fact..."
                 value={newFactInput}
                 onChange={(e) => setNewFactInput(e.target.value)}
-                className="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-1.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
+                className="flex-1 bg-obsidian-950 border border-white/[0.08] rounded-xl px-3 py-1.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-champagne-400"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && newFactInput.trim()) {
                     addFact(newFactInput.trim());
@@ -386,21 +387,22 @@ export const DiscoveryWorkspace: React.FC = () => {
                   }
                 }}
                 disabled={!newFactInput.trim()}
-                className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg text-xs font-medium transition-colors flex items-center gap-1"
+                className="px-3 py-1.5 bg-obsidian-900 hover:bg-obsidian-800 text-zinc-200 rounded-xl text-xs font-medium transition-colors flex items-center gap-1 border border-white/[0.08]"
               >
-                <Plus className="w-3.5 h-3.5" />
+                <Plus className="w-3.5 h-3.5 text-champagne-400" />
                 Add
               </button>
             </div>
           </div>
 
           {/* Column B: Unvalidated Hypotheses */}
-          <div className="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-6 shadow-xl space-y-4">
-            <div className="flex items-center justify-between">
+          <div className="monolith-card rounded-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-white/[0.05] pb-3">
               <div>
                 <h3 className="text-base font-bold text-white flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-amber-400" />
-                  Unvalidated Hypotheses ({project.hypotheses.length})
+                  <span>Unvalidated Hypotheses</span>
+                  <span className="text-xs text-zinc-400 font-normal">({project.hypotheses.length})</span>
                 </h3>
                 <p className="text-xs text-zinc-400 mt-0.5">
                   Implicit premises requiring validation. Flagged by risk level.
@@ -412,16 +414,16 @@ export const DiscoveryWorkspace: React.FC = () => {
               {project.hypotheses.map((hyp) => (
                 <div
                   key={hyp.id}
-                  className="p-3 bg-zinc-950 border border-zinc-800/80 rounded-xl space-y-2 text-xs"
+                  className="p-3 bg-obsidian-950/80 border border-white/[0.05] rounded-xl space-y-2 text-xs"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <span
-                      className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                      className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase font-mono tracking-wider ${
                         hyp.riskLevel === 'critical'
                           ? 'bg-red-500/10 text-red-400 border border-red-500/30'
                           : hyp.riskLevel === 'medium'
                           ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
-                          : 'bg-zinc-800 text-zinc-400'
+                          : 'bg-obsidian-900 text-zinc-400 border border-white/[0.06]'
                       }`}
                     >
                       {hyp.riskLevel} risk
@@ -435,7 +437,7 @@ export const DiscoveryWorkspace: React.FC = () => {
                           e.target.value as 'low' | 'medium' | 'critical'
                         )
                       }
-                      className="bg-zinc-900 border border-zinc-800 rounded px-1.5 py-0.5 text-[10px] text-zinc-300"
+                      className="bg-obsidian-900 border border-white/[0.08] rounded px-1.5 py-0.5 text-[10px] text-zinc-300"
                     >
                       <option value="critical">Critical</option>
                       <option value="medium">Medium</option>
@@ -464,13 +466,15 @@ export const DiscoveryWorkspace: React.FC = () => {
       {/* SECTION 4: STRATEGIC IDEA BRIEF COCKPIT                                  */}
       {/* ========================================================================= */}
       {project.ideaBrief && (
-        <section className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-800 pb-5">
+        <section className="monolith-card rounded-2xl p-6 sm:p-8 space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/[0.06] pb-5">
             <div>
               <div className="flex items-center gap-2.5">
-                <h2 className="text-xl font-bold text-white">3. Strategic Idea Brief Baseline</h2>
+                <h2 className="text-xl font-bold text-white">
+                  <span className="text-titanium-shimmer">3. Strategic Idea Brief Baseline</span>
+                </h2>
                 <span
-                  className={`px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider ${
+                  className={`px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase font-mono tracking-wider ${
                     project.ideaBrief.status === 'approved'
                       ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
                       : project.ideaBrief.status === 'rejected'
@@ -489,17 +493,17 @@ export const DiscoveryWorkspace: React.FC = () => {
             {/* Confidence Metric & Edit Toggle */}
             <div className="flex items-center gap-4">
               <div className="text-right">
-                <div className="text-xs text-zinc-400">Context Confidence</div>
+                <div className="text-xs text-zinc-400 font-mono">Context Confidence</div>
                 <div className="text-base font-bold text-emerald-400 font-mono">
                   {Math.round(project.ideaBrief.confidenceScore * 100)}%
                 </div>
               </div>
               <button
                 onClick={() => setEditBriefMode(!editBriefMode)}
-                className={`p-2 rounded-lg border text-xs font-medium transition-colors flex items-center gap-1.5 ${
+                className={`p-2 rounded-xl border text-xs font-medium transition-colors flex items-center gap-1.5 ${
                   editBriefMode
-                    ? 'bg-indigo-600 text-white border-indigo-500'
-                    : 'bg-zinc-800 text-zinc-300 border-zinc-700 hover:bg-zinc-700'
+                    ? 'btn-monolith-primary'
+                    : 'bg-obsidian-900 text-zinc-300 border-white/[0.08] hover:bg-obsidian-850'
                 }`}
               >
                 <Edit3 className="w-3.5 h-3.5" />
@@ -511,12 +515,12 @@ export const DiscoveryWorkspace: React.FC = () => {
           {/* Brief Content Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Card 1: Core Problem */}
-            <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-5 space-y-3">
-              <span className="text-xs uppercase tracking-wider font-bold text-indigo-400">
+            <div className="bg-obsidian-950/80 border border-white/[0.06] rounded-xl p-5 space-y-3">
+              <span className="text-xs uppercase font-mono tracking-wider font-bold text-champagne-400">
                 Core Problem Framing
               </span>
               <div>
-                <label className="text-[11px] text-zinc-500">The Acute Pain Point:</label>
+                <label className="text-[11px] text-zinc-500 font-mono">The Acute Pain Point:</label>
                 {editBriefMode ? (
                   <textarea
                     value={project.ideaBrief.problem.corePain}
@@ -526,7 +530,7 @@ export const DiscoveryWorkspace: React.FC = () => {
                         corePain: e.target.value,
                       })
                     }
-                    className="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-xs text-white"
+                    className="w-full bg-obsidian-900 border border-white/[0.1] rounded-xl p-2 text-xs text-white focus:outline-none focus:border-champagne-400"
                     rows={2}
                   />
                 ) : (
@@ -536,7 +540,7 @@ export const DiscoveryWorkspace: React.FC = () => {
                 )}
               </div>
               <div>
-                <label className="text-[11px] text-zinc-500">Trigger Event (When it hurts):</label>
+                <label className="text-[11px] text-zinc-500 font-mono">Trigger Event (When it hurts):</label>
                 {editBriefMode ? (
                   <input
                     type="text"
@@ -547,7 +551,7 @@ export const DiscoveryWorkspace: React.FC = () => {
                         triggerEvent: e.target.value,
                       })
                     }
-                    className="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-xs text-white"
+                    className="w-full bg-obsidian-900 border border-white/[0.1] rounded-xl p-2 text-xs text-white focus:outline-none focus:border-champagne-400"
                   />
                 ) : (
                   <p className="text-xs text-zinc-400">{project.ideaBrief.problem.triggerEvent}</p>
@@ -556,12 +560,12 @@ export const DiscoveryWorkspace: React.FC = () => {
             </div>
 
             {/* Card 2: Target User Avatar */}
-            <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-5 space-y-3">
-              <span className="text-xs uppercase tracking-wider font-bold text-cyan-400">
+            <div className="bg-obsidian-950/80 border border-white/[0.06] rounded-xl p-5 space-y-3">
+              <span className="text-xs uppercase font-mono tracking-wider font-bold text-slate-300">
                 Target User Avatar
               </span>
               <div>
-                <label className="text-[11px] text-zinc-500">Primary Niche:</label>
+                <label className="text-[11px] text-zinc-500 font-mono">Primary Niche:</label>
                 {editBriefMode ? (
                   <input
                     type="text"
@@ -572,7 +576,7 @@ export const DiscoveryWorkspace: React.FC = () => {
                         primaryNiche: e.target.value,
                       })
                     }
-                    className="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-xs text-white"
+                    className="w-full bg-obsidian-900 border border-white/[0.1] rounded-xl p-2 text-xs text-white focus:outline-none focus:border-champagne-400"
                   />
                 ) : (
                   <p className="text-sm text-zinc-200 font-medium">
@@ -581,7 +585,7 @@ export const DiscoveryWorkspace: React.FC = () => {
                 )}
               </div>
               <div>
-                <label className="text-[11px] text-zinc-500">Current Workarounds:</label>
+                <label className="text-[11px] text-zinc-500 font-mono">Current Workarounds:</label>
                 <ul className="list-disc list-inside text-xs text-zinc-400 space-y-1">
                   {project.ideaBrief.targetUser.currentWorkarounds.map((w, i) => (
                     <li key={i}>{w}</li>
@@ -591,12 +595,12 @@ export const DiscoveryWorkspace: React.FC = () => {
             </div>
 
             {/* Card 3: Proposed Value & Mechanic */}
-            <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-5 space-y-3">
-              <span className="text-xs uppercase tracking-wider font-bold text-emerald-400">
+            <div className="bg-obsidian-950/80 border border-white/[0.06] rounded-xl p-5 space-y-3">
+              <span className="text-xs uppercase font-mono tracking-wider font-bold text-emerald-400">
                 Proposed Value & Mechanic
               </span>
               <div>
-                <label className="text-[11px] text-zinc-500">Mechanic / How it Works:</label>
+                <label className="text-[11px] text-zinc-500 font-mono">Mechanic / How it Works:</label>
                 {editBriefMode ? (
                   <textarea
                     value={project.ideaBrief.proposedValue.mechanicOrSolution}
@@ -606,7 +610,7 @@ export const DiscoveryWorkspace: React.FC = () => {
                         mechanicOrSolution: e.target.value,
                       })
                     }
-                    className="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-xs text-white"
+                    className="w-full bg-obsidian-900 border border-white/[0.1] rounded-xl p-2 text-xs text-white focus:outline-none focus:border-champagne-400"
                     rows={2}
                   />
                 ) : (
@@ -616,7 +620,7 @@ export const DiscoveryWorkspace: React.FC = () => {
                 )}
               </div>
               <div>
-                <label className="text-[11px] text-zinc-500">Primary Benefit:</label>
+                <label className="text-[11px] text-zinc-500 font-mono">Primary Benefit:</label>
                 {editBriefMode ? (
                   <input
                     type="text"
@@ -627,7 +631,7 @@ export const DiscoveryWorkspace: React.FC = () => {
                         keyBenefit: e.target.value,
                       })
                     }
-                    className="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-xs text-white"
+                    className="w-full bg-obsidian-900 border border-white/[0.1] rounded-xl p-2 text-xs text-white focus:outline-none focus:border-champagne-400"
                   />
                 ) : (
                   <p className="text-sm text-emerald-400 font-medium">
@@ -638,12 +642,12 @@ export const DiscoveryWorkspace: React.FC = () => {
             </div>
 
             {/* Card 4: Boundaries & Constraints */}
-            <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-5 space-y-3">
-              <span className="text-xs uppercase tracking-wider font-bold text-violet-400">
+            <div className="bg-obsidian-950/80 border border-white/[0.06] rounded-xl p-5 space-y-3">
+              <span className="text-xs uppercase font-mono tracking-wider font-bold text-champagne-400">
                 Strategic Constraints
               </span>
               <div>
-                <label className="text-[11px] text-zinc-500">Non-Negotiables:</label>
+                <label className="text-[11px] text-zinc-500 font-mono">Non-Negotiables:</label>
                 <ul className="list-disc list-inside text-xs text-zinc-400 space-y-1 mt-1">
                   {project.ideaBrief.constraints.map((c, i) => (
                     <li key={i}>{c}</li>
@@ -651,14 +655,14 @@ export const DiscoveryWorkspace: React.FC = () => {
                 </ul>
               </div>
               <div>
-                <label className="text-[11px] text-zinc-500">Category & Industry:</label>
+                <label className="text-[11px] text-zinc-500 font-mono">Category & Industry:</label>
                 <p className="text-xs text-zinc-300">{project.ideaBrief.context.industryOrCategory}</p>
               </div>
             </div>
           </div>
 
           {/* User Control & Decision Checkpoints */}
-          <div className="pt-4 border-t border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="pt-4 border-t border-white/[0.05] flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-xs text-zinc-400">
               {project.ideaBrief.status === 'approved' ? (
                 <span className="text-emerald-400 font-medium flex items-center gap-1.5">
@@ -677,7 +681,7 @@ export const DiscoveryWorkspace: React.FC = () => {
               <button
                 onClick={() => regenerateIdeaBrief()}
                 disabled={isLoading}
-                className="px-3.5 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium transition-colors flex items-center gap-1.5"
+                className="px-3.5 py-2 rounded-xl bg-obsidian-900 hover:bg-obsidian-800 text-zinc-300 text-xs font-medium transition-colors flex items-center gap-1.5 border border-white/[0.06]"
                 title="Regenerate brief with AI"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
@@ -688,7 +692,7 @@ export const DiscoveryWorkspace: React.FC = () => {
               {project.ideaBrief.status !== 'rejected' && (
                 <button
                   onClick={() => setShowRejectModal(true)}
-                  className="px-3.5 py-2 rounded-xl bg-zinc-800 hover:bg-red-950 hover:text-red-300 text-zinc-400 text-xs font-medium transition-colors flex items-center gap-1.5"
+                  className="px-3.5 py-2 rounded-xl bg-obsidian-900 hover:bg-red-950 hover:text-red-300 text-zinc-400 text-xs font-medium transition-colors flex items-center gap-1.5 border border-white/[0.06]"
                 >
                   <XCircle className="w-3.5 h-3.5" />
                   Reject
@@ -699,7 +703,7 @@ export const DiscoveryWorkspace: React.FC = () => {
               {project.ideaBrief.status !== 'approved' && (
                 <button
                   onClick={() => approveIdeaBrief('Founder approved baseline.')}
-                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-lg shadow-emerald-600/20 flex items-center gap-1.5"
+                  className="btn-monolith-primary px-5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5"
                 >
                   <CheckCircle2 className="w-4 h-4" />
                   Approve Strategic Decision
@@ -712,10 +716,10 @@ export const DiscoveryWorkspace: React.FC = () => {
 
       {/* Reject Modal */}
       {showRejectModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 max-w-md w-full shadow-2xl">
-            <h3 className="text-lg font-bold text-white mb-2">Reject Strategic Idea Brief</h3>
-            <p className="text-sm text-zinc-400 mb-4">
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="monolith-card rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4 border border-white/[0.1]">
+            <h3 className="text-base font-bold text-white mb-1">Reject Strategic Idea Brief</h3>
+            <p className="text-xs text-zinc-400">
               Explain why this direction is incorrect so future iterations do not repeat this path.
             </p>
             <textarea
@@ -723,12 +727,12 @@ export const DiscoveryWorkspace: React.FC = () => {
               onChange={(e) => setRejectReason(e.target.value)}
               placeholder="e.g. Target audience is too broad; we must focus strictly on B2B engineering leads..."
               rows={3}
-              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-3 text-xs text-white placeholder-zinc-500 mb-4 focus:outline-none focus:border-red-500"
+              className="w-full bg-obsidian-950 border border-white/[0.1] rounded-xl p-3 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-red-500"
             />
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end gap-2 pt-1">
               <button
                 onClick={() => setShowRejectModal(false)}
-                className="px-3 py-1.5 text-xs text-zinc-400 hover:text-zinc-200"
+                className="px-3 py-1.5 text-xs text-zinc-400 hover:text-white"
               >
                 Cancel
               </button>
@@ -738,7 +742,7 @@ export const DiscoveryWorkspace: React.FC = () => {
                   setShowRejectModal(false);
                 }}
                 disabled={!rejectReason.trim()}
-                className="px-4 py-1.5 text-xs font-medium bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white rounded-lg transition-colors"
+                className="px-4 py-1.5 text-xs font-medium bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white rounded-xl transition-colors"
               >
                 Confirm Rejection
               </button>

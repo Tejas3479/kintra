@@ -3,64 +3,76 @@
 import React, { useState } from 'react';
 import { useBrandStore } from '@/store/useBrandStore';
 import {
+  Compass,
   Search,
   ExternalLink,
   ShieldCheck,
-  AlertTriangle,
   RefreshCw,
   Plus,
   Trash2,
   SlidersHorizontal,
-  Compass,
+  Flame,
   Zap,
 } from 'lucide-react';
-import { SourceCategory } from '@/types/research';
 
 export const EvidenceWorkspace: React.FC = () => {
-  const { project, isLoading, loadingMessage, runMarketResearch, addManualCompetitor, removeEvidenceRecord } =
-    useBrandStore();
+  const {
+    project,
+    isLoading,
+    loadingMessage,
+    runMarketResearch,
+    addCustomCompetitor,
+    removeEvidenceRecord,
+  } = useBrandStore();
 
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [customQuery, setCustomQuery] = useState('');
   const [showAddCompModal, setShowAddCompModal] = useState(false);
   const [compName, setCompName] = useState('');
   const [compPositioning, setCompPositioning] = useState('');
   const [compAudience, setCompAudience] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
   const landscape = project.marketLandscape;
 
   const handleSearch = async () => {
-    const q = customQuery.trim() || project.rawFounderInput || 'Developer code security';
-    await runMarketResearch(q);
+    await runMarketResearch(customQuery.trim() || undefined);
+    setCustomQuery('');
   };
 
   const handleAddCompetitor = () => {
     if (!compName.trim()) return;
-    addManualCompetitor(compName.trim(), compPositioning.trim() || 'General market incumbent', compAudience.trim());
+    addCustomCompetitor({
+      name: compName.trim(),
+      claimedPositioning: compPositioning.trim() || 'Unknown claimed value',
+      targetAudience: compAudience.trim() || 'General software developers',
+      apparentStrengths: ['Established category presence'],
+      apparentVulnerabilities: ['Generic messaging'],
+      sourceUrls: [],
+    });
+    setShowAddCompModal(false);
     setCompName('');
     setCompPositioning('');
     setCompAudience('');
-    setShowAddCompModal(false);
   };
 
   const filteredEvidence =
     landscape?.evidenceRecords.filter((rec) => {
       if (categoryFilter === 'all') return true;
-      return rec.sourceCategory === (categoryFilter as SourceCategory);
+      return rec.pageType === categoryFilter;
     }) || [];
 
   return (
-    <section className="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-6 sm:p-8 shadow-xl space-y-8">
+    <section className="monolith-card rounded-2xl p-6 sm:p-8 space-y-8">
       {/* Header & Action Controls */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-800 pb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/[0.06] pb-5">
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <Compass className="w-5 h-5 text-indigo-400" />
-              2. Evidence Ledger & Market Grounding
+              <Compass className="w-5 h-5 text-champagne-400" />
+              <span className="text-titanium-shimmer">2. Evidence Ledger & Market Grounding</span>
             </h2>
             {landscape && (
-              <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 font-mono">
                 {landscape.evidenceRecords.length} Sources Grounded
               </span>
             )}
@@ -79,7 +91,7 @@ export const EvidenceWorkspace: React.FC = () => {
               placeholder="Search category landscape..."
               value={customQuery}
               onChange={(e) => setCustomQuery(e.target.value)}
-              className="bg-zinc-950 border border-zinc-800 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500 w-52 sm:w-64"
+              className="bg-obsidian-950 border border-white/[0.08] rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-champagne-400 w-52 sm:w-64"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleSearch();
               }}
@@ -89,7 +101,7 @@ export const EvidenceWorkspace: React.FC = () => {
           <button
             onClick={handleSearch}
             disabled={isLoading}
-            className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-medium transition-colors flex items-center gap-1.5 shrink-0"
+            className="btn-monolith-primary px-3.5 py-1.5 rounded-xl disabled:opacity-50 text-xs font-medium flex items-center gap-1.5 shrink-0"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
             {landscape ? 'Re-scan' : 'Scan Market'}
@@ -98,7 +110,7 @@ export const EvidenceWorkspace: React.FC = () => {
       </div>
 
       {!landscape ? (
-        <div className="bg-zinc-950 border border-dashed border-zinc-800 rounded-xl p-8 text-center space-y-3">
+        <div className="bg-obsidian-950/70 border border-dashed border-white/[0.1] rounded-2xl p-8 text-center space-y-3">
           <SlidersHorizontal className="w-8 h-8 text-zinc-600 mx-auto" />
           <h3 className="text-sm font-semibold text-zinc-300">No Market Evidence Gathered Yet</h3>
           <p className="text-xs text-zinc-500 max-w-md mx-auto">
@@ -107,7 +119,7 @@ export const EvidenceWorkspace: React.FC = () => {
           <button
             onClick={handleSearch}
             disabled={isLoading}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-colors shadow-lg shadow-indigo-600/20"
+            className="btn-monolith-primary inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold"
           >
             {isLoading ? (
               <>
@@ -129,12 +141,12 @@ export const EvidenceWorkspace: React.FC = () => {
           {/* ========================================================================= */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+              <h3 className="text-sm font-bold text-white uppercase font-mono tracking-wider">
                 Competitor Positioning Teardowns ({landscape.competitors.length})
               </h3>
               <button
                 onClick={() => setShowAddCompModal(true)}
-                className="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1 font-medium"
+                className="text-xs text-champagne-400 hover:text-champagne-300 flex items-center gap-1 font-medium transition-colors"
               >
                 <Plus className="w-3.5 h-3.5" />
                 Add Competitor
@@ -145,114 +157,83 @@ export const EvidenceWorkspace: React.FC = () => {
               {landscape.competitors.map((comp) => (
                 <div
                   key={comp.id}
-                  className="bg-zinc-950 border border-zinc-800/90 rounded-xl p-5 space-y-3"
+                  className="bg-obsidian-950/80 border border-white/[0.06] rounded-xl p-5 space-y-3 hover:border-champagne-500/30 transition-all"
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm text-white">{comp.name}</span>
-                      {comp.url && (
-                        <a
-                          href={comp.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-zinc-500 hover:text-zinc-300"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5" />
-                        </a>
-                      )}
-                    </div>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
-                      {comp.targetAudience}
+                  <div className="flex items-center justify-between border-b border-white/[0.04] pb-2">
+                    <span className="font-bold text-base text-white">{comp.name}</span>
+                    <span className="text-[10px] text-zinc-500 font-mono">
+                      {comp.sourceUrls.length} Sources Grounded
                     </span>
                   </div>
 
-                  <div className="text-xs text-zinc-300 leading-normal">
-                    <span className="text-zinc-500 font-medium">Claimed Positioning: </span>
-                    {comp.claimedPositioning}
+                  <div className="space-y-1 text-xs">
+                    <span className="text-zinc-500 font-mono text-[10px]">Claimed Value Proposition:</span>
+                    <p className="text-zinc-200 font-medium">{comp.claimedPositioning}</p>
                   </div>
 
-                  {/* Strengths & Weaknesses */}
-                  <div className="grid grid-cols-2 gap-2 text-[11px] pt-1 border-t border-zinc-900">
-                    <div>
-                      <span className="text-emerald-400 font-medium">Observed Strengths:</span>
-                      <ul className="list-disc list-inside text-zinc-400 mt-1 space-y-0.5">
-                        {comp.strengths.map((s, i) => (
+                  <div className="grid grid-cols-2 gap-2 text-[11px] pt-1">
+                    <div className="space-y-1">
+                      <span className="text-emerald-400 font-medium font-mono text-[10px]">Apparent Strengths:</span>
+                      <ul className="list-disc list-inside text-zinc-400 space-y-0.5">
+                        {comp.apparentStrengths.map((s, i) => (
                           <li key={i}>{s}</li>
                         ))}
                       </ul>
                     </div>
-                    <div>
-                      <span className="text-amber-400 font-medium">Vulnerabilities:</span>
-                      <ul className="list-disc list-inside text-zinc-400 mt-1 space-y-0.5">
-                        {comp.weaknesses.map((w, i) => (
-                          <li key={i}>{w}</li>
+                    <div className="space-y-1">
+                      <span className="text-red-400 font-medium font-mono text-[10px]">Apparent Gaps:</span>
+                      <ul className="list-disc list-inside text-zinc-400 space-y-0.5">
+                        {comp.apparentVulnerabilities.map((v, i) => (
+                          <li key={i}>{v}</li>
                         ))}
                       </ul>
                     </div>
                   </div>
-
-                  {/* Clichés Used by Competitor */}
-                  {comp.clichePhrases.length > 0 && (
-                    <div className="pt-2 border-t border-zinc-900 flex items-center gap-1.5 flex-wrap">
-                      <span className="text-[10px] text-zinc-500">Clichés used:</span>
-                      {comp.clichePhrases.map((phrase, i) => (
-                        <span
-                          key={i}
-                          className="text-[10px] px-1.5 py-0.5 rounded bg-red-950/40 text-red-300 border border-red-900/40"
-                        >
-                          &ldquo;{phrase}&rdquo;
-                        </span>
-                      ))}
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
           </div>
 
           {/* ========================================================================= */}
-          {/* CONFLICTING EVIDENCE CALLOUT (DO NOT COLLAPSE DISAGREEMENT)               */}
+          {/* STRATEGIC FRICTION POINTS                                                */}
           {/* ========================================================================= */}
           {landscape.conflicts.length > 0 && (
             <div className="space-y-3">
-              <h3 className="text-sm font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4" />
-                Strategic Market Friction & Disagreement ({landscape.conflicts.length})
+              <h3 className="text-sm font-bold text-white uppercase font-mono tracking-wider flex items-center gap-1.5">
+                <Flame className="w-4 h-4 text-amber-400" />
+                Category Friction & Contradictions ({landscape.conflicts.length})
               </h3>
-              <p className="text-xs text-zinc-400">
-                KINTRA detects where sources disagree rather than flattening reality into a false consensus.
-              </p>
 
               <div className="space-y-3">
                 {landscape.conflicts.map((conflict) => (
                   <div
                     key={conflict.id}
-                    className="bg-zinc-950 border border-amber-500/20 rounded-xl p-4 space-y-3"
+                    className="bg-obsidian-950/80 border border-amber-500/20 rounded-xl p-4 space-y-3"
                   >
-                    <span className="text-xs font-semibold text-zinc-200">
+                    <span className="text-xs font-semibold text-zinc-200 font-mono">
                       Friction: {conflict.topic}
                     </span>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                      <div className="p-3 rounded-lg bg-zinc-900/80 border border-zinc-800 space-y-1">
-                        <div className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider">
+                      <div className="p-3 rounded-lg bg-obsidian-900 border border-white/[0.05] space-y-1">
+                        <div className="text-[10px] font-bold text-slate-300 uppercase tracking-wider font-mono">
                           Perspective A: {conflict.claimA.sourceTitle}
                         </div>
                         <p className="text-zinc-300 italic">&ldquo;{conflict.claimA.statement}&rdquo;</p>
                       </div>
 
-                      <div className="p-3 rounded-lg bg-zinc-900/80 border border-zinc-800 space-y-1">
-                        <div className="text-[10px] font-bold text-violet-400 uppercase tracking-wider">
+                      <div className="p-3 rounded-lg bg-obsidian-900 border border-white/[0.05] space-y-1">
+                        <div className="text-[10px] font-bold text-champagne-300 uppercase tracking-wider font-mono">
                           Perspective B: {conflict.claimB.sourceTitle}
                         </div>
                         <p className="text-zinc-300 italic">&ldquo;{conflict.claimB.statement}&rdquo;</p>
                       </div>
                     </div>
 
-                    <div className="bg-indigo-950/40 border border-indigo-800/40 rounded-lg p-2.5 text-xs text-indigo-200 flex items-start gap-2">
-                      <Zap className="w-3.5 h-3.5 text-indigo-400 shrink-0 mt-0.5" />
+                    <div className="bg-champagne-500/10 border border-champagne-500/25 rounded-lg p-2.5 text-xs text-champagne-200 flex items-start gap-2">
+                      <Zap className="w-3.5 h-3.5 text-champagne-400 shrink-0 mt-0.5" />
                       <div>
-                        <span className="font-semibold text-indigo-300">Strategic Angle for Founder: </span>
+                        <span className="font-semibold text-champagne-300 font-mono text-[10px]">Strategic Angle for Founder: </span>
                         {conflict.strategicImplication}
                       </div>
                     </div>
@@ -268,7 +249,7 @@ export const EvidenceWorkspace: React.FC = () => {
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+                <h3 className="text-sm font-bold text-white uppercase font-mono tracking-wider">
                   Traceable Evidence Ledger ({filteredEvidence.length})
                 </h3>
                 <p className="text-xs text-zinc-400">
@@ -282,10 +263,10 @@ export const EvidenceWorkspace: React.FC = () => {
                   <button
                     key={cat}
                     onClick={() => setCategoryFilter(cat)}
-                    className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors capitalize ${
+                    className={`text-[11px] px-2.5 py-1 rounded-full border transition-all capitalize font-mono ${
                       categoryFilter === cat
-                        ? 'bg-indigo-600 text-white border-indigo-500'
-                        : 'bg-zinc-950 text-zinc-400 border-zinc-800 hover:bg-zinc-900'
+                        ? 'btn-monolith-primary text-obsidian-950 font-bold'
+                        : 'bg-obsidian-950 text-zinc-400 border-white/[0.06] hover:bg-obsidian-900'
                     }`}
                   >
                     {cat.replace('_', ' ')}
@@ -298,9 +279,9 @@ export const EvidenceWorkspace: React.FC = () => {
               {filteredEvidence.map((record) => (
                 <div
                   key={record.id}
-                  className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 space-y-2.5 text-xs"
+                  className="bg-obsidian-950/80 border border-white/[0.05] rounded-xl p-4 space-y-2.5 text-xs hover:border-champagne-500/25 transition-all"
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-zinc-900 pb-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/[0.04] pb-2">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-zinc-200">{record.title}</span>
                       {record.url && (
@@ -308,17 +289,17 @@ export const EvidenceWorkspace: React.FC = () => {
                           href={record.url}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-zinc-500 hover:text-zinc-300"
+                          className="text-zinc-500 hover:text-champagne-400 transition-colors"
                         >
                           <ExternalLink className="w-3 h-3" />
                         </a>
                       )}
                     </div>
                     <div className="flex items-center gap-2 text-[10px]">
-                      <span className="px-2 py-0.5 rounded bg-zinc-900 text-zinc-400 font-mono">
+                      <span className="px-2 py-0.5 rounded bg-obsidian-900 text-zinc-400 font-mono border border-white/[0.05]">
                         {record.publisher}
                       </span>
-                      <span className="px-2 py-0.5 rounded bg-zinc-900 text-cyan-400 capitalize">
+                      <span className="px-2 py-0.5 rounded bg-obsidian-900 text-champagne-400 capitalize font-mono border border-white/[0.05]">
                         {record.pageType.replace('_', ' ')}
                       </span>
                       <span className="text-zinc-500 font-mono">
@@ -326,7 +307,7 @@ export const EvidenceWorkspace: React.FC = () => {
                       </span>
                       <button
                         onClick={() => removeEvidenceRecord(record.id)}
-                        className="text-zinc-600 hover:text-red-400 p-0.5"
+                        className="text-zinc-600 hover:text-red-400 p-0.5 transition-colors"
                         title="Dismiss evidence"
                       >
                         <Trash2 className="w-3 h-3" />
@@ -336,16 +317,16 @@ export const EvidenceWorkspace: React.FC = () => {
 
                   {/* Claim and Excerpt */}
                   <div>
-                    <span className="text-zinc-500 font-medium">Extracted Claim: </span>
+                    <span className="text-zinc-500 font-mono text-[10px]">Extracted Claim: </span>
                     <span className="text-zinc-200 font-medium">{record.extractedClaim}</span>
                   </div>
 
-                  <div className="bg-zinc-900/90 border border-zinc-800/80 rounded p-2.5 text-zinc-300 italic text-[11px] leading-relaxed">
+                  <div className="bg-obsidian-900/90 border border-white/[0.05] rounded-lg p-2.5 text-zinc-300 italic text-[11px] leading-relaxed">
                     &ldquo;{record.supportingExcerpt}&rdquo;
                   </div>
 
                   {/* Stated Limitations: Crucial to avoid fake truth */}
-                  <div className="flex items-center gap-2 text-[10px] text-zinc-500 pt-1">
+                  <div className="flex items-center gap-2 text-[10px] text-zinc-500 pt-1 font-mono">
                     <ShieldCheck className="w-3 h-3 text-amber-500/70" />
                     <span>
                       <strong className="text-zinc-400">Methodological Limit:</strong> {record.limitations}
@@ -359,9 +340,9 @@ export const EvidenceWorkspace: React.FC = () => {
           {/* ========================================================================= */}
           {/* CATEGORY DEFAULTS VS DIFFERENTIATOR GAPS                                 */}
           {/* ========================================================================= */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-zinc-800">
-            <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 space-y-2">
-              <span className="text-xs font-bold text-red-400 uppercase tracking-wider">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-white/[0.06]">
+            <div className="bg-obsidian-950/80 border border-white/[0.05] rounded-xl p-4 space-y-2">
+              <span className="text-xs font-bold text-red-400 uppercase tracking-wider font-mono">
                 Category Clichés to Avoid
               </span>
               <ul className="list-disc list-inside text-xs text-zinc-400 space-y-1">
@@ -371,8 +352,8 @@ export const EvidenceWorkspace: React.FC = () => {
               </ul>
             </div>
 
-            <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 space-y-2">
-              <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
+            <div className="bg-obsidian-950/80 border border-white/[0.05] rounded-xl p-4 space-y-2">
+              <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider font-mono">
                 Unclaimed Differentiator White Space
               </span>
               <ul className="list-disc list-inside text-xs text-zinc-300 space-y-1">
@@ -387,52 +368,52 @@ export const EvidenceWorkspace: React.FC = () => {
 
       {/* Add Custom Competitor Modal */}
       {showAddCompModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 max-w-md w-full shadow-2xl space-y-4">
-            <h3 className="text-lg font-bold text-white">Add Known Competitor</h3>
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="monolith-card rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4 border border-white/[0.1]">
+            <h3 className="text-base font-bold text-white">Add Known Competitor</h3>
             <div className="space-y-3">
               <div>
-                <label className="text-xs text-zinc-400">Competitor / Tool Name:</label>
+                <label className="text-xs text-zinc-400 font-mono">Competitor / Tool Name:</label>
                 <input
                   type="text"
                   placeholder="e.g. Snyk, Dependabot, SonarQube"
                   value={compName}
                   onChange={(e) => setCompName(e.target.value)}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-xs text-white"
+                  className="w-full bg-obsidian-950 border border-white/[0.1] rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-champagne-400"
                 />
               </div>
               <div>
-                <label className="text-xs text-zinc-400">Their Claimed Positioning:</label>
+                <label className="text-xs text-zinc-400 font-mono">Their Claimed Positioning:</label>
                 <input
                   type="text"
                   placeholder="e.g. Developer-first security scanner"
                   value={compPositioning}
                   onChange={(e) => setCompPositioning(e.target.value)}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-xs text-white"
+                  className="w-full bg-obsidian-950 border border-white/[0.1] rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-champagne-400"
                 />
               </div>
               <div>
-                <label className="text-xs text-zinc-400">Target Audience:</label>
+                <label className="text-xs text-zinc-400 font-mono">Target Audience:</label>
                 <input
                   type="text"
                   placeholder="e.g. Enterprise CISOs or Solo Devs"
                   value={compAudience}
                   onChange={(e) => setCompAudience(e.target.value)}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-xs text-white"
+                  className="w-full bg-obsidian-950 border border-white/[0.1] rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-champagne-400"
                 />
               </div>
             </div>
             <div className="flex justify-end gap-2 pt-2">
               <button
                 onClick={() => setShowAddCompModal(false)}
-                className="px-3 py-1.5 text-xs text-zinc-400 hover:text-zinc-200"
+                className="px-3 py-1.5 text-xs text-zinc-400 hover:text-white"
               >
                 Cancel
               </button>
               <button
                 onClick={handleAddCompetitor}
                 disabled={!compName.trim()}
-                className="px-4 py-1.5 text-xs font-medium bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg transition-colors"
+                className="btn-monolith-primary px-4 py-1.5 text-xs rounded-xl disabled:opacity-50"
               >
                 Add Competitor
               </button>

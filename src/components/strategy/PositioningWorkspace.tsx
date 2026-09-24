@@ -11,8 +11,8 @@ import {
   XCircle,
   Merge,
   ShieldAlert,
-  HelpCircle,
   Flame,
+  Quote,
 } from 'lucide-react';
 
 export const PositioningWorkspace: React.FC = () => {
@@ -65,17 +65,17 @@ export const PositioningWorkspace: React.FC = () => {
   };
 
   return (
-    <section className="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-6 sm:p-8 shadow-xl space-y-8">
+    <section className="monolith-card rounded-2xl p-6 sm:p-8 space-y-8">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-800 pb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/[0.06] pb-5">
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-indigo-400" />
-              3. Positioning Worlds & Adversarial Pressure
+              <Sparkles className="w-5 h-5 text-champagne-400" />
+              <span className="text-titanium-shimmer">3. Positioning Worlds & Adversarial Pressure</span>
             </h2>
             {worlds.length > 0 && (
-              <span className="text-xs px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 font-mono">
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-champagne-500/10 text-champagne-300 border border-champagne-500/25 font-mono">
                 {worlds.length} Territories Diverged
               </span>
             )}
@@ -89,9 +89,9 @@ export const PositioningWorkspace: React.FC = () => {
           {worlds.length > 0 && (
             <button
               onClick={() => setShowHybridModal(true)}
-              className="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium transition-colors flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-lg bg-obsidian-900 hover:bg-obsidian-800 text-zinc-300 text-xs font-medium transition-colors flex items-center gap-1.5 border border-white/[0.08]"
             >
-              <Merge className="w-3.5 h-3.5 text-violet-400" />
+              <Merge className="w-3.5 h-3.5 text-champagne-400" />
               Create Custom Hybrid
             </button>
           )}
@@ -99,7 +99,7 @@ export const PositioningWorkspace: React.FC = () => {
           <button
             onClick={handleGenerate}
             disabled={isLoading || !project.ideaBrief}
-            className="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-lg shadow-indigo-600/20"
+            className="btn-monolith-primary px-4 py-1.5 rounded-lg disabled:opacity-50 text-xs font-semibold flex items-center gap-1.5"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
             {worlds.length > 0 ? 'Regenerate Worlds' : 'Generate Strategic Worlds'}
@@ -123,13 +123,13 @@ export const PositioningWorkspace: React.FC = () => {
               <div className="space-y-1">
                 <div className="font-bold flex items-center gap-2">
                   <span>Strategic Contradiction Detected:</span>
-                  <span className="uppercase text-[10px] px-1.5 py-0.5 rounded bg-black/40">
+                  <span className="uppercase text-[10px] px-1.5 py-0.5 rounded bg-black/40 font-mono">
                     {alert.conflictType.replace(/_/g, ' ')}
                   </span>
                 </div>
                 <p className="text-zinc-300">{alert.exactContradiction}</p>
                 <div className="text-[11px] text-zinc-400">
-                  <strong>Suggested Fix:</strong> {alert.suggestedResolution}
+                  <strong className="text-champagne-400">Suggested Fix:</strong> {alert.suggestedResolution}
                 </div>
               </div>
             </div>
@@ -138,8 +138,8 @@ export const PositioningWorkspace: React.FC = () => {
       )}
 
       {worlds.length === 0 ? (
-        <div className="bg-zinc-950 border border-dashed border-zinc-800 rounded-xl p-8 text-center space-y-3">
-          <Flame className="w-8 h-8 text-indigo-500 mx-auto" />
+        <div className="bg-obsidian-950/70 border border-dashed border-white/[0.1] rounded-2xl p-8 text-center space-y-3">
+          <Flame className="w-8 h-8 text-champagne-400 mx-auto" />
           <h3 className="text-sm font-semibold text-zinc-200">No Positioning Territories Diverged Yet</h3>
           <p className="text-xs text-zinc-500 max-w-md mx-auto">
             Generate 3 high-contrast strategic positioning worlds to compare their archetypes, proof mechanisms, and explicit sacrifices.
@@ -147,7 +147,7 @@ export const PositioningWorkspace: React.FC = () => {
           <button
             onClick={handleGenerate}
             disabled={isLoading || !project.ideaBrief}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold transition-colors"
+            className="btn-monolith-primary inline-flex items-center gap-2 px-5 py-2.5 rounded-xl disabled:opacity-50 text-xs font-semibold"
           >
             {isLoading ? (
               <>
@@ -168,19 +168,19 @@ export const PositioningWorkspace: React.FC = () => {
             return (
               <div
                 key={world.id}
-                className={`bg-zinc-950 border rounded-2xl p-5 flex flex-col justify-between space-y-5 transition-all ${
+                className={`rounded-2xl p-5 flex flex-col justify-between space-y-5 transition-all duration-300 ${
                   isSelected
-                    ? 'border-indigo-500 ring-2 ring-indigo-500/30 shadow-2xl shadow-indigo-500/10'
+                    ? 'monolith-card-gold ring-1 ring-champagne-400/90 shadow-gold-glow'
                     : isRejected
-                    ? 'border-zinc-800/60 opacity-60'
-                    : 'border-zinc-800 hover:border-zinc-700'
+                    ? 'bg-obsidian-950/50 border border-white/[0.04] opacity-50'
+                    : 'monolith-card hover:border-champagne-500/40'
                 }`}
               >
                 <div className="space-y-4">
                   {/* Card Header */}
-                  <div className="flex items-start justify-between gap-2 border-b border-zinc-900 pb-3">
+                  <div className="flex items-start justify-between gap-2 border-b border-white/[0.05] pb-3">
                     <div>
-                      <span className="text-[10px] uppercase font-bold tracking-wider text-indigo-400">
+                      <span className="text-[10px] uppercase font-mono font-bold tracking-wider text-champagne-400">
                         {world.archetype}
                       </span>
                       <h3 className="text-base font-bold text-white mt-0.5">{world.title}</h3>
@@ -198,14 +198,14 @@ export const PositioningWorkspace: React.FC = () => {
 
                   {/* Value Proposition */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">
+                    <label className="text-[10px] font-mono font-semibold text-zinc-500 uppercase tracking-wider">
                       Strategic Value Proposition
                     </label>
                     {editingWorldId === world.id ? (
                       <textarea
                         value={world.valueProposition}
                         onChange={(e) => editPositioningWorld(world.id, { valueProposition: e.target.value })}
-                        className="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-xs text-white"
+                        className="w-full bg-obsidian-900 border border-white/[0.1] rounded p-2 text-xs text-white focus:outline-none focus:border-champagne-400"
                         rows={3}
                       />
                     ) : (
@@ -217,27 +217,27 @@ export const PositioningWorkspace: React.FC = () => {
 
                   {/* Core Differentiator */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">
+                    <label className="text-[10px] font-mono font-semibold text-zinc-500 uppercase tracking-wider">
                       Core Differentiator
                     </label>
-                    <p className="text-xs text-indigo-300 font-medium">{world.differentiator}</p>
+                    <p className="text-xs text-champagne-300 font-medium">{world.differentiator}</p>
                   </div>
 
                   {/* Target Audience & Emotional Territory */}
-                  <div className="grid grid-cols-2 gap-2 text-[11px] pt-1 border-t border-zinc-900">
+                  <div className="grid grid-cols-2 gap-2 text-[11px] pt-1 border-t border-white/[0.04]">
                     <div>
                       <span className="text-zinc-500">Target Buyer:</span>
-                      <p className="text-zinc-300 mt-0.5">{world.targetAudience}</p>
+                      <p className="text-zinc-300 mt-0.5 font-medium">{world.targetAudience}</p>
                     </div>
                     <div>
                       <span className="text-zinc-500">Vibe / Emotion:</span>
-                      <p className="text-zinc-300 mt-0.5">{world.emotionalTerritory}</p>
+                      <p className="text-zinc-300 mt-0.5 font-medium">{world.emotionalTerritory}</p>
                     </div>
                   </div>
 
                   {/* WHAT WE SACRIFICE CALLOUT (THE STRATEGIC ACID TEST) */}
-                  <div className="bg-amber-950/30 border border-amber-700/40 rounded-xl p-3.5 space-y-1.5">
-                    <div className="text-[11px] font-bold text-amber-300 flex items-center gap-1.5">
+                  <div className="bg-amber-950/20 border border-amber-700/40 rounded-xl p-3.5 space-y-1.5">
+                    <div className="text-[11px] font-bold text-amber-300 flex items-center gap-1.5 font-mono">
                       <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
                       The Strategic Sacrifice
                     </div>
@@ -249,22 +249,26 @@ export const PositioningWorkspace: React.FC = () => {
 
                   {/* Adversarial Challenges Drawer */}
                   {world.challenges.length > 0 && (
-                    <div className="space-y-2 pt-2 border-t border-zinc-900">
-                      <span className="text-[10px] uppercase font-bold tracking-wider text-zinc-500">
+                    <div className="space-y-2 pt-2 border-t border-white/[0.05]">
+                      <span className="text-[10px] uppercase font-mono font-bold tracking-wider text-zinc-500">
                         Adversarial Pressure-Testing ({world.challenges.length})
                       </span>
                       <div className="space-y-2">
                         {world.challenges.map((c, i) => (
                           <div
                             key={i}
-                            className="bg-zinc-900/70 border border-zinc-800 rounded-lg p-2.5 text-[11px] space-y-1"
+                            className="bg-obsidian-950/80 border border-white/[0.05] rounded-xl p-3 text-[11px] space-y-1.5"
                           >
                             <div className="flex items-center justify-between">
-                              <span className="font-bold text-indigo-400">{c.evaluatorRole}</span>
-                              <HelpCircle className="w-3 h-3 text-zinc-600" />
+                              <span className="font-bold text-champagne-400 font-mono text-[10px] tracking-wide uppercase">
+                                {c.evaluatorRole}
+                              </span>
+                              <Quote className="w-3 h-3 text-champagne-500/40" />
                             </div>
-                            <p className="text-zinc-300">{c.perspective}</p>
-                            <p className="text-zinc-500 italic">&ldquo;{c.unforgivingQuestion}&rdquo;</p>
+                            <p className="text-zinc-300 leading-normal">{c.perspective}</p>
+                            <p className="text-zinc-400 italic bg-obsidian-900/60 p-2 rounded-lg border-l-2 border-champagne-500/60">
+                              &ldquo;{c.unforgivingQuestion}&rdquo;
+                            </p>
                           </div>
                         ))}
                       </div>
@@ -273,18 +277,18 @@ export const PositioningWorkspace: React.FC = () => {
 
                   {/* Rejection Note */}
                   {world.rejectionReason && (
-                    <div className="text-[11px] text-red-300 italic p-2 bg-red-950/30 border border-red-900/30 rounded">
+                    <div className="text-[11px] text-red-300 italic p-2.5 bg-red-950/30 border border-red-900/30 rounded-xl">
                       Rejected: {world.rejectionReason}
                     </div>
                   )}
                 </div>
 
                 {/* Card Action Controls */}
-                <div className="pt-4 border-t border-zinc-900 flex items-center justify-between gap-2">
+                <div className="pt-4 border-t border-white/[0.05] flex items-center justify-between gap-2">
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => setEditingWorldId(editingWorldId === world.id ? null : world.id)}
-                      className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors"
+                      className="p-1.5 rounded-lg hover:bg-obsidian-800 text-zinc-400 hover:text-white transition-colors border border-transparent hover:border-white/[0.06]"
                       title="Edit territory"
                     >
                       <Edit3 className="w-3.5 h-3.5" />
@@ -292,7 +296,7 @@ export const PositioningWorkspace: React.FC = () => {
                     {!isSelected && (
                       <button
                         onClick={() => setRejectWorldId(world.id)}
-                        className="p-1.5 rounded hover:bg-red-950 text-zinc-500 hover:text-red-400 transition-colors"
+                        className="p-1.5 rounded-lg hover:bg-red-950 text-zinc-500 hover:text-red-400 transition-colors border border-transparent hover:border-red-900/30"
                         title="Reject territory"
                       >
                         <XCircle className="w-3.5 h-3.5" />
@@ -303,7 +307,7 @@ export const PositioningWorkspace: React.FC = () => {
                   {!isSelected && (
                     <button
                       onClick={() => selectPositioningWorld(world.id)}
-                      className="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all shadow-md shadow-indigo-600/20 flex items-center gap-1.5"
+                      className="btn-monolith-primary px-4 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"
                     >
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       Lock Strategy
@@ -318,10 +322,10 @@ export const PositioningWorkspace: React.FC = () => {
 
       {/* Custom Hybrid Synthesis Modal */}
       {showHybridModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 max-w-md w-full shadow-2xl space-y-4">
-            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              <Merge className="w-4 h-4 text-violet-400" />
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="monolith-card rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4 border border-white/[0.1]">
+            <h3 className="text-base font-bold text-white flex items-center gap-2">
+              <Merge className="w-4 h-4 text-champagne-400" />
               Synthesize Custom Hybrid Strategy
             </h3>
             <p className="text-xs text-zinc-400">
@@ -329,33 +333,33 @@ export const PositioningWorkspace: React.FC = () => {
             </p>
             <div className="space-y-3">
               <div>
-                <label className="text-xs text-zinc-400">Strategy Name:</label>
+                <label className="text-xs text-zinc-400 font-mono">Strategy Name:</label>
                 <input
                   type="text"
                   placeholder="e.g. The Quiet Authority"
                   value={hybridTitle}
                   onChange={(e) => setHybridTitle(e.target.value)}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-xs text-white"
+                  className="w-full bg-obsidian-950 border border-white/[0.1] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-champagne-400"
                 />
               </div>
               <div>
-                <label className="text-xs text-zinc-400">Synthesized Value Proposition:</label>
+                <label className="text-xs text-zinc-400 font-mono">Synthesized Value Proposition:</label>
                 <textarea
                   placeholder="Articulate the core value proposition..."
                   value={hybridValue}
                   onChange={(e) => setHybridValue(e.target.value)}
                   rows={2}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-xs text-white"
+                  className="w-full bg-obsidian-950 border border-white/[0.1] rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-champagne-400"
                 />
               </div>
               <div>
-                <label className="text-xs text-zinc-400">Explicit Strategic Sacrifice:</label>
+                <label className="text-xs text-zinc-400 font-mono">Explicit Strategic Sacrifice:</label>
                 <input
                   type="text"
                   placeholder="What will this brand explicitly refuse to do?"
                   value={hybridSacrifice}
                   onChange={(e) => setHybridSacrifice(e.target.value)}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-xs text-white"
+                  className="w-full bg-obsidian-950 border border-white/[0.1] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-champagne-400"
                 />
               </div>
             </div>
@@ -369,7 +373,7 @@ export const PositioningWorkspace: React.FC = () => {
               <button
                 onClick={handleCreateHybrid}
                 disabled={!hybridTitle.trim() || !hybridValue.trim() || !hybridSacrifice.trim()}
-                className="px-4 py-1.5 text-xs font-medium bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white rounded-lg transition-colors"
+                className="btn-monolith-primary px-4 py-1.5 text-xs rounded-xl disabled:opacity-50"
               >
                 Commit Hybrid Strategy
               </button>
@@ -380,9 +384,9 @@ export const PositioningWorkspace: React.FC = () => {
 
       {/* Reject Modal */}
       {rejectWorldId && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 max-w-md w-full shadow-2xl space-y-4">
-            <h3 className="text-lg font-bold text-white">Reject Strategic Territory</h3>
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="monolith-card rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4 border border-white/[0.1]">
+            <h3 className="text-base font-bold text-white">Reject Strategic Territory</h3>
             <p className="text-xs text-zinc-400">
               Specify why this positioning world is rejected to record the alternative in the Decision Graph.
             </p>
@@ -391,9 +395,9 @@ export const PositioningWorkspace: React.FC = () => {
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
               rows={3}
-              className="w-full bg-zinc-950 border border-zinc-800 rounded p-3 text-xs text-white"
+              className="w-full bg-obsidian-950 border border-white/[0.1] rounded-xl p-3 text-xs text-white focus:outline-none focus:border-champagne-400"
             />
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end gap-2 pt-2">
               <button
                 onClick={() => setRejectWorldId(null)}
                 className="px-3 py-1.5 text-xs text-zinc-400 hover:text-zinc-200"
@@ -403,7 +407,7 @@ export const PositioningWorkspace: React.FC = () => {
               <button
                 onClick={handleConfirmReject}
                 disabled={!rejectReason.trim()}
-                className="px-4 py-1.5 text-xs font-medium bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white rounded-lg transition-colors"
+                className="px-4 py-1.5 text-xs font-medium bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white rounded-xl transition-colors"
               >
                 Confirm Rejection
               </button>
