@@ -93,6 +93,25 @@ export const StageTracker: React.FC = () => {
   const assumptionsCount = project.hypotheses.length;
   const evidenceCount = project.marketLandscape?.evidenceRecords.length || 0;
 
+  const stageSectionMap: Record<string, string> = {
+    intake: 'stage-discovery',
+    discovery: 'stage-discovery',
+    research: 'stage-research',
+    brief_review: 'stage-strategy',
+    strategy_locked: 'stage-identity',
+    guardian: 'stage-guardian',
+    scenario_lab: 'stage-scenario_lab',
+    launch_kit: 'stage-launch_kit',
+  };
+
+  const scrollToStage = (stageId: string) => {
+    const targetSectionId = stageSectionMap[stageId] || 'stage-discovery';
+    const element = document.getElementById(targetSectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
     <div className="bg-zinc-900/60 border-b border-zinc-800/80 px-4 sm:px-6 lg:px-8 py-3">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -101,13 +120,16 @@ export const StageTracker: React.FC = () => {
           {stages.map((st, i) => (
             <React.Fragment key={st.id}>
               {i > 0 && <div className="h-0.5 w-4 bg-zinc-800 shrink-0" />}
-              <div
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+              <button
+                type="button"
+                onClick={() => scrollToStage(st.id)}
+                title={`Jump to ${st.name}`}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer hover:scale-105 ${
                   st.status === 'completed'
-                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20'
                     : st.status === 'active'
-                    ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 ring-1 ring-indigo-500/30'
-                    : 'bg-zinc-900 text-zinc-500 border border-zinc-800'
+                    ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 ring-1 ring-indigo-500/30 hover:bg-indigo-500/30'
+                    : 'bg-zinc-900 text-zinc-500 border border-zinc-800 hover:text-zinc-300 hover:border-zinc-700'
                 }`}
               >
                 {st.status === 'completed' ? (
@@ -118,7 +140,7 @@ export const StageTracker: React.FC = () => {
                   <span className="w-2 h-2 rounded-full bg-zinc-700" />
                 )}
                 {st.name}
-              </div>
+              </button>
             </React.Fragment>
           ))}
         </div>

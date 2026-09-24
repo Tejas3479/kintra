@@ -21,15 +21,31 @@ export default function Home() {
       <StageTracker />
       <main className="flex-1 space-y-6 pb-12">
         <ErrorBoundary fallbackTitle="Workspace Encountered an Error">
-          <DiscoveryWorkspace />
+          <section id="stage-discovery">
+            <DiscoveryWorkspace />
+          </section>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-            <EvidenceWorkspace />
-            <PositioningWorkspace />
-            <CreativeIdentityWorkspace />
-            <ConsistencyGuardianWorkspace />
-            <ScenarioLabWorkspace />
-            <LaunchKitWorkspace />
-            <DecisionLedger />
+            <section id="stage-research">
+              <EvidenceWorkspace />
+            </section>
+            <section id="stage-strategy">
+              <PositioningWorkspace />
+            </section>
+            <section id="stage-identity">
+              <CreativeIdentityWorkspace />
+            </section>
+            <section id="stage-guardian">
+              <ConsistencyGuardianWorkspace />
+            </section>
+            <section id="stage-scenario_lab">
+              <ScenarioLabWorkspace />
+            </section>
+            <section id="stage-launch_kit">
+              <LaunchKitWorkspace />
+            </section>
+            <section id="stage-decisions">
+              <DecisionLedger />
+            </section>
           </div>
         </ErrorBoundary>
       </main>

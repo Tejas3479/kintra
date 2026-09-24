@@ -32,6 +32,18 @@ export class ErrorBoundary extends Component<Props, State> {
     window.location.reload();
   };
 
+  private handleClearStorageAndReset = () => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.removeItem('kintra_brand_state_v1');
+      }
+    } catch (e) {
+      console.warn('Failed to clear storage:', e);
+    }
+    this.setState({ hasError: false, error: null });
+    window.location.reload();
+  };
+
   public render() {
     if (this.state.hasError) {
       return (
@@ -43,13 +55,19 @@ export class ErrorBoundary extends Component<Props, State> {
           <p className="text-sm text-zinc-300">
             {this.state.error?.message || 'An unexpected runtime error occurred.'}
           </p>
-          <div>
+          <div className="flex flex-wrap items-center gap-3">
             <button
               onClick={this.handleReset}
               className="inline-flex items-center gap-2 px-4 py-2 bg-red-700/80 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-colors"
             >
               <RotateCcw className="w-4 h-4" />
               Reload Workspace
+            </button>
+            <button
+              onClick={this.handleClearStorageAndReset}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 rounded-lg text-sm font-medium transition-colors"
+            >
+              Clear Storage & Reset
             </button>
           </div>
         </div>
