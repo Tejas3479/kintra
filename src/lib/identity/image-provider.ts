@@ -31,7 +31,6 @@ export interface ImageGenerationProvider {
 export class SvgBrandVisualGenerator {
   static createBrandMarkSvg(ctx: ImagePromptContext): string {
     const { primaryHex, secondaryHex, accentHex, brandName, positioningArchetype } = ctx;
-    const initial = (brandName || 'K')[0].toUpperCase();
 
     // Determine geometry based on archetype
     const isPurist = positioningArchetype.toLowerCase().includes('purist');

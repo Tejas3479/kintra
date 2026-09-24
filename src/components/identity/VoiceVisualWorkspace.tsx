@@ -11,10 +11,7 @@ import {
   CheckCircle2,
   Lock,
   Sparkles,
-  ArrowRight,
-  Layers,
   Ban,
-  Maximize2,
 } from 'lucide-react';
 
 export const VoiceVisualWorkspace: React.FC = () => {

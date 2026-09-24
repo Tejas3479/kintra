@@ -8,7 +8,6 @@ import {
   XCircle,
   AlertTriangle,
   Scale,
-  ShieldAlert,
   Volume2,
   Quote,
 } from 'lucide-react';

@@ -101,7 +101,7 @@ describe('Creative Identity & Visual Brand System Suite (Prompt 08)', () => {
   // ==========================================
   describe('AntiGenericNamer Scanner', () => {
     it('flags startup cliché suffixes like -ly, -ify, -ops, and -ai', () => {
-      const auditLy = AntiGenericNamer.auditName('Reviewly', 'code review');
+      const auditLy = AntiGenericNamer.auditName('Reviewly');
       expect(auditLy.flags.some((f) => f.includes('-ly'))).toBe(true);
       expect(auditLy.genericnessRisk).toBe('medium');
 

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useBrandStore } from '@/store/useBrandStore';
-import { Sparkles, Shield, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Sparkles, AlertTriangle, CheckCircle2 } from 'lucide-react';
 
 export const PersonalityWorkspace: React.FC = () => {
   const { project } = useBrandStore();

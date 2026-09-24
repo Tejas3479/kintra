@@ -13,7 +13,6 @@ import { PositioningWorld, DecisionNode, DecisionEdge } from '@/types/strategy';
 import {
   CreativeIdentity,
   VoiceSystem,
-  VisualSystem,
   GeneratedVisualAsset,
 } from '@/types/identity';
 import { ContradictionDetector } from '@/lib/strategy/contradiction-detector';

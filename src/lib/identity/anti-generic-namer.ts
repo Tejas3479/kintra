@@ -55,6 +55,17 @@ export class AntiGenericNamer {
     const flags: string[] = [];
     const recommendations: string[] = [];
 
+    // 0. Check literal category repetition
+    if (categoryFraming && categoryFraming.trim().length > 3) {
+      const catTokens = categoryFraming.toLowerCase().split(/\s+/);
+      for (const tok of catTokens) {
+        if (tok.length > 3 && trimmed.toLowerCase().includes(tok)) {
+          flags.push(`Repeats literal category descriptor "${tok}" in name`);
+          break;
+        }
+      }
+    }
+
     // 1. Check overused suffixes
     for (const item of this.CLICHE_SUFFIXES) {
       if (item.pattern.test(trimmed)) {

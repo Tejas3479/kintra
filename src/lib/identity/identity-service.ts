@@ -22,11 +22,12 @@ export class IdentityService {
   static async generateIdentity(
     world: PositioningWorld,
     brief: IdeaBrief,
-    _evidenceRecords: EvidenceRecord[] = []
+    evidenceRecords: EvidenceRecord[] = []
   ): Promise<CreativeIdentity> {
     logger.info('Generating creative identity from approved Positioning World:', {
       worldId: world.id,
       archetype: world.archetype,
+      evidenceCount: evidenceRecords.length,
     });
 
     const isPurist = (world.archetype || '').includes('Purist');
