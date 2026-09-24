@@ -159,7 +159,7 @@ export const EvidenceWorkspace: React.FC = () => {
                   <div className="flex items-center justify-between border-b border-white/[0.04] pb-2">
                     <span className="font-bold text-base text-white">{comp.name}</span>
                     <span className="text-[10px] text-zinc-500 font-mono">
-                      {comp.sourceUrls.length} Sources Grounded
+                      {(comp.sourceIds || []).length} Sources Grounded
                     </span>
                   </div>
 
@@ -170,17 +170,17 @@ export const EvidenceWorkspace: React.FC = () => {
 
                   <div className="grid grid-cols-2 gap-2 text-[11px] pt-1">
                     <div className="space-y-1">
-                      <span className="text-emerald-400 font-medium font-mono text-[10px]">Apparent Strengths:</span>
+                      <span className="text-emerald-400 font-medium font-mono text-[10px]">Strengths:</span>
                       <ul className="list-disc list-inside text-zinc-400 space-y-0.5">
-                        {comp.apparentStrengths.map((s, i) => (
+                        {(comp.strengths || []).map((s, i) => (
                           <li key={i}>{s}</li>
                         ))}
                       </ul>
                     </div>
                     <div className="space-y-1">
-                      <span className="text-red-400 font-medium font-mono text-[10px]">Apparent Gaps:</span>
+                      <span className="text-rose-400 font-medium font-mono text-[10px]">Vulnerabilities:</span>
                       <ul className="list-disc list-inside text-zinc-400 space-y-0.5">
-                        {comp.apparentVulnerabilities.map((v, i) => (
+                        {(comp.weaknesses || []).map((v, i) => (
                           <li key={i}>{v}</li>
                         ))}
                       </ul>
