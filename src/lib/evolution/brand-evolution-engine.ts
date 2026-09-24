@@ -10,7 +10,6 @@
  */
 
 import {
-  AssumptionCategory,
   AssumptionChangeRequest,
   DependencyImpactReport,
   ImpactedNode,
@@ -20,7 +19,6 @@ import {
   BranchDiffItem,
 } from '@/types/evolution';
 import { CanonicalBrandState, ProjectSnapshot } from '@/types/brand';
-import { DecisionNode } from '@/types/strategy';
 import { BrandArtifact } from '@/types/guardian';
 import { ConsistencyGuardian } from '@/lib/guardian/consistency-guardian';
 import { logger } from '@/lib/logger';
@@ -39,7 +37,6 @@ export class BrandEvolutionEngine {
     const affectedDecisions: ImpactedNode[] = [];
     const affectedArtifacts: ImpactedNode[] = [];
 
-    const nodes = state.decisionGraph.nodes;
     const selectedWorld = state.positioningWorlds.find((w) => w.id === state.selectedWorldId);
     const brandArtifacts = state.brandArtifacts || [];
 
@@ -359,10 +356,30 @@ export class BrandEvolutionEngine {
 
     // 2. Update Decision Graph nodes (invalidate affected, retain unaffected)
     const graphNodes = nextState.decisionGraph.nodes;
-    if (graphNodes['node-target-niche']) {
-      graphNodes['node-target-niche'].approvedValue = request.proposedValue;
-      graphNodes['node-target-niche'].version += 1;
-      graphNodes['node-target-niche'].rationale = `Evolved: ${request.rationale}`;
+    let targetNodeFound = false;
+    for (const key of Object.keys(graphNodes)) {
+      if (graphNodes[key].category === 'target_niche') {
+        graphNodes[key].approvedValue = request.proposedValue;
+        graphNodes[key].version += 1;
+        graphNodes[key].rationale = `Evolved: ${request.rationale}`;
+        targetNodeFound = true;
+      }
+    }
+    if (!targetNodeFound) {
+      graphNodes['node-target-niche'] = {
+        id: 'node-target-niche',
+        category: 'target_niche',
+        title: 'Target Audience Decision',
+        approvedValue: request.proposedValue,
+        rationale: `Evolved: ${request.rationale}`,
+        evidenceIds: [],
+        rejectedAlternatives: [],
+        tradeoff: 'Refocused on specific audience segment',
+        dependsOn: [],
+        governs: [],
+        status: 'approved',
+        version: 2,
+      };
     }
 
     // 3. Selectively regenerate only affected artifacts

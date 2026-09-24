@@ -9,13 +9,14 @@ import {
   ApprovedDecision,
 } from '@/types/brand';
 import { MarketLandscape, CompetitorProfile } from '@/types/research';
-import { PositioningWorld, DecisionNode, DecisionEdge } from '@/types/strategy';
+import { PositioningWorld, DecisionNode, DecisionEdge, ContradictionAlert } from '@/types/strategy';
 import {
   CreativeIdentity,
   VoiceSystem,
   GeneratedVisualAsset,
 } from '@/types/identity';
 import { ContradictionDetector } from '@/lib/strategy/contradiction-detector';
+import { StrategyService } from '@/lib/strategy/strategy-service';
 import { IdentityConsistencyChecker } from '@/lib/identity/identity-consistency-checker';
 import { IdentityService } from '@/lib/identity/identity-service';
 import { DefaultImageGenerationProvider } from '@/lib/identity/image-provider';
@@ -650,22 +651,34 @@ export const useBrandStore = create<BrandStoreState>()(
         set({ isLoading: true, loadingMessage: 'Synthesizing high-contrast strategic positioning worlds...', error: null });
 
         try {
-          const res = await fetch('/api/strategy', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              action: 'generate_worlds',
-              brief: ideaBrief,
-              evidenceRecords: marketLandscape?.evidenceRecords || [],
-            }),
-          });
+          let worlds: PositioningWorld[];
+          let contradictions: ContradictionAlert[] = [];
 
-          const json = await res.json();
-          if (!res.ok || !json.success) {
-            throw new Error(json.error || 'Failed to generate positioning worlds.');
+          try {
+            const res = await fetch('/api/strategy', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'generate_worlds',
+                brief: ideaBrief,
+                evidenceRecords: marketLandscape?.evidenceRecords || [],
+              }),
+            });
+
+            const json = await res.json();
+            if (res.ok && json.success) {
+              worlds = json.data.worlds;
+              contradictions = json.data.contradictions || [];
+            } else {
+              throw new Error(json.error || 'Failed to generate positioning worlds.');
+            }
+          } catch {
+            // Direct service fallback (e.g. offline, test environment, or API route unreachable)
+            worlds = StrategyService.generateWorlds(ideaBrief, marketLandscape?.evidenceRecords || []);
+            contradictions = worlds.flatMap((w) =>
+              ContradictionDetector.auditPositioningWorld(w, marketLandscape?.evidenceRecords || [])
+            );
           }
-
-          const { worlds, contradictions } = json.data;
 
           set((s) => ({
             isLoading: false,

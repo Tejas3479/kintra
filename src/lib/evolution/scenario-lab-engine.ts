@@ -209,7 +209,7 @@ export class ScenarioLabEngine {
 
       case 'sales_email':
         return {
-          content: `Hi there, Hope you're crushing it! I noticed you write code. Do you want to 10x your output and eliminate all bugs forever? Let's hop on a quick 15-min chat next week!`,
+          content: `Hi there, Hope you're crushing it! I noticed your team builds tools for ${targetAudience}. Do you want to 10x your output and eliminate all bugs forever? Let's hop on a quick 15-min chat next week!`,
           detectedFlaws: [
             'High-pressure spam tone ("crushing it", "hop on a quick 15-min chat")',
             'Unrealistic promise ("eliminate all bugs forever")',
@@ -265,8 +265,9 @@ export class ScenarioLabEngine {
     proofMechanism: string,
     state: CanonicalBrandState
   ): ScenarioBrandAwareGeneration {
-    const isPurist =
-      state.creativeIdentity?.personalityTraits?.some((t) => t.name.toLowerCase().includes('purist')) ?? true;
+    const toneDescription =
+      state.creativeIdentity?.personalityTraits?.map((t) => t.name).join(', ') ||
+      'Direct, unadorned engineering precision';
 
     switch (type) {
       case 'website_launch':
@@ -276,7 +277,7 @@ export class ScenarioLabEngine {
             `Audience: Explicitly crafted for ${targetAudience}`,
             `Differentiator: ${differentiator}`,
             `Proof Mechanism: ${proofMechanism}`,
-            `Tone: Direct, unadorned engineering precision`,
+            `Tone: ${toneDescription}`,
           ],
           description: 'Directly grounded in the approved Positioning World and Voice System.',
         };

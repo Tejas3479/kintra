@@ -57,9 +57,19 @@ export const StageTracker: React.FC = () => {
       id: 'guardian',
       name: '6. Consistency Guardian',
       status:
-        project.stage === 'guardian_locked'
+        project.stage === 'guardian_locked' || project.stage === 'scenario_lab' || project.stage === 'evolution'
           ? 'completed'
           : project.stage === 'guardian' || project.stage === 'identity_locked'
+          ? 'active'
+          : 'upcoming',
+    },
+    {
+      id: 'scenario_lab',
+      name: '7. Scenario Lab & Evolution',
+      status:
+        project.stage === 'scenario_lab' || project.stage === 'evolution'
+          ? 'active'
+          : project.stage === 'guardian_locked'
           ? 'active'
           : 'upcoming',
     },
