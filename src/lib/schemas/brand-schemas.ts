@@ -160,14 +160,17 @@ export const ProjectMetadataSchema = z.object({
   isDemoProject: z.boolean().optional(),
 });
 
+import { MarketLandscapeSchema } from './research-schemas';
+
 export const CanonicalBrandStateSchema = z.object({
   metadata: ProjectMetadataSchema,
-  stage: z.enum(['intake', 'discovery', 'brief_review', 'strategy_locked']),
+  stage: z.enum(['intake', 'discovery', 'research', 'brief_review', 'strategy_locked']),
   rawFounderInput: z.string(),
   extractedFacts: z.array(ExtractedFactSchema),
   unresolvedQuestions: z.array(UnresolvedQuestionSchema),
   hypotheses: z.array(HypothesisSchema),
   interviewState: AdaptiveInterviewStateSchema,
+  marketLandscape: MarketLandscapeSchema.nullable().default(null),
   ideaBrief: IdeaBriefSchema.nullable(),
   decisions: z.record(z.string(), ApprovedDecisionSchema),
   artifacts: z.array(GeneratedArtifactSchema),

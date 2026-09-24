@@ -8,6 +8,7 @@ import {
   ProjectSnapshot,
   ApprovedDecision,
 } from '@/types/brand';
+import { MarketLandscape, CompetitorProfile } from '@/types/research';
 import { CanonicalBrandStateSchema } from '@/lib/schemas/brand-schemas';
 import { INITIAL_DEMO_PROJECT } from '@/fixtures/demo-brands';
 
@@ -28,7 +29,7 @@ interface BrandStoreState {
   rollbackToSnapshot: (snapshotId: string) => boolean;
   exportProjectJSON: () => string;
   importProjectJSON: (jsonString: string) => { success: boolean; error?: string };
-  resetProject: () => void;
+  resetProject: (preserveSnapshots?: boolean) => void;
 
   // Actions: Discovery Flow
   setRawFounderInput: (input: string) => void;
@@ -37,6 +38,12 @@ interface BrandStoreState {
   skipInterviewQuestion: (questionId: string) => Promise<void>;
   generateNextQuestion: () => Promise<void>;
   synthesizeBrief: () => Promise<boolean>;
+
+  // Actions: Research & Evidence Ledger
+  runMarketResearch: (query?: string) => Promise<boolean>;
+  addManualCompetitor: (name: string, claimedPositioning: string, targetAudience?: string) => void;
+  removeEvidenceRecord: (id: string) => void;
+  setMarketLandscape: (landscape: MarketLandscape) => void;
 
   // Actions: User Control & Editing
   updateFact: (factId: string, statement: string, verified: boolean) => void;
@@ -75,6 +82,7 @@ const DEFAULT_EMPTY_PROJECT: CanonicalBrandState = {
     isComplete: false,
     lastUpdated: new Date().toISOString(),
   },
+  marketLandscape: null,
   ideaBrief: null,
   decisions: {},
   artifacts: [],
@@ -419,6 +427,102 @@ export const useBrandStore = create<BrandStoreState>()(
           });
           return false;
         }
+      },
+
+      runMarketResearch: async (query?: string) => {
+        const targetQuery = query || get().project.rawFounderInput || 'Developer code security pull requests';
+        set({ isLoading: true, loadingMessage: 'Analyzing market landscape and compiling evidence ledger...', error: null });
+
+        try {
+          const res = await fetch('/api/research', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              query: targetQuery,
+              rawIdea: get().project.rawFounderInput,
+            }),
+          });
+
+          const json = await res.json();
+          if (!res.ok || !json.success) {
+            throw new Error(json.error || 'Failed to aggregate market research.');
+          }
+
+          const landscape: MarketLandscape = json.data;
+
+          set((s) => ({
+            isLoading: false,
+            loadingMessage: '',
+            project: {
+              ...s.project,
+              stage: s.project.stage === 'intake' || s.project.stage === 'discovery' ? 'research' : s.project.stage,
+              marketLandscape: landscape,
+              metadata: { ...s.project.metadata, updatedAt: new Date().toISOString() },
+            },
+          }));
+
+          return true;
+        } catch (err: unknown) {
+          set({
+            isLoading: false,
+            loadingMessage: '',
+            error: err instanceof Error ? err.message : 'Research aggregation failed.',
+          });
+          return false;
+        }
+      },
+
+      addManualCompetitor: (name: string, claimedPositioning: string, targetAudience = 'General market') => {
+        const landscape = get().project.marketLandscape;
+        if (!landscape) return;
+
+        const newComp: CompetitorProfile = {
+          id: `comp-custom-${Date.now()}`,
+          name,
+          claimedPositioning,
+          targetAudience,
+          strengths: ['Founder-identified market player'],
+          weaknesses: ['Competitor profile added directly by user'],
+          clichePhrases: [],
+          sourceIds: [],
+        };
+
+        set((s) => ({
+          project: {
+            ...s.project,
+            marketLandscape: {
+              ...landscape,
+              competitors: [...landscape.competitors, newComp],
+            },
+            metadata: { ...s.project.metadata, updatedAt: new Date().toISOString() },
+          },
+        }));
+      },
+
+      removeEvidenceRecord: (id: string) => {
+        const landscape = get().project.marketLandscape;
+        if (!landscape) return;
+
+        set((s) => ({
+          project: {
+            ...s.project,
+            marketLandscape: {
+              ...landscape,
+              evidenceRecords: landscape.evidenceRecords.filter((r) => r.id !== id),
+            },
+            metadata: { ...s.project.metadata, updatedAt: new Date().toISOString() },
+          },
+        }));
+      },
+
+      setMarketLandscape: (landscape: MarketLandscape) => {
+        set((s) => ({
+          project: {
+            ...s.project,
+            marketLandscape: landscape,
+            metadata: { ...s.project.metadata, updatedAt: new Date().toISOString() },
+          },
+        }));
       },
 
       updateFact: (factId: string, statement: string, verified: boolean) => {

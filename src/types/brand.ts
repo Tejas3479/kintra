@@ -166,14 +166,17 @@ export interface ProjectSnapshot {
   state: CanonicalBrandState;
 }
 
+import { MarketLandscape } from './research';
+
 export interface CanonicalBrandState {
   metadata: ProjectMetadata;
-  stage: 'intake' | 'discovery' | 'brief_review' | 'strategy_locked';
+  stage: 'intake' | 'discovery' | 'research' | 'brief_review' | 'strategy_locked';
   rawFounderInput: string;
   extractedFacts: ExtractedFact[];
   unresolvedQuestions: UnresolvedQuestion[];
   hypotheses: Hypothesis[];
   interviewState: AdaptiveInterviewState;
+  marketLandscape: MarketLandscape | null;
   ideaBrief: IdeaBrief | null;
   decisions: Record<string, ApprovedDecision>;
   artifacts: GeneratedArtifact[];
