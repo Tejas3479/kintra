@@ -29,8 +29,8 @@ export class IdentityService {
       archetype: world.archetype,
     });
 
-    const isPurist = world.archetype.includes('Purist');
-    const isGatekeeper = world.archetype.includes('Gatekeeper');
+    const isPurist = (world.archetype || '').includes('Purist');
+    const isGatekeeper = (world.archetype || '').includes('Gatekeeper');
 
     // 1. BRAND PERSONALITY (3-5 traits)
     const personalityTraits: BrandPersonalityTrait[] = [

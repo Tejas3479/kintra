@@ -18,6 +18,8 @@ import {
 } from '@/types/identity';
 import { ContradictionDetector } from '@/lib/strategy/contradiction-detector';
 import { IdentityConsistencyChecker } from '@/lib/identity/identity-consistency-checker';
+import { IdentityService } from '@/lib/identity/identity-service';
+import { DefaultImageGenerationProvider } from '@/lib/identity/image-provider';
 import { CanonicalBrandStateSchema } from '@/lib/schemas/brand-schemas';
 import { INITIAL_DEMO_PROJECT } from '@/fixtures/demo-brands';
 
@@ -909,20 +911,32 @@ export const useBrandStore = create<BrandStoreState>()(
         });
 
         try {
-          const res = await fetch('/api/identity', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              action: 'generate_identity',
-              world: selectedWorld,
-              brief: ideaBrief,
-              evidenceRecords: marketLandscape?.evidenceRecords || [],
-            }),
-          });
+          let identityData: CreativeIdentity;
+          try {
+            const res = await fetch('/api/identity', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'generate_identity',
+                world: selectedWorld,
+                brief: ideaBrief,
+                evidenceRecords: marketLandscape?.evidenceRecords || [],
+              }),
+            });
 
-          const json = await res.json();
-          if (!res.ok || !json.success) {
-            throw new Error(json.error || 'Failed to generate creative identity.');
+            const json = await res.json();
+            if (res.ok && json.success) {
+              identityData = json.data;
+            } else {
+              throw new Error(json.error || 'Failed to generate creative identity.');
+            }
+          } catch {
+            // Direct service fallback (e.g. offline, test environment, or API route unreachable)
+            identityData = await IdentityService.generateIdentity(
+              selectedWorld,
+              ideaBrief,
+              marketLandscape?.evidenceRecords || []
+            );
           }
 
           set((s) => ({
@@ -931,7 +945,7 @@ export const useBrandStore = create<BrandStoreState>()(
             project: {
               ...s.project,
               stage: 'identity',
-              creativeIdentity: json.data,
+              creativeIdentity: identityData,
               metadata: { ...s.project.metadata, updatedAt: new Date().toISOString() },
             },
           }));
@@ -1085,35 +1099,59 @@ export const useBrandStore = create<BrandStoreState>()(
           )?.tagline || '';
 
         try {
-          const res = await fetch('/api/identity', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              action: 'generate_visual',
-              promptContext: {
-                positioningArchetype: selectedWorld?.archetype || 'The Engineering Purist',
-                brandName: selectedName,
-                tagline: selectedTagline,
-                primaryHex: project.creativeIdentity.visualSystem.palette.primary.hex,
-                secondaryHex: project.creativeIdentity.visualSystem.palette.secondary.hex,
-                accentHex: project.creativeIdentity.visualSystem.palette.accent.hex,
-                visualMetaphors: project.creativeIdentity.visualSystem.visualMetaphors,
-                audience: selectedWorld?.targetAudience || 'Engineers',
-                borderRadius: project.creativeIdentity.visualSystem.shapes.borderRadius,
-                assetType,
-              },
-            }),
-          });
+          let asset: GeneratedVisualAsset | null = null;
+          try {
+            const res = await fetch('/api/identity', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'generate_visual',
+                promptContext: {
+                  positioningArchetype: selectedWorld?.archetype || 'The Engineering Purist',
+                  brandName: selectedName,
+                  tagline: selectedTagline,
+                  primaryHex: project.creativeIdentity.visualSystem.palette.primary.hex,
+                  secondaryHex: project.creativeIdentity.visualSystem.palette.secondary.hex,
+                  accentHex: project.creativeIdentity.visualSystem.palette.accent.hex,
+                  visualMetaphors: project.creativeIdentity.visualSystem.visualMetaphors,
+                  audience: selectedWorld?.targetAudience || 'Engineers',
+                  borderRadius: project.creativeIdentity.visualSystem.shapes.borderRadius,
+                  assetType,
+                },
+              }),
+            });
 
-          const json = await res.json();
-          if (res.ok && json.success && json.data.asset) {
+            const json = await res.json();
+            if (res.ok && json.success && json.data.asset) {
+              asset = json.data.asset;
+            }
+          } catch {
+            const provider = new DefaultImageGenerationProvider();
+            const result = await provider.generateVisual({
+              positioningArchetype: selectedWorld?.archetype || 'The Engineering Purist',
+              brandName: selectedName,
+              tagline: selectedTagline,
+              primaryHex: project.creativeIdentity.visualSystem.palette.primary.hex,
+              secondaryHex: project.creativeIdentity.visualSystem.palette.secondary.hex,
+              accentHex: project.creativeIdentity.visualSystem.palette.accent.hex,
+              visualMetaphors: project.creativeIdentity.visualSystem.visualMetaphors,
+              audience: selectedWorld?.targetAudience || 'Engineers',
+              borderRadius: project.creativeIdentity.visualSystem.shapes.borderRadius,
+              assetType,
+            });
+            if (result.success && result.asset) {
+              asset = result.asset;
+            }
+          }
+
+          if (asset) {
             set((s) => ({
               project: {
                 ...s.project,
                 creativeIdentity: s.project.creativeIdentity
                   ? {
                       ...s.project.creativeIdentity,
-                      generatedVisuals: [json.data.asset, ...s.project.creativeIdentity.generatedVisuals],
+                      generatedVisuals: [asset!, ...s.project.creativeIdentity.generatedVisuals],
                     }
                   : null,
               },

@@ -8,6 +8,7 @@ export interface NamingAuditResult {
   genericnessRisk: 'low' | 'medium' | 'high';
   flags: string[];
   recommendations: string[];
+  legalDisclaimer: string;
 }
 
 export class AntiGenericNamer {
@@ -102,6 +103,8 @@ export class AntiGenericNamer {
       genericnessRisk,
       flags,
       recommendations,
+      legalDisclaimer:
+        'Preliminary linguistic and phonetic analysis only. Not legal clearance or registered trademark clearance.',
     };
   }
 }
