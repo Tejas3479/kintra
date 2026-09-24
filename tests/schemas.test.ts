@@ -6,6 +6,10 @@ import {
   HypothesisSchema,
   InterviewQuestionSchema,
 } from '@/lib/schemas/brand-schemas';
+import {
+  BrandPersonalityTraitSchema,
+  NamingCandidateSchema,
+} from '@/lib/schemas/identity-schemas';
 import { INITIAL_DEMO_PROJECT, DEMO_BRAND_PRGUARD } from '@/fixtures/demo-brands';
 
 describe('Canonical Brand State & Domain Schemas', () => {
@@ -66,5 +70,37 @@ describe('Canonical Brand State & Domain Schemas', () => {
     };
     const result = InterviewQuestionSchema.safeParse(invalidQuestion);
     expect(result.success).toBe(false);
+  });
+
+  it('should validate Creative Identity Personality, Naming, Voice, and Visual schemas', () => {
+    const validTrait = {
+      id: 'trait-1',
+      name: 'Deterministic Rigor',
+      definition: 'Refuses to guess or present speculative findings without mathematical proof.',
+      audienceRelevance: 'Builds deep trust with cynical senior staff engineers and architects.',
+      strategicBasis: 'Directly reinforces the zero-fluff, zero-false-alarm positioning.',
+      behaviorExamples: ['Only comments when an executable unit test reproduces the bug.'],
+      traitToAvoid: 'Never nitpick code style or post speculative warnings.',
+      confidence: 0.95,
+    };
+    expect(BrandPersonalityTraitSchema.safeParse(validTrait).success).toBe(true);
+
+    const validCandidate = {
+      id: 'name-1',
+      name: 'Kintra',
+      territoryId: 'terr-1',
+      territoryName: 'Precision Mechanisms',
+      rationale: 'Derived from kinetic and track, symbolizing determinism and momentum.',
+      semanticAssociation: 'Movement, certainty, flow.',
+      pronunciation: 'KIN-truh',
+      possibleAmbiguity: 'None detected.',
+      genericnessRisk: 'low' as const,
+      antiGenericFlags: [],
+      strategicFit: 'Perfect match for deterministic PR intelligence.',
+      confidence: 0.92,
+      status: 'candidate' as const,
+      legalDisclaimer: 'Preliminary linguistic and phonetic analysis only. Not legal clearance.',
+    };
+    expect(NamingCandidateSchema.safeParse(validCandidate).success).toBe(true);
   });
 });
