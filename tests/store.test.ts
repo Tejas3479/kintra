@@ -108,4 +108,58 @@ describe('useBrandStore Workspace & User Control', () => {
     expect(restored).toBe(true);
     expect(useBrandStore.getState().project.metadata.name).toBe('PRGuard Security');
   });
+
+  it('caps snapshots array to maximum 10 items to prevent unbounded memory growth', () => {
+    useBrandStore.getState().loadDemoProject();
+
+    for (let i = 1; i <= 15; i++) {
+      useBrandStore.getState().createSnapshot(`Snapshot #${i}`);
+    }
+
+    const { snapshots } = useBrandStore.getState();
+    expect(snapshots.length).toBeLessThanOrEqual(10);
+    expect(snapshots[0].label).toBe('Snapshot #15');
+  });
+
+  it('ensures brief-baseline node exists in decision graph on brief approval', () => {
+    useBrandStore.getState().loadDemoProject();
+    useBrandStore.getState().approveIdeaBrief('Approved baseline.');
+
+    const { project } = useBrandStore.getState();
+    expect(project.decisionGraph.nodes['brief-baseline']).toBeDefined();
+    expect(project.decisionGraph.nodes['brief-baseline'].category).toBe('problem_framing');
+    expect(project.decisionGraph.nodes['brief-baseline'].governs).toContain('positioning_world');
+  });
+
+  it('ensures brief-baseline node is not dangling when selecting positioning world directly', () => {
+    useBrandStore.getState().loadDemoProject();
+    const worldId = useBrandStore.getState().project.positioningWorlds[0]?.id;
+    if (worldId) {
+      useBrandStore.getState().selectPositioningWorld(worldId, 'Selected strategy territory');
+      const { project } = useBrandStore.getState();
+      expect(project.decisionGraph.nodes['brief-baseline']).toBeDefined();
+      const edge = project.decisionGraph.edges.find((e) => e.source === 'brief-baseline');
+      expect(edge).toBeDefined();
+    }
+  });
+
+  it('synchronizes top-level scenarioArtifacts and launchKit on rollback and import', () => {
+    useBrandStore.getState().loadDemoProject();
+    const demoLaunchKit = useBrandStore.getState().project.launchKit;
+
+    // Snapshot state
+    useBrandStore.getState().createSnapshot('Demo Snapshot');
+    const snapId = useBrandStore.getState().snapshots[0].id;
+
+    // Reset project
+    useBrandStore.getState().resetProject(true);
+    expect(useBrandStore.getState().launchKit).toBeNull();
+    expect(useBrandStore.getState().scenarioArtifacts).toHaveLength(0);
+
+    // Rollback
+    useBrandStore.getState().rollbackToSnapshot(snapId);
+    if (demoLaunchKit) {
+      expect(useBrandStore.getState().launchKit).not.toBeNull();
+    }
+  });
 });

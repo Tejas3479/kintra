@@ -52,7 +52,19 @@ export interface ContradictionAlert {
 
 export interface DecisionNode {
   id: string;
-  category: 'positioning_world' | 'value_proposition' | 'target_niche' | 'category_frame' | 'proof_model';
+  category:
+    | 'positioning_world'
+    | 'value_proposition'
+    | 'target_niche'
+    | 'category_frame'
+    | 'proof_model'
+    | 'brand_name'
+    | 'tagline'
+    | 'voice_system'
+    | 'visual_system'
+    | 'problem_framing'
+    | 'pricing_tier'
+    | 'market_motion';
   title: string;
   approvedValue: string;
   rationale: string;

@@ -258,6 +258,16 @@ export const useBrandStore = create<BrandStoreState>()(
         set({
           project: newProject,
           snapshots: [],
+          scenarioArtifacts: [],
+          selectedScenarioId: null,
+          activeChangeRequest: null,
+          impactReport: null,
+          branches: [],
+          activeBranchId: null,
+          launchKit: null,
+          selectedLaunchItemId: null,
+          isPresentationModeOpen: false,
+          exportContent: null,
           error: null,
         });
       },
@@ -265,6 +275,14 @@ export const useBrandStore = create<BrandStoreState>()(
       loadDemoProject: () => {
         set({
           project: INITIAL_DEMO_PROJECT,
+          scenarioArtifacts: INITIAL_DEMO_PROJECT.scenarioArtifacts || [],
+          branches: INITIAL_DEMO_PROJECT.branches || [],
+          activeBranchId: INITIAL_DEMO_PROJECT.currentBranchId || null,
+          launchKit: (INITIAL_DEMO_PROJECT.launchKit as LaunchKit | null) || null,
+          selectedScenarioId: null,
+          activeChangeRequest: null,
+          impactReport: null,
+          selectedLaunchItemId: INITIAL_DEMO_PROJECT.launchKit?.items?.[0]?.id || null,
           error: null,
         });
       },
@@ -296,8 +314,17 @@ export const useBrandStore = create<BrandStoreState>()(
         const target = get().snapshots.find((s) => s.id === snapshotId);
         if (!target) return false;
 
+        const restoredProject = JSON.parse(JSON.stringify(target.state));
         set({
-          project: JSON.parse(JSON.stringify(target.state)),
+          project: restoredProject,
+          scenarioArtifacts: restoredProject.scenarioArtifacts || [],
+          branches: restoredProject.branches || get().branches,
+          activeBranchId: restoredProject.currentBranchId || get().activeBranchId,
+          launchKit: (restoredProject.launchKit as LaunchKit | null) || null,
+          selectedScenarioId: null,
+          activeChangeRequest: null,
+          impactReport: null,
+          selectedLaunchItemId: restoredProject.launchKit?.items?.[0]?.id || null,
           error: null,
         });
         return true;
@@ -313,6 +340,14 @@ export const useBrandStore = create<BrandStoreState>()(
           const validated = CanonicalBrandStateSchema.parse(parsed);
           set({
             project: validated,
+            scenarioArtifacts: validated.scenarioArtifacts || [],
+            branches: validated.branches || [],
+            activeBranchId: validated.currentBranchId || null,
+            launchKit: (validated.launchKit as LaunchKit | null) || null,
+            selectedScenarioId: null,
+            activeChangeRequest: null,
+            impactReport: null,
+            selectedLaunchItemId: validated.launchKit?.items?.[0]?.id || null,
             error: null,
           });
           return { success: true };
@@ -335,6 +370,16 @@ export const useBrandStore = create<BrandStoreState>()(
             },
           },
           snapshots: preserveSnapshots ? s.snapshots : [],
+          scenarioArtifacts: [],
+          selectedScenarioId: null,
+          activeChangeRequest: null,
+          impactReport: null,
+          branches: [],
+          activeBranchId: null,
+          launchKit: null,
+          selectedLaunchItemId: null,
+          isPresentationModeOpen: false,
+          exportContent: null,
           error: null,
         }));
       },
@@ -785,7 +830,30 @@ export const useBrandStore = create<BrandStoreState>()(
             selectedWorldId: worldId,
             positioningWorlds: updatedWorlds,
             decisionGraph: {
-              nodes: { ...(s.project.decisionGraph?.nodes || {}), [decisionId]: decisionNode },
+              nodes: {
+                ...(s.project.decisionGraph?.nodes || {}),
+                ...(!s.project.decisionGraph?.nodes?.['brief-baseline']
+                  ? {
+                      'brief-baseline': {
+                        id: 'brief-baseline',
+                        category: 'problem_framing',
+                        title: 'Strategic Brief Baseline',
+                        approvedValue:
+                          s.project.ideaBrief?.problem.corePain || 'Strategic problem & value framing anchor',
+                        rationale: 'Baseline problem and value framing anchor',
+                        evidenceIds: [],
+                        rejectedAlternatives: [],
+                        tradeoff: 'Initial problem formulation constraints',
+                        dependsOn: [],
+                        governs: ['positioning_world', 'target_niche'],
+                        status: 'approved',
+                        approvedAt: new Date().toISOString(),
+                        version: s.project.metadata.version,
+                      },
+                    }
+                  : {}),
+                [decisionId]: decisionNode,
+              },
               edges: [...(s.project.decisionGraph?.edges || []), edge],
             },
             decisions: {
@@ -1290,7 +1358,7 @@ export const useBrandStore = create<BrandStoreState>()(
 
         const nameNode: DecisionNode = {
           id: nameDecisionId,
-          category: 'target_niche',
+          category: 'brand_name',
           title: `Brand Name: ${selectedName}`,
           approvedValue: selectedName,
           rationale: `Selected brand name from territory. ${rationale}`,
@@ -1312,7 +1380,7 @@ export const useBrandStore = create<BrandStoreState>()(
 
         const taglineNode: DecisionNode = {
           id: taglineDecisionId,
-          category: 'value_proposition',
+          category: 'tagline',
           title: `Brand Tagline: "${selectedTagline}"`,
           approvedValue: selectedTagline,
           rationale: `Selected tagline communicating core differentiator.`,
@@ -1945,6 +2013,22 @@ export const useBrandStore = create<BrandStoreState>()(
           version: brief.version,
         };
 
+        const briefBaselineNode: DecisionNode = {
+          id: 'brief-baseline',
+          category: 'problem_framing',
+          title: 'Strategic Brief Baseline',
+          approvedValue: brief.problem.corePain,
+          rationale,
+          evidenceIds: [],
+          rejectedAlternatives: [],
+          tradeoff: 'Established baseline constraints from approved Idea Brief',
+          dependsOn: [],
+          governs: ['positioning_world', 'target_niche'],
+          status: 'approved',
+          approvedAt: new Date().toISOString(),
+          version: brief.version,
+        };
+
         set((s) => ({
           project: {
             ...s.project,
@@ -1957,6 +2041,13 @@ export const useBrandStore = create<BrandStoreState>()(
             decisions: {
               ...s.project.decisions,
               [decisionId]: newDecision,
+            },
+            decisionGraph: {
+              nodes: {
+                ...(s.project.decisionGraph?.nodes || {}),
+                'brief-baseline': briefBaselineNode,
+              },
+              edges: s.project.decisionGraph?.edges || [],
             },
             metadata: { ...s.project.metadata, updatedAt: new Date().toISOString() },
           },
@@ -2153,7 +2244,7 @@ export const useBrandStore = create<BrandStoreState>()(
         };
 
         set((s) => {
-          const updated = [...s.branches, newBranch];
+          const updated = [...s.branches, newBranch].slice(-10); // cap branches to 10
           return {
             branches: updated,
             activeBranchId: newBranch.id,
@@ -2172,9 +2263,13 @@ export const useBrandStore = create<BrandStoreState>()(
         // Snapshot current active state before switching
         get().createSnapshot(`Pre-switch state (switching to ${targetBranch.name})`);
 
+        const restoredProject = JSON.parse(JSON.stringify(targetBranch.snapshot.state));
         set({
-          project: JSON.parse(JSON.stringify(targetBranch.snapshot.state)),
+          project: restoredProject,
           activeBranchId: branchId,
+          scenarioArtifacts: restoredProject.scenarioArtifacts || [],
+          launchKit: (restoredProject.launchKit as LaunchKit | null) || null,
+          selectedLaunchItemId: restoredProject.launchKit?.items?.[0]?.id || null,
         });
         return true;
       },
@@ -2267,7 +2362,21 @@ export const useBrandStore = create<BrandStoreState>()(
           if (typeof window === 'undefined' || typeof window.localStorage === 'undefined') {
             return;
           }
-          window.localStorage.setItem(name, value);
+          try {
+            window.localStorage.setItem(name, value);
+          } catch (storageErr) {
+            console.warn('LocalStorage write failed or quota exceeded:', storageErr);
+            // Attempt to recover by pruning snapshots if quota exceeded
+            try {
+              const parsed = JSON.parse(value);
+              if (parsed?.state?.snapshots && parsed.state.snapshots.length > 2) {
+                parsed.state.snapshots = parsed.state.snapshots.slice(0, 2);
+                window.localStorage.setItem(name, JSON.stringify(parsed));
+              }
+            } catch {
+              // Ignore fallback write error
+            }
+          }
         },
         removeItem: (name: string): void => {
           if (typeof window === 'undefined' || typeof window.localStorage === 'undefined') {

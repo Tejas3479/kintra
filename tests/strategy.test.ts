@@ -135,12 +135,13 @@ describe('Strategic Reasoning Layer & Decision Graph Suite', () => {
       expect(stateAfterSelect.stage).toBe('strategy_locked');
 
       const decisionNodes = Object.values(stateAfterSelect.decisionGraph.nodes);
-      expect(decisionNodes.length).toBe(1);
+      expect(decisionNodes.length).toBeGreaterThanOrEqual(1);
 
-      const decision = decisionNodes[0];
-      expect(decision.title).toContain('The Engineering Purist');
-      expect(decision.rejectedAlternatives.some((a) => a.id === 'world-partner')).toBe(true);
-      expect(decision.rejectedAlternatives.find((a) => a.id === 'world-partner')?.whyRejected).toBe(
+      const decision = decisionNodes.find((n) => n.category === 'positioning_world');
+      expect(decision).toBeDefined();
+      expect(decision!.title).toContain('The Engineering Purist');
+      expect(decision!.rejectedAlternatives.some((a) => a.id === 'world-partner')).toBe(true);
+      expect(decision!.rejectedAlternatives.find((a) => a.id === 'world-partner')?.whyRejected).toBe(
         'Too focused on speed rather than accuracy.'
       );
     });
@@ -161,8 +162,11 @@ describe('Strategic Reasoning Layer & Decision Graph Suite', () => {
       useBrandStore.getState().selectPositioningWorld('world-purist', 'Selected for accuracy.');
 
       const { project } = useBrandStore.getState();
-      const decisionNode = Object.values(project.decisionGraph.nodes)[0];
+      const decisionNode = Object.values(project.decisionGraph.nodes).find(
+        (n) => n.category === 'positioning_world'
+      )!;
 
+      expect(decisionNode).toBeDefined();
       expect(decisionNode.status).toBe('approved');
       expect(decisionNode.evidenceIds.length).toBeGreaterThan(0);
       expect(project.decisions[decisionNode.id]).toBeDefined();
@@ -247,7 +251,8 @@ describe('Strategic Reasoning Layer & Decision Graph Suite', () => {
 
       const reloaded = useBrandStore.getState().project;
       expect(reloaded.selectedWorldId).toBe('world-purist');
-      expect(Object.keys(reloaded.decisionGraph.nodes)).toHaveLength(1);
+      expect(Object.keys(reloaded.decisionGraph.nodes).length).toBeGreaterThanOrEqual(1);
+      expect(reloaded.decisionGraph.nodes['brief-baseline']).toBeDefined();
     });
   });
 });
