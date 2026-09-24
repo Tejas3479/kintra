@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useBrandStore } from '@/store/useBrandStore';
-import { DecisionNode } from '@/types/decision-graph';
+import { DecisionNode } from '@/types/strategy';
 import { CheckCircle2, Radio } from 'lucide-react';
 
 export const VisualDecisionGraph: React.FC = () => {
