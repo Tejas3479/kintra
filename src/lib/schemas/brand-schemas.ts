@@ -166,10 +166,20 @@ import {
   DecisionGraphStateSchema,
   ContradictionAlertSchema,
 } from './strategy-schemas';
+import { CreativeIdentitySchema } from './identity-schemas';
 
 export const CanonicalBrandStateSchema = z.object({
   metadata: ProjectMetadataSchema,
-  stage: z.enum(['intake', 'discovery', 'research', 'positioning', 'brief_review', 'strategy_locked']),
+  stage: z.enum([
+    'intake',
+    'discovery',
+    'research',
+    'positioning',
+    'brief_review',
+    'strategy_locked',
+    'identity',
+    'identity_locked',
+  ]),
   rawFounderInput: z.string(),
   extractedFacts: z.array(ExtractedFactSchema),
   unresolvedQuestions: z.array(UnresolvedQuestionSchema),
@@ -181,6 +191,7 @@ export const CanonicalBrandStateSchema = z.object({
   decisionGraph: DecisionGraphStateSchema.default({ nodes: {}, edges: [] }),
   contradictions: z.array(ContradictionAlertSchema).default([]),
   ideaBrief: IdeaBriefSchema.nullable(),
+  creativeIdentity: CreativeIdentitySchema.nullable().default(null),
   decisions: z.record(z.string(), ApprovedDecisionSchema),
   artifacts: z.array(GeneratedArtifactSchema),
   validationHistory: z.array(ValidationResultSchema),

@@ -10,7 +10,14 @@ import {
 } from '@/types/brand';
 import { MarketLandscape, CompetitorProfile } from '@/types/research';
 import { PositioningWorld, DecisionNode, DecisionEdge } from '@/types/strategy';
+import {
+  CreativeIdentity,
+  VoiceSystem,
+  VisualSystem,
+  GeneratedVisualAsset,
+} from '@/types/identity';
 import { ContradictionDetector } from '@/lib/strategy/contradiction-detector';
+import { IdentityConsistencyChecker } from '@/lib/identity/identity-consistency-checker';
 import { CanonicalBrandStateSchema } from '@/lib/schemas/brand-schemas';
 import { INITIAL_DEMO_PROJECT } from '@/fixtures/demo-brands';
 
@@ -64,6 +71,17 @@ interface BrandStoreState {
   rejectPositioningWorld: (worldId: string, reason: string) => void;
   auditContradictions: () => void;
 
+  // Actions: Creative Identity (Naming, Voice, Visuals)
+  generateCreativeIdentity: () => Promise<boolean>;
+  selectName: (candidateId: string) => void;
+  rejectName: (candidateId: string, reason: string) => void;
+  selectTagline: (taglineId: string) => void;
+  updateVoiceTonalSlider: (slider: keyof VoiceSystem['tonalSliders'], value: number) => void;
+  updateVisualPaletteColor: (role: 'primary' | 'secondary' | 'accent', hex: string) => void;
+  generateVisualAsset: (assetType?: GeneratedVisualAsset['assetType']) => Promise<boolean>;
+  approveCreativeIdentity: (rationale?: string) => void;
+  auditIdentityConsistency: () => void;
+
   // Actions: User Control & Editing
   updateFact: (factId: string, statement: string, verified: boolean) => void;
   deleteFact: (factId: string) => void;
@@ -107,6 +125,7 @@ const DEFAULT_EMPTY_PROJECT: CanonicalBrandState = {
   decisionGraph: { nodes: {}, edges: [] },
   contradictions: [],
   ideaBrief: null,
+  creativeIdentity: null,
   decisions: {},
   artifacts: [],
   validationHistory: [],
@@ -857,6 +876,416 @@ export const useBrandStore = create<BrandStoreState>()(
             ...s.project,
             contradictions: alerts,
             metadata: { ...s.project.metadata, updatedAt: new Date().toISOString() },
+          },
+        }));
+      },
+
+      generateCreativeIdentity: async () => {
+        const { project } = get();
+        const { selectedWorldId, positioningWorlds, ideaBrief, marketLandscape } = project;
+
+        if (!selectedWorldId) {
+          set({
+            error: 'Please select and lock a Positioning World before generating creative identity.',
+          });
+          return false;
+        }
+
+        const selectedWorld = positioningWorlds.find((w) => w.id === selectedWorldId);
+        if (!selectedWorld) {
+          set({ error: 'Selected Positioning World not found.' });
+          return false;
+        }
+
+        if (!ideaBrief) {
+          set({ error: 'Idea Brief is required to generate creative identity.' });
+          return false;
+        }
+
+        set({
+          isLoading: true,
+          loadingMessage: 'Synthesizing creative identity (naming, voice, visual system)...',
+          error: null,
+        });
+
+        try {
+          const res = await fetch('/api/identity', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'generate_identity',
+              world: selectedWorld,
+              brief: ideaBrief,
+              evidenceRecords: marketLandscape?.evidenceRecords || [],
+            }),
+          });
+
+          const json = await res.json();
+          if (!res.ok || !json.success) {
+            throw new Error(json.error || 'Failed to generate creative identity.');
+          }
+
+          set((s) => ({
+            isLoading: false,
+            loadingMessage: '',
+            project: {
+              ...s.project,
+              stage: 'identity',
+              creativeIdentity: json.data,
+              metadata: { ...s.project.metadata, updatedAt: new Date().toISOString() },
+            },
+          }));
+
+          return true;
+        } catch (err: unknown) {
+          set({
+            isLoading: false,
+            loadingMessage: '',
+            error: err instanceof Error ? err.message : 'Identity generation failed.',
+          });
+          return false;
+        }
+      },
+
+      selectName: (candidateId: string) => {
+        const { project } = get();
+        if (!project.creativeIdentity) return;
+
+        const candidate = project.creativeIdentity.namingCandidates.find((c) => c.id === candidateId);
+        if (!candidate) return;
+
+        set((s) => ({
+          project: {
+            ...s.project,
+            creativeIdentity: s.project.creativeIdentity
+              ? {
+                  ...s.project.creativeIdentity,
+                  selectedNameId: candidateId,
+                  namingCandidates: s.project.creativeIdentity.namingCandidates.map((c) =>
+                    c.id === candidateId
+                      ? { ...c, status: 'selected' as const }
+                      : c.status === 'selected'
+                      ? { ...c, status: 'candidate' as const }
+                      : c
+                  ),
+                }
+              : null,
+            metadata: { ...s.project.metadata, updatedAt: new Date().toISOString() },
+          },
+        }));
+
+        get().auditIdentityConsistency();
+      },
+
+      rejectName: (candidateId: string, reason: string) => {
+        set((s) => ({
+          project: {
+            ...s.project,
+            creativeIdentity: s.project.creativeIdentity
+              ? {
+                  ...s.project.creativeIdentity,
+                  namingCandidates: s.project.creativeIdentity.namingCandidates.map((c) =>
+                    c.id === candidateId
+                      ? { ...c, status: 'rejected' as const, rejectionReason: reason }
+                      : c
+                  ),
+                }
+              : null,
+            metadata: { ...s.project.metadata, updatedAt: new Date().toISOString() },
+          },
+        }));
+      },
+
+      selectTagline: (taglineId: string) => {
+        const { project } = get();
+        if (!project.creativeIdentity) return;
+
+        set((s) => ({
+          project: {
+            ...s.project,
+            creativeIdentity: s.project.creativeIdentity
+              ? {
+                  ...s.project.creativeIdentity,
+                  selectedTaglineId: taglineId,
+                  taglineCandidates: s.project.creativeIdentity.taglineCandidates.map((t) =>
+                    t.id === taglineId
+                      ? { ...t, status: 'selected' as const }
+                      : t.status === 'selected'
+                      ? { ...t, status: 'candidate' as const }
+                      : t
+                  ),
+                }
+              : null,
+            metadata: { ...s.project.metadata, updatedAt: new Date().toISOString() },
+          },
+        }));
+
+        get().auditIdentityConsistency();
+      },
+
+      updateVoiceTonalSlider: (slider: keyof VoiceSystem['tonalSliders'], value: number) => {
+        set((s) => ({
+          project: {
+            ...s.project,
+            creativeIdentity: s.project.creativeIdentity
+              ? {
+                  ...s.project.creativeIdentity,
+                  voiceSystem: {
+                    ...s.project.creativeIdentity.voiceSystem,
+                    tonalSliders: {
+                      ...s.project.creativeIdentity.voiceSystem.tonalSliders,
+                      [slider]: value,
+                    },
+                  },
+                }
+              : null,
+            metadata: { ...s.project.metadata, updatedAt: new Date().toISOString() },
+          },
+        }));
+
+        get().auditIdentityConsistency();
+      },
+
+      updateVisualPaletteColor: (role: 'primary' | 'secondary' | 'accent', hex: string) => {
+        set((s) => ({
+          project: {
+            ...s.project,
+            creativeIdentity: s.project.creativeIdentity
+              ? {
+                  ...s.project.creativeIdentity,
+                  visualSystem: {
+                    ...s.project.creativeIdentity.visualSystem,
+                    palette: {
+                      ...s.project.creativeIdentity.visualSystem.palette,
+                      [role]: {
+                        ...s.project.creativeIdentity.visualSystem.palette[role],
+                        hex,
+                      },
+                    },
+                  },
+                }
+              : null,
+            metadata: { ...s.project.metadata, updatedAt: new Date().toISOString() },
+          },
+        }));
+      },
+
+      generateVisualAsset: async (assetType: GeneratedVisualAsset['assetType'] = 'brand_mark') => {
+        const { project } = get();
+        if (!project.creativeIdentity || !project.selectedWorldId) return false;
+
+        const selectedWorld = project.positioningWorlds.find((w) => w.id === project.selectedWorldId);
+        const selectedName =
+          project.creativeIdentity.namingCandidates.find(
+            (c) => c.id === project.creativeIdentity?.selectedNameId
+          )?.name || 'Kintra';
+        const selectedTagline =
+          project.creativeIdentity.taglineCandidates.find(
+            (t) => t.id === project.creativeIdentity?.selectedTaglineId
+          )?.tagline || '';
+
+        try {
+          const res = await fetch('/api/identity', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'generate_visual',
+              promptContext: {
+                positioningArchetype: selectedWorld?.archetype || 'The Engineering Purist',
+                brandName: selectedName,
+                tagline: selectedTagline,
+                primaryHex: project.creativeIdentity.visualSystem.palette.primary.hex,
+                secondaryHex: project.creativeIdentity.visualSystem.palette.secondary.hex,
+                accentHex: project.creativeIdentity.visualSystem.palette.accent.hex,
+                visualMetaphors: project.creativeIdentity.visualSystem.visualMetaphors,
+                audience: selectedWorld?.targetAudience || 'Engineers',
+                borderRadius: project.creativeIdentity.visualSystem.shapes.borderRadius,
+                assetType,
+              },
+            }),
+          });
+
+          const json = await res.json();
+          if (res.ok && json.success && json.data.asset) {
+            set((s) => ({
+              project: {
+                ...s.project,
+                creativeIdentity: s.project.creativeIdentity
+                  ? {
+                      ...s.project.creativeIdentity,
+                      generatedVisuals: [json.data.asset, ...s.project.creativeIdentity.generatedVisuals],
+                    }
+                  : null,
+              },
+            }));
+            return true;
+          }
+          return false;
+        } catch {
+          return false;
+        }
+      },
+
+      approveCreativeIdentity: (rationale = 'Founder approved creative identity baseline.') => {
+        const { project } = get();
+        if (!project.creativeIdentity) return;
+
+        const selectedName =
+          project.creativeIdentity.namingCandidates.find(
+            (c) => c.id === project.creativeIdentity?.selectedNameId
+          )?.name || 'Kintra';
+        const selectedTagline =
+          project.creativeIdentity.taglineCandidates.find(
+            (t) => t.id === project.creativeIdentity?.selectedTaglineId
+          )?.tagline || '';
+
+        const nameDecisionId = `decision-name-${Date.now()}`;
+        const taglineDecisionId = `decision-tagline-${Date.now()}`;
+        const worldDecisionId =
+          Object.keys(project.decisionGraph?.nodes || {}).find(
+            (k) => project.decisionGraph.nodes[k].category === 'positioning_world'
+          ) || 'brief-baseline';
+
+        const nameNode: DecisionNode = {
+          id: nameDecisionId,
+          category: 'target_niche',
+          title: `Brand Name: ${selectedName}`,
+          approvedValue: selectedName,
+          rationale: `Selected brand name from territory. ${rationale}`,
+          evidenceIds: [],
+          rejectedAlternatives: project.creativeIdentity.namingCandidates
+            .filter((c) => c.id !== project.creativeIdentity?.selectedNameId)
+            .map((c) => ({
+              id: c.id,
+              title: c.name,
+              whyRejected: c.rejectionReason || 'Rejected in favor of selected brand name.',
+            })),
+          tradeoff: 'Selected specific phonetic brand architecture.',
+          dependsOn: [worldDecisionId],
+          governs: ['voice_sliders', 'visual_system'],
+          status: 'approved',
+          approvedAt: new Date().toISOString(),
+          version: project.metadata.version + 1,
+        };
+
+        const taglineNode: DecisionNode = {
+          id: taglineDecisionId,
+          category: 'value_proposition',
+          title: `Brand Tagline: "${selectedTagline}"`,
+          approvedValue: selectedTagline,
+          rationale: `Selected tagline communicating core differentiator.`,
+          evidenceIds: [],
+          rejectedAlternatives: project.creativeIdentity.taglineCandidates
+            .filter((t) => t.id !== project.creativeIdentity?.selectedTaglineId)
+            .map((t) => ({
+              id: t.id,
+              title: t.tagline,
+              whyRejected: t.rejectionReason || 'Alternative tagline rejected.',
+            })),
+          tradeoff: 'Sacrifices generic feature listing for sharp positioning.',
+          dependsOn: [worldDecisionId],
+          governs: ['hero_headline'],
+          status: 'approved',
+          approvedAt: new Date().toISOString(),
+          version: project.metadata.version + 1,
+        };
+
+        const newEdges: DecisionEdge[] = [
+          {
+            id: `edge-world-name-${Date.now()}`,
+            source: worldDecisionId,
+            target: nameDecisionId,
+            relation: 'governs',
+          },
+          {
+            id: `edge-world-tagline-${Date.now()}`,
+            source: worldDecisionId,
+            target: taglineDecisionId,
+            relation: 'governs',
+          },
+        ];
+
+        set((s) => ({
+          project: {
+            ...s.project,
+            stage: 'identity_locked',
+            creativeIdentity: s.project.creativeIdentity
+              ? {
+                  ...s.project.creativeIdentity,
+                  status: 'approved',
+                  approvedAt: new Date().toISOString(),
+                }
+              : null,
+            decisionGraph: {
+              nodes: {
+                ...s.project.decisionGraph.nodes,
+                [nameDecisionId]: nameNode,
+                [taglineDecisionId]: taglineNode,
+              },
+              edges: [...s.project.decisionGraph.edges, ...newEdges],
+            },
+            decisions: {
+              ...s.project.decisions,
+              [nameDecisionId]: {
+                id: nameDecisionId,
+                category: 'name',
+                title: nameNode.title,
+                value: nameNode.approvedValue,
+                rationale: nameNode.rationale,
+                approvedAt: new Date().toISOString(),
+                approvedBy: 'founder',
+                version: project.metadata.version + 1,
+              },
+              [taglineDecisionId]: {
+                id: taglineDecisionId,
+                category: 'positioning',
+                title: taglineNode.title,
+                value: taglineNode.approvedValue,
+                rationale: taglineNode.rationale,
+                approvedAt: new Date().toISOString(),
+                approvedBy: 'founder',
+                version: project.metadata.version + 1,
+              },
+            },
+            metadata: {
+              ...s.project.metadata,
+              updatedAt: new Date().toISOString(),
+            },
+          },
+        }));
+
+        get().createSnapshot(`Approved Creative Identity: ${selectedName}`);
+      },
+
+      auditIdentityConsistency: () => {
+        const { project } = get();
+        if (!project.creativeIdentity) return;
+
+        const selectedName = project.creativeIdentity.namingCandidates.find(
+          (c) => c.id === project.creativeIdentity?.selectedNameId
+        );
+        const selectedTagline = project.creativeIdentity.taglineCandidates.find(
+          (t) => t.id === project.creativeIdentity?.selectedTaglineId
+        );
+        const selectedWorld = project.positioningWorlds.find((w) => w.id === project.selectedWorldId);
+
+        const conflicts = IdentityConsistencyChecker.auditConsistency({
+          selectedName,
+          selectedTagline,
+          voiceSystem: project.creativeIdentity.voiceSystem,
+          visualSystem: project.creativeIdentity.visualSystem,
+          positioningWorld: selectedWorld,
+        });
+
+        set((s) => ({
+          project: {
+            ...s.project,
+            creativeIdentity: s.project.creativeIdentity
+              ? {
+                  ...s.project.creativeIdentity,
+                  consistencyConflicts: conflicts,
+                }
+              : null,
           },
         }));
       },

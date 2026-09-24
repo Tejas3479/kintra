@@ -301,6 +301,7 @@ export const INITIAL_DEMO_PROJECT: CanonicalBrandState = {
   decisionGraph: { nodes: {}, edges: [] },
   contradictions: [],
   ideaBrief: DEMO_BRAND_PRGUARD.ideaBrief,
+  creativeIdentity: null,
   decisions: {},
   artifacts: [],
   validationHistory: [],
