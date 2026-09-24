@@ -6,8 +6,8 @@
 [![Next.js](https://img.shields.io/badge/Next.js-15.1.7-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19.0.0-blue?style=for-the-badge&logo=react)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
-[![Google Gemini](https://img.shields.io/badge/Google%20Gemini-2.5%20Flash-orange?style=for-the-badge&logo=google)](https://deepmind.google/technologies/gemini/)
-[![Tests](https://img.shields.io/badge/Vitest-108%20Passed-emerald?style=for-the-badge&logo=vitest)](https://vitest.dev/)
+[![Google Gemini](https://img.shields.io/badge/Google%20Gemini-3.8%20Flash-orange?style=for-the-badge&logo=google)](https://deepmind.google/technologies/gemini/)
+[![Tests](https://img.shields.io/badge/Vitest-122%20Passed-emerald?style=for-the-badge&logo=vitest)](https://vitest.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-purple?style=for-the-badge)](LICENSE)
 
 **Deterministic brand strategy, adversarial challenge, consistency guardian, and causal evolution engine backed by verifiable evidence.**
@@ -162,12 +162,12 @@ KINTRA features a production-ready dual-engine architecture:
                   ▼                             ▼
        [ GeminiProvider ]              [ MockAIProvider ]
     • Real Google GenAI SDK          • Deterministic fixtures
-    • Live gemini-2.5-flash          • Zero token / quota cost
+    • Live gemini-3.8-flash          • Zero token / quota cost
     • Live structured JSON           • Instant test suite (5s)
     • Dynamic strategic reasoning    • Zero setup for judges/reviewers
 ```
 
-- **Production Mode**: When `GEMINI_API_KEY` is provided, KINTRA invokes Google's `gemini-2.5-flash` with strict JSON schema enforcement via `@google/genai`.
+- **Production Mode**: When `GEMINI_API_KEY` is provided, KINTRA invokes Google's `gemini-3.8-flash` (supporting `gemini-3.5-flash` through `gemini-3.8-flash`) with strict JSON schema enforcement via `@google/genai`.
 - **Demo / Offline Mode**: When running without credentials or in CI, KINTRA executes deterministic fixtures instantly with zero latency and zero billing cost.
 
 ---
@@ -178,7 +178,7 @@ KINTRA features a production-ready dual-engine architecture:
 | :--- | :--- | :--- |
 | **Framework** | [Next.js 15.1.7](https://nextjs.org/) (App Router) | High-performance React SSR/SSG and server routes |
 | **Runtime** | [React 19](https://react.dev/) + [TypeScript 5](https://www.typescriptlang.org/) | Strict type-safe UI components and domain modeling |
-| **AI Integration** | [@google/genai](https://www.npmjs.com/package/@google/genai) | Gemini 2.5 Flash structured output synthesis |
+| **AI Integration** | [@google/genai](https://www.npmjs.com/package/@google/genai) | Gemini 3.8 Flash (3.5–3.8) structured output synthesis |
 | **State Store** | [Zustand 5](https://github.com/pmndrs/zustand) | Client-side persistent reactive brand state & snapshotting |
 | **Validation** | [Zod 3](https://zod.dev/) | Strict runtime schema enforcement for all domain types |
 | **Styling** | [Tailwind CSS 3](https://tailwindcss.com/) | Dark obsidian terminal aesthetic with WCAG AA compliance |
@@ -231,7 +231,7 @@ KINTRA features a production-ready dual-engine architecture:
 KINTRA includes a test suite covering domain schemas, contradiction detection, SSRF defenses, consistency auditing, and end-to-end lifecycles:
 
 ```bash
-# Run all 15 test suites (108 tests)
+# Run all 15 test suites (122 tests)
 npm test
 
 # Run production build & type checks
@@ -240,8 +240,8 @@ npm run build
 
 ```
 Test Files  15 passed (15)
-     Tests  108 passed (108)
-  Duration  ~5.1s
+     Tests  122 passed (122)
+  Duration  ~4.5s
 Routes      12/12 compiled cleanly (0 errors)
 ```
 
