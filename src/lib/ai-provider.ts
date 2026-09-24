@@ -203,7 +203,7 @@ Do NOT wrap in markdown code blocks like \`\`\`json. Output raw JSON only.
 User Request:
 ${prompt}`;
 
-        const modelName = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
+        const modelName = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
         const response = await ai.models.generateContent({
           model: modelName,
           contents: fullPrompt,
