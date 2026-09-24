@@ -26,6 +26,18 @@ import {
   ArtifactValidationReport,
 } from '@/types/guardian';
 import { ConsistencyGuardian } from '@/lib/guardian/consistency-guardian';
+import {
+  ScenarioTemplateType,
+  ScenarioArtifact,
+  AssumptionCategory,
+  AssumptionChangeRequest,
+  DependencyImpactReport,
+  EvolutionApprovalChoice,
+  BrandBranch,
+  BranchComparisonDiff,
+} from '@/types/evolution';
+import { ScenarioLabEngine } from '@/lib/evolution/scenario-lab-engine';
+import { BrandEvolutionEngine } from '@/lib/evolution/brand-evolution-engine';
 import { CanonicalBrandStateSchema } from '@/lib/schemas/brand-schemas';
 import { INITIAL_DEMO_PROJECT } from '@/fixtures/demo-brands';
 
@@ -107,6 +119,30 @@ interface BrandStoreState {
   lockApprovedArtifact: (artifactId: string, rationale?: string) => void;
   unlockArtifact: (artifactId: string) => void;
 
+  // Evolution & Scenario Lab State (Prompt 10)
+  scenarioArtifacts: ScenarioArtifact[];
+  selectedScenarioId: string | null;
+  activeChangeRequest: AssumptionChangeRequest | null;
+  impactReport: DependencyImpactReport | null;
+  branches: BrandBranch[];
+  activeBranchId: string | null;
+
+  // Actions: Scenario Lab
+  runScenarioTest: (scenarioType: ScenarioTemplateType) => Promise<boolean>;
+  selectScenario: (scenarioId: string) => void;
+  repairScenario: (scenarioId: string, findingId: string) => void;
+  manuallyEditScenario: (scenarioId: string, newContent: string) => void;
+
+  // Actions: Assumption Evolution Engine
+  proposeAssumptionChange: (category: AssumptionCategory, proposedValue: string, rationale: string) => void;
+  clearProposedAssumption: () => void;
+  approveEvolution: (choice: EvolutionApprovalChoice, branchName?: string) => void;
+
+  // Actions: Branching & Versioning
+  createBranch: (name: string, description?: string) => void;
+  switchBranch: (branchId: string) => boolean;
+  compareBranches: (baseBranchId: string, targetBranchId: string) => BranchComparisonDiff | null;
+
   // Actions: User Control & Editing
   updateFact: (factId: string, statement: string, verified: boolean) => void;
   deleteFact: (factId: string) => void;
@@ -155,6 +191,10 @@ const DEFAULT_EMPTY_PROJECT: CanonicalBrandState = {
   artifacts: [],
   brandArtifacts: [],
   selectedArtifactId: null,
+  scenarioArtifacts: [],
+  selectedScenarioId: null,
+  branches: [],
+  currentBranchId: undefined,
   validationHistory: [],
 };
 
@@ -163,6 +203,12 @@ export const useBrandStore = create<BrandStoreState>()(
     (set, get) => ({
       project: DEFAULT_EMPTY_PROJECT,
       snapshots: [],
+      scenarioArtifacts: [],
+      selectedScenarioId: null,
+      activeChangeRequest: null,
+      impactReport: null,
+      branches: [],
+      activeBranchId: null,
       isLoading: false,
       loadingMessage: '',
       error: null,
@@ -1907,6 +1953,206 @@ export const useBrandStore = create<BrandStoreState>()(
       regenerateIdeaBrief: async () => {
         return get().synthesizeBrief();
       },
+
+      // Scenario Lab Actions (Prompt 10)
+      runScenarioTest: async (scenarioType: ScenarioTemplateType) => {
+        get().setLoading(true, `Simulating realistic ${scenarioType} scenario...`);
+        try {
+          const scenario = ScenarioLabEngine.generateScenario(scenarioType, get().project);
+          set((s) => {
+            const currentScenarios = s.scenarioArtifacts.filter((sc) => sc.scenarioType !== scenarioType);
+            const updated = [scenario, ...currentScenarios];
+            return {
+              scenarioArtifacts: updated,
+              selectedScenarioId: scenario.id,
+              project: {
+                ...s.project,
+                scenarioArtifacts: updated,
+                selectedScenarioId: scenario.id,
+                stage: 'scenario_lab',
+                metadata: { ...s.project.metadata, updatedAt: new Date().toISOString() },
+              },
+            };
+          });
+          return true;
+        } catch (err) {
+          get().setError(err instanceof Error ? err.message : 'Failed to run scenario');
+          return false;
+        } finally {
+          get().setLoading(false);
+        }
+      },
+
+      selectScenario: (scenarioId: string) => {
+        set((s) => ({
+          selectedScenarioId: scenarioId,
+          project: {
+            ...s.project,
+            selectedScenarioId: scenarioId,
+          },
+        }));
+      },
+
+      repairScenario: (scenarioId: string, findingId: string) => {
+        const scenario = get().scenarioArtifacts.find((s) => s.id === scenarioId);
+        if (!scenario) return;
+
+        const repaired = ScenarioLabEngine.applyRepairToScenario(scenario, findingId, get().project);
+        set((s) => {
+          const updated = s.scenarioArtifacts.map((sc) => (sc.id === scenarioId ? repaired : sc));
+          return {
+            scenarioArtifacts: updated,
+            project: {
+              ...s.project,
+              scenarioArtifacts: updated,
+            },
+          };
+        });
+      },
+
+      manuallyEditScenario: (scenarioId: string, newContent: string) => {
+        const scenario = get().scenarioArtifacts.find((s) => s.id === scenarioId);
+        if (!scenario) return;
+
+        const updatedScenario = ScenarioLabEngine.manuallyEditScenario(scenario, newContent, get().project);
+        set((s) => {
+          const updated = s.scenarioArtifacts.map((sc) => (sc.id === scenarioId ? updatedScenario : sc));
+          return {
+            scenarioArtifacts: updated,
+            project: {
+              ...s.project,
+              scenarioArtifacts: updated,
+            },
+          };
+        });
+      },
+
+      // Assumption Evolution Engine Actions
+      proposeAssumptionChange: (category: AssumptionCategory, proposedValue: string, rationale: string) => {
+        const currentWorld = get().project.positioningWorlds.find((w) => w.id === get().project.selectedWorldId);
+        let currentValue = '';
+        if (category === 'target_audience') {
+          currentValue = currentWorld?.targetAudience || get().project.ideaBrief?.targetUser.primaryNiche || 'Senior Engineers';
+        } else if (category === 'pricing_tier') {
+          currentValue = 'Enterprise Security (High-touch procurement)';
+        } else if (category === 'emotional_territory') {
+          currentValue = currentWorld?.emotionalTerritory || 'Quiet Engineering Rigor';
+        } else if (category === 'primary_problem') {
+          currentValue = currentWorld?.problemFraming || get().project.ideaBrief?.problem.corePain || 'Silent Logic Flaws in PRs';
+        } else {
+          currentValue = currentWorld?.categoryFraming || 'Developer Tooling';
+        }
+
+        const request: AssumptionChangeRequest = {
+          id: `req-${category}-${Date.now()}`,
+          category,
+          title: `Evolve ${category.replace(/_/g, ' ')}`,
+          currentValue,
+          proposedValue,
+          rationale,
+          requestedAt: new Date().toISOString(),
+        };
+
+        const impact = BrandEvolutionEngine.analyzeAssumptionImpact(request, get().project);
+        set({
+          activeChangeRequest: request,
+          impactReport: impact,
+        });
+      },
+
+      clearProposedAssumption: () => {
+        set({
+          activeChangeRequest: null,
+          impactReport: null,
+        });
+      },
+
+      approveEvolution: (choice: EvolutionApprovalChoice, branchName?: string) => {
+        const request = get().activeChangeRequest;
+        if (!request) return;
+
+        const result = BrandEvolutionEngine.applyEvolution(request, get().project, choice, branchName);
+
+        if (choice === 'keep_old_decision') {
+          set({
+            activeChangeRequest: null,
+            impactReport: null,
+          });
+          return;
+        }
+
+        // Apply update or branch
+        set((s) => {
+          const newBranches = result.newBranch ? [...s.branches, result.newBranch] : s.branches;
+          return {
+            project: {
+              ...result.updatedState,
+              stage: 'evolution',
+              branches: newBranches,
+            },
+            branches: newBranches,
+            activeBranchId: result.newBranch ? result.newBranch.id : s.activeBranchId,
+            activeChangeRequest: null,
+            impactReport: null,
+          };
+        });
+
+        // Create automatic version snapshot
+        get().createSnapshot(`Evolved Brand: ${request.title} (${request.proposedValue})`);
+      },
+
+      // Branching Actions
+      createBranch: (name: string, description = '') => {
+        const currentProject = get().project;
+        const newBranch: BrandBranch = {
+          id: `branch-${Date.now()}`,
+          name,
+          description: description || `Branch created from v${currentProject.metadata.version}`,
+          parentBranchId: get().activeBranchId || 'main',
+          createdAt: new Date().toISOString(),
+          snapshot: {
+            id: `snap-branch-${Date.now()}`,
+            version: currentProject.metadata.version,
+            label: `Branch snapshot: ${name}`,
+            timestamp: new Date().toISOString(),
+            state: JSON.parse(JSON.stringify(currentProject)),
+          },
+        };
+
+        set((s) => {
+          const updated = [...s.branches, newBranch];
+          return {
+            branches: updated,
+            activeBranchId: newBranch.id,
+            project: {
+              ...s.project,
+              branches: updated,
+            },
+          };
+        });
+      },
+
+      switchBranch: (branchId: string) => {
+        const targetBranch = get().branches.find((b) => b.id === branchId);
+        if (!targetBranch) return false;
+
+        // Snapshot current active state before switching
+        get().createSnapshot(`Pre-switch state (switching to ${targetBranch.name})`);
+
+        set({
+          project: JSON.parse(JSON.stringify(targetBranch.snapshot.state)),
+          activeBranchId: branchId,
+        });
+        return true;
+      },
+
+      compareBranches: (baseBranchId: string, targetBranchId: string) => {
+        const base = get().branches.find((b) => b.id === baseBranchId);
+        const target = get().branches.find((b) => b.id === targetBranchId);
+        if (!base || !target) return null;
+
+        return BrandEvolutionEngine.compareBranches(base, target);
+      },
     }),
     {
       name: 'kintra_brand_state_v1',
@@ -1933,6 +2179,9 @@ export const useBrandStore = create<BrandStoreState>()(
       partialize: (state) => ({
         project: state.project,
         snapshots: state.snapshots,
+        scenarioArtifacts: state.scenarioArtifacts,
+        branches: state.branches,
+        activeBranchId: state.activeBranchId,
       }),
     }
   )

@@ -170,6 +170,7 @@ import { MarketLandscape } from './research';
 import { PositioningWorld, DecisionGraphState, ContradictionAlert } from './strategy';
 import { CreativeIdentity } from './identity';
 import { BrandArtifact } from './guardian';
+import { ScenarioArtifact, BrandBranch } from './evolution';
 
 export interface CanonicalBrandState {
   metadata: ProjectMetadata;
@@ -183,7 +184,9 @@ export interface CanonicalBrandState {
     | 'identity'
     | 'identity_locked'
     | 'guardian'
-    | 'guardian_locked';
+    | 'guardian_locked'
+    | 'scenario_lab'
+    | 'evolution';
   rawFounderInput: string;
   extractedFacts: ExtractedFact[];
   unresolvedQuestions: UnresolvedQuestion[];
@@ -200,5 +203,9 @@ export interface CanonicalBrandState {
   artifacts: GeneratedArtifact[];
   brandArtifacts?: BrandArtifact[];
   selectedArtifactId?: string | null;
+  scenarioArtifacts?: ScenarioArtifact[];
+  selectedScenarioId?: string | null;
+  branches?: BrandBranch[];
+  currentBranchId?: string;
   validationHistory: ValidationResult[];
 }

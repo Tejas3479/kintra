@@ -63,7 +63,11 @@ describe('Scenario Lab Engine Suite (Prompt 10 Part A)', () => {
       // 2. Brand-Aware Generation checks
       expect(scenario.brandAwareGeneration.content.length).toBeGreaterThan(20);
       expect(scenario.brandAwareGeneration.alignedDecisions.length).toBeGreaterThan(0);
-      expect(scenario.brandAwareGeneration.content).toContain(initializedState.creativeIdentity?.selectedName?.name || 'Kintra');
+      const expectedBrandName =
+        initializedState.creativeIdentity?.namingCandidates.find(
+          (n) => n.id === initializedState.creativeIdentity?.selectedNameId
+        )?.name || 'Kintra';
+      expect(scenario.brandAwareGeneration.content).toContain(expectedBrandName);
 
       // 3. Validated Final checks
       expect(scenario.validatedFinal.validationReport.passed).toBe(true);

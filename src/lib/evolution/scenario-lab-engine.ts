@@ -100,8 +100,12 @@ export class ScenarioLabEngine {
   ): ScenarioArtifact {
     const template = SCENARIO_TEMPLATES[scenarioType];
     const selectedWorld = state.positioningWorlds.find((w) => w.id === state.selectedWorldId);
-    const brandName = state.creativeIdentity?.selectedName?.name || 'Kintra';
-    const tagline = state.creativeIdentity?.selectedTagline?.text || 'Deterministic Pull Request Intelligence';
+    const brandName =
+      state.creativeIdentity?.namingCandidates.find((n) => n.id === state.creativeIdentity?.selectedNameId)?.name ||
+      'Kintra';
+    const tagline =
+      state.creativeIdentity?.taglineCandidates.find((t) => t.id === state.creativeIdentity?.selectedTaglineId)?.tagline ||
+      'Deterministic Pull Request Intelligence';
     const targetAudience = selectedWorld?.targetAudience || 'Senior Software Engineers & Platform Architects';
     const differentiator = selectedWorld?.differentiator || 'AST-level deterministic analysis';
     const proofMechanism = selectedWorld?.proofMechanism || 'Inspectable AST telemetry logs';
@@ -134,8 +138,8 @@ export class ScenarioLabEngine {
     // 4. Lineage Tracking
     const governingDecisionIds: string[] = [];
     if (selectedWorld) governingDecisionIds.push(selectedWorld.id);
-    if (state.creativeIdentity?.selectedName?.id) governingDecisionIds.push(state.creativeIdentity.selectedName.id);
-    if (state.creativeIdentity?.selectedTagline?.id) governingDecisionIds.push(state.creativeIdentity.selectedTagline.id);
+    if (state.creativeIdentity?.selectedNameId) governingDecisionIds.push(state.creativeIdentity.selectedNameId);
+    if (state.creativeIdentity?.selectedTaglineId) governingDecisionIds.push(state.creativeIdentity.selectedTaglineId);
 
     const lineage: ScenarioArtifactLineage = {
       originScenario: scenarioType,
@@ -261,7 +265,8 @@ export class ScenarioLabEngine {
     proofMechanism: string,
     state: CanonicalBrandState
   ): ScenarioBrandAwareGeneration {
-    const isPurist = state.creativeIdentity?.brandTraits?.some((t) => t.trait.toLowerCase().includes('purist')) ?? true;
+    const isPurist =
+      state.creativeIdentity?.personalityTraits?.some((t) => t.name.toLowerCase().includes('purist')) ?? true;
 
     switch (type) {
       case 'website_launch':
@@ -355,7 +360,7 @@ export class ScenarioLabEngine {
     state: CanonicalBrandState
   ): ScenarioValidatedFinal {
     // Construct temporary BrandArtifact to run through ConsistencyGuardian
-    const tempArtifact: BrandArtifact = {
+    let tempArtifact: BrandArtifact = {
       id: `scen-eval-${scenarioType}-${Date.now()}`,
       name: SCENARIO_TEMPLATES[scenarioType].defaultTitle,
       artifactType: guardianType,
@@ -366,7 +371,7 @@ export class ScenarioLabEngine {
           version: 1,
           content: brandAwareContent,
           editedAt: new Date().toISOString(),
-          editedBy: 'ai',
+          editedBy: 'user',
         },
       ],
       status: 'draft',
@@ -378,25 +383,24 @@ export class ScenarioLabEngine {
 
     // Run Consistency Guardian audit
     let report = ConsistencyGuardian.evaluateArtifact(tempArtifact, state);
-    let finalContent = brandAwareContent;
+    tempArtifact.validationReport = report;
     let repairedCount = 0;
 
     // If any blocking findings exist, apply suggested repairs
     if (!report.passed && report.findings.length > 0) {
       for (const finding of report.findings) {
         if (finding.status === 'open' && finding.suggestedRepair) {
-          finalContent = ConsistencyGuardian.applyRepair(finalContent, finding);
+          tempArtifact = ConsistencyGuardian.applyRepair(tempArtifact, finding.id);
           repairedCount++;
         }
       }
 
       // Re-audit with repairs applied
-      const repairedArtifact = { ...tempArtifact, content: finalContent };
-      report = ConsistencyGuardian.evaluateArtifact(repairedArtifact, state);
+      report = ConsistencyGuardian.evaluateArtifact(tempArtifact, state);
     }
 
     return {
-      content: finalContent,
+      content: tempArtifact.content,
       validationReport: report,
       lockedAt: report.passed ? new Date().toISOString() : undefined,
       repairedFindingsCount: repairedCount,
@@ -411,32 +415,37 @@ export class ScenarioLabEngine {
     findingId: string,
     state: CanonicalBrandState
   ): ScenarioArtifact {
-    const finding = artifact.validatedFinal.validationReport.findings.find((f) => f.id === findingId);
-    if (!finding) return artifact;
-
-    const repairedContent = ConsistencyGuardian.applyRepair(artifact.validatedFinal.content, finding);
     const template = SCENARIO_TEMPLATES[artifact.scenarioType];
 
     const tempBrandArtifact: BrandArtifact = {
       id: artifact.id,
       name: artifact.title,
       artifactType: template.guardianMapping,
-      content: repairedContent,
+      content: artifact.validatedFinal.content,
       targetAudience: artifact.targetAudience,
-      versionHistory: [],
-      status: 'repaired',
+      validationReport: artifact.validatedFinal.validationReport,
+      versionHistory: [
+        {
+          version: artifact.lineage.version,
+          content: artifact.validatedFinal.content,
+          editedAt: artifact.lineage.updatedAt,
+          editedBy: 'user',
+        },
+      ],
+      status: 'draft',
       isApproved: false,
       isLocked: false,
       createdAt: artifact.lineage.createdAt,
       updatedAt: new Date().toISOString(),
     };
 
-    const newReport = ConsistencyGuardian.evaluateArtifact(tempBrandArtifact, state);
+    const repairedArtifact = ConsistencyGuardian.applyRepair(tempBrandArtifact, findingId);
+    const newReport = ConsistencyGuardian.evaluateArtifact(repairedArtifact, state);
 
     return {
       ...artifact,
       validatedFinal: {
-        content: repairedContent,
+        content: repairedArtifact.content,
         validationReport: newReport,
         lockedAt: newReport.passed ? new Date().toISOString() : undefined,
         repairedFindingsCount: artifact.validatedFinal.repairedFindingsCount + 1,
@@ -446,7 +455,7 @@ export class ScenarioLabEngine {
         version: artifact.lineage.version + 1,
         updatedAt: new Date().toISOString(),
       },
-      status: newReport.passed ? 'approved' : 'repaired',
+      status: newReport.passed ? 'approved' : 'audited',
     };
   }
 
@@ -465,8 +474,15 @@ export class ScenarioLabEngine {
       artifactType: template.guardianMapping,
       content: newContent,
       targetAudience: artifact.targetAudience,
-      versionHistory: [],
-      status: 'custom_edited',
+      versionHistory: [
+        {
+          version: artifact.lineage.version + 1,
+          content: newContent,
+          editedAt: new Date().toISOString(),
+          editedBy: 'user',
+        },
+      ],
+      status: 'draft',
       isApproved: false,
       isLocked: false,
       createdAt: artifact.lineage.createdAt,

@@ -87,9 +87,12 @@ export class BrandEvolutionEngine {
         });
 
         // Brand name remains valid
+        const selectedName =
+          state.creativeIdentity?.namingCandidates.find((n) => n.id === state.creativeIdentity?.selectedNameId)?.name ||
+          'Kintra';
         affectedDecisions.push({
           nodeId: 'node-brand-name',
-          title: `Brand Name (${state.creativeIdentity?.selectedName?.name || 'Kintra'})`,
+          title: `Brand Name (${selectedName})`,
           nodeType: 'decision',
           impactStatus: 'remains_valid',
           causalReason: `Identity naming territories and phonetics remain completely valid.`,
@@ -399,7 +402,9 @@ export class BrandEvolutionEngine {
     newAudience: string,
     state: CanonicalBrandState
   ): BrandArtifact {
-    const brandName = state.creativeIdentity?.selectedName?.name || 'Kintra';
+    const brandName =
+      state.creativeIdentity?.namingCandidates.find((n) => n.id === state.creativeIdentity?.selectedNameId)?.name ||
+      'Kintra';
     const selectedWorld = state.positioningWorlds.find((w) => w.id === state.selectedWorldId);
     const differentiator = selectedWorld?.differentiator || 'AST-level deterministic analysis';
     const proofMechanism = selectedWorld?.proofMechanism || 'Inspectable AST telemetry logs';
@@ -422,8 +427,8 @@ export class BrandEvolutionEngine {
         version: newVersion,
         content: newContent,
         editedAt: new Date().toISOString(),
-        editedBy: 'evolution_engine' as const,
-        changeReason: `Regenerated for evolved audience: ${newAudience}`,
+        editedBy: 'regeneration' as const,
+        editReason: `Regenerated for evolved audience: ${newAudience}`,
       },
     ];
 
@@ -482,8 +487,12 @@ export class BrandEvolutionEngine {
     });
 
     // Compare brand name
-    const baseName = baseState.creativeIdentity?.selectedName?.name || 'Kintra';
-    const targetName = targetState.creativeIdentity?.selectedName?.name || 'Kintra';
+    const baseName =
+      baseState.creativeIdentity?.namingCandidates.find((n) => n.id === baseState.creativeIdentity?.selectedNameId)?.name ||
+      'Kintra';
+    const targetName =
+      targetState.creativeIdentity?.namingCandidates.find((n) => n.id === targetState.creativeIdentity?.selectedNameId)?.name ||
+      'Kintra';
     decisionDiffs.push({
       key: 'brand_name',
       label: 'Brand Name',
