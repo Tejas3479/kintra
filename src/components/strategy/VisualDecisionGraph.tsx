@@ -86,10 +86,10 @@ export const VisualDecisionGraph: React.FC = () => {
   if (selectedNodeId) {
     connectedNodeIds.add(selectedNodeId);
     edges.forEach((edge) => {
-      if (edge.fromNodeId === selectedNodeId || edge.toNodeId === selectedNodeId) {
+      if (edge.source === selectedNodeId || edge.target === selectedNodeId) {
         connectedEdgeIds.add(edge.id);
-        connectedNodeIds.add(edge.fromNodeId);
-        connectedNodeIds.add(edge.toNodeId);
+        connectedNodeIds.add(edge.source);
+        connectedNodeIds.add(edge.target);
       }
     });
   }
@@ -173,8 +173,8 @@ export const VisualDecisionGraph: React.FC = () => {
             </defs>
 
             {edges.map((edge) => {
-              const from = nodePositions[edge.fromNodeId];
-              const to = nodePositions[edge.toNodeId];
+              const from = nodePositions[edge.source];
+              const to = nodePositions[edge.target];
               if (!from || !to) return null;
 
               const isHighlighted =
@@ -197,7 +197,7 @@ export const VisualDecisionGraph: React.FC = () => {
                     fill="none"
                     stroke={isHighlighted && selectedNodeId ? 'url(#goldSplineGrad)' : isHighlighted ? 'rgba(212, 180, 131, 0.35)' : 'rgba(255, 255, 255, 0.05)'}
                     strokeWidth={isHighlighted && selectedNodeId ? 2.5 : 1.5}
-                    strokeDasharray={edge.isExplicitTradeoff ? '4,4' : undefined}
+                    strokeDasharray={edge.relation === 'contradicts' ? '4,4' : undefined}
                     className="transition-all duration-300"
                   />
                   {/* Subtle directional pulse dot on active path */}
