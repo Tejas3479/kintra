@@ -67,10 +67,20 @@ export const StageTracker: React.FC = () => {
       id: 'scenario_lab',
       name: '7. Scenario Lab & Evolution',
       status:
-        project.stage === 'scenario_lab' || project.stage === 'evolution'
+        project.stage === 'launch_kit'
+          ? 'completed'
+          : project.stage === 'scenario_lab' || project.stage === 'evolution' || project.stage === 'guardian_locked'
           ? 'active'
-          : project.stage === 'guardian_locked'
+          : 'upcoming',
+    },
+    {
+      id: 'launch_kit',
+      name: '8. Launch Kit & Guidelines',
+      status:
+        project.stage === 'launch_kit'
           ? 'active'
+          : project.launchKit
+          ? 'completed'
           : 'upcoming',
     },
   ];

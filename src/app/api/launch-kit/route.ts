@@ -56,12 +56,12 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, json });
       }
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Error in /api/launch-kit route', error);
     return NextResponse.json(
       {
         error: 'Failed to process Launch Kit request',
-        message: error.message || 'Internal server error',
+        message: error instanceof Error ? error.message : 'Internal server error',
       },
       { status: 500 }
     );

@@ -2221,9 +2221,9 @@ export const useBrandStore = create<BrandStoreState>()(
             loadingMessage: '',
           }));
           return true;
-        } catch (err: any) {
+        } catch (err: unknown) {
           set({
-            error: err.message || 'Failed to generate Launch Kit',
+            error: err instanceof Error ? err.message : 'Failed to generate Launch Kit',
             isLoading: false,
             loadingMessage: '',
           });
