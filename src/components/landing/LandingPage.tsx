@@ -1,29 +1,20 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   ShieldCheck,
   Sparkles,
   Cpu,
-  Layers,
   GitBranch,
   ArrowRight,
   CheckCircle2,
   AlertTriangle,
-  FileCode,
-  Flame,
   Radio,
   BookOpen,
-  Compass,
-  Search,
   Check,
   Copy,
-  ExternalLink,
   ChevronRight,
-  Zap,
-  Lock,
   Workflow,
-  BarChart3,
   RefreshCw,
 } from 'lucide-react';
 
@@ -39,17 +30,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   // Interactive Simulator Tab
   const [activeSimScenario, setActiveSimScenario] = useState<'headline' | 'pitch' | 'support'>('headline');
   const [isAuditing, setIsAuditing] = useState(false);
-  const [auditComplete, setAuditComplete] = useState(true);
   const [activeStageNav, setActiveStageNav] = useState<number>(3);
   const [copiedSim, setCopiedSim] = useState(false);
 
   // Trigger simulated audit scan
   const runSimulatedAudit = () => {
     setIsAuditing(true);
-    setAuditComplete(false);
     setTimeout(() => {
       setIsAuditing(false);
-      setAuditComplete(true);
     }, 900);
   };
 
@@ -664,7 +652,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   </div>
 
                   <div className="space-y-2 text-[11px] leading-relaxed">
-                    <div className="text-zinc-500">// Governing State Parameters</div>
+                    <div className="text-zinc-500">{'// Governing State Parameters'}</div>
                     <div>
                       <span className="text-champagne-400">stage_index:</span> {current.num}
                     </div>

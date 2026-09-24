@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useBrandStore } from '@/store/useBrandStore';
-import { Download, Upload, Bookmark, RotateCcw, Sparkles, ShieldCheck, ArrowRight, LayoutTemplate } from 'lucide-react';
+import { Download, Upload, Bookmark, RotateCcw, Sparkles, ShieldCheck, ArrowRight } from 'lucide-react';
 
 interface HeaderProps {
   viewMode?: 'landing' | 'studio';
