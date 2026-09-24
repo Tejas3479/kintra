@@ -10,6 +10,10 @@ import {
   BrandPersonalityTraitSchema,
   NamingCandidateSchema,
 } from '@/lib/schemas/identity-schemas';
+import {
+  ArtifactValidationReportSchema,
+  BrandArtifactSchema,
+} from '@/lib/schemas/guardian-schemas';
 import { INITIAL_DEMO_PROJECT, DEMO_BRAND_PRGUARD } from '@/fixtures/demo-brands';
 
 describe('Canonical Brand State & Domain Schemas', () => {
@@ -102,5 +106,143 @@ describe('Canonical Brand State & Domain Schemas', () => {
       legalDisclaimer: 'Preliminary linguistic and phonetic analysis only. Not legal clearance.',
     };
     expect(NamingCandidateSchema.safeParse(validCandidate).success).toBe(true);
+  });
+
+  it('should validate Consistency Guardian BrandArtifact and ArtifactValidationReport schemas', () => {
+    const validReport = {
+      id: 'rep-1',
+      artifactId: 'art-1',
+      evaluatedAt: new Date().toISOString(),
+      passed: true,
+      totalFindings: 1,
+      blockingFindingsCount: 0,
+      dimensions: {
+        strategic_alignment: {
+          dimension: 'strategic_alignment' as const,
+          label: 'Strategic Alignment',
+          status: 'pass' as const,
+          score: 95,
+          rationale: 'Perfect alignment with approved value proposition.',
+          findingsCount: 0,
+          criticalIssues: [],
+        },
+        audience_alignment: {
+          dimension: 'audience_alignment' as const,
+          label: 'Audience Alignment',
+          status: 'pass' as const,
+          score: 90,
+          rationale: 'Addresses senior engineers directly.',
+          findingsCount: 0,
+          criticalIssues: [],
+        },
+        voice_alignment: {
+          dimension: 'voice_alignment' as const,
+          label: 'Voice Alignment',
+          status: 'warning' as const,
+          score: 80,
+          rationale: 'Minor passive phrasing detected.',
+          findingsCount: 1,
+          criticalIssues: [],
+        },
+        message_alignment: {
+          dimension: 'message_alignment' as const,
+          label: 'Message Alignment',
+          status: 'pass' as const,
+          score: 95,
+          rationale: 'Reinforces zero-noise guarantee.',
+          findingsCount: 0,
+          criticalIssues: [],
+        },
+        visual_alignment: {
+          dimension: 'visual_alignment' as const,
+          label: 'Visual Alignment',
+          status: 'pass' as const,
+          score: 100,
+          rationale: 'Monospace aesthetic and sharp corners respected.',
+          findingsCount: 0,
+          criticalIssues: [],
+        },
+        distinctiveness: {
+          dimension: 'distinctiveness' as const,
+          label: 'Distinctiveness',
+          status: 'pass' as const,
+          score: 90,
+          rationale: 'Zero startup cliches or buzzwords.',
+          findingsCount: 0,
+          criticalIssues: [],
+        },
+        unsupported_claims: {
+          dimension: 'unsupported_claims' as const,
+          label: 'Unsupported Claim Risk',
+          status: 'pass' as const,
+          score: 100,
+          rationale: 'No unprovable absolutes.',
+          findingsCount: 0,
+          criticalIssues: [],
+        },
+        contradiction_risk: {
+          dimension: 'contradiction_risk' as const,
+          label: 'Contradiction Risk',
+          status: 'pass' as const,
+          score: 100,
+          rationale: 'Preserves sacrifice of non-technical teams.',
+          findingsCount: 0,
+          criticalIssues: [],
+        },
+        brand_rule_violations: {
+          dimension: 'brand_rule_violations' as const,
+          label: 'Brand Rule Violations',
+          status: 'pass' as const,
+          score: 100,
+          rationale: 'Zero banned pattern violations.',
+          findingsCount: 0,
+          criticalIssues: [],
+        },
+      },
+      findings: [
+        {
+          id: 'find-1',
+          dimension: 'voice_alignment' as const,
+          issue: 'Passive phrasing weakens direct surgical tone',
+          severity: 'low' as const,
+          violatedRule: 'Prefer active direct voice over passive hedging',
+          evidence: 'was reviewed by the bot',
+          explanation: {
+            whatIsWrong: 'Sentence uses passive construction.',
+            whyItMatters: 'Senior engineers respect active, definitive statements.',
+            whichDecisionConflicts: 'Brand Voice Sentence Behavior',
+            howToCorrect: 'Change to active voice: "the bot reviewed the PR".',
+          },
+          suggestedRepair: 'the engine analyzed the diff',
+          status: 'open' as const,
+        },
+      ],
+      summary: 'Artifact aligns strongly with brand boundaries with 1 minor voice refinement suggested.',
+    };
+
+    const validArtifact = {
+      id: 'art-1',
+      name: 'Website Headline V1',
+      artifactType: 'website_headline' as const,
+      content: 'Three comments or zero. Mathematically verifiable PR reviews.',
+      targetAudience: 'Staff Engineers',
+      versionHistory: [
+        {
+          version: 1,
+          content: 'Three comments or zero. Mathematically verifiable PR reviews.',
+          editedAt: new Date().toISOString(),
+          editedBy: 'user' as const,
+        },
+      ],
+      validationReport: validReport,
+      status: 'approved' as const,
+      isApproved: true,
+      isLocked: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    expect(ArtifactValidationReportSchema.safeParse(validReport).success).toBe(true);
+    expect(BrandArtifactSchema.safeParse(validArtifact).success).toBe(true);
   });
 });
