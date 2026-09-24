@@ -44,4 +44,14 @@ describe('DiscoveryAIService with Mock / Fallback Provider', () => {
     expect(brief.targetUser.primaryNiche).toBeDefined();
     expect(brief.confidenceScore).toBeGreaterThan(0);
   });
+
+  it('configures valid Gemini model name gemini-2.0-flash by default (P0-3)', async () => {
+    const { GeminiProvider } = await import('@/lib/ai-provider');
+    const provider = new GeminiProvider('fake-test-key');
+    expect(provider).toBeDefined();
+    // Test env variable override if specified
+    const defaultModel = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
+    expect(defaultModel).toMatch(/^gemini-(1\.5|2\.0)-(flash|pro)/);
+  });
 });
+

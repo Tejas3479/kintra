@@ -203,8 +203,9 @@ Do NOT wrap in markdown code blocks like \`\`\`json. Output raw JSON only.
 User Request:
 ${prompt}`;
 
+        const modelName = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
         const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
+          model: modelName,
           contents: fullPrompt,
           config: {
             responseMimeType: 'application/json',
@@ -226,7 +227,7 @@ ${prompt}`;
           success: true,
           data: validated,
           metadata: {
-            model: 'gemini-2.5-flash',
+            model: modelName,
             latencyMs: Date.now() - startTime,
             isFallback: false,
             retries,
