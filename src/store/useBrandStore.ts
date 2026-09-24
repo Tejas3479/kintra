@@ -51,6 +51,10 @@ interface BrandStoreState {
   generatePositioningWorlds: () => Promise<boolean>;
   selectPositioningWorld: (worldId: string, rationale?: string) => void;
   editPositioningWorld: (worldId: string, updates: Partial<PositioningWorld>) => void;
+  editDecision: (
+    decisionId: string,
+    updates: { approvedValue?: string; rationale?: string; tradeoff?: string }
+  ) => void;
   combinePositioningWorlds: (
     title: string,
     archetype: PositioningWorld['archetype'],
@@ -676,15 +680,118 @@ export const useBrandStore = create<BrandStoreState>()(
       },
 
       editPositioningWorld: (worldId: string, updates: Partial<PositioningWorld>) => {
+        const { project } = get();
+        const isSelected = project.selectedWorldId === worldId;
+        const newVersion = isSelected ? project.metadata.version + 1 : project.metadata.version;
+
+        // If this world is selected, also sync the corresponding decision node in the graph
+        const updatedNodes = { ...(project.decisionGraph?.nodes || {}) };
+        if (isSelected) {
+          Object.keys(updatedNodes).forEach((k) => {
+            if (updatedNodes[k].category === 'positioning_world') {
+              updatedNodes[k] = {
+                ...updatedNodes[k],
+                approvedValue: updates.valueProposition ?? updatedNodes[k].approvedValue,
+                tradeoff: updates.tradeoffs?.whatWeSacrifice ?? updatedNodes[k].tradeoff,
+                version: newVersion,
+              };
+            }
+          });
+        }
+
         set((s) => ({
           project: {
             ...s.project,
             positioningWorlds: s.project.positioningWorlds.map((w) =>
               w.id === worldId ? { ...w, ...updates, userCustomizations: 'User modified' } : w
             ),
-            metadata: { ...s.project.metadata, updatedAt: new Date().toISOString() },
+            decisionGraph: {
+              ...s.project.decisionGraph,
+              nodes: updatedNodes,
+            },
+            metadata: {
+              ...s.project.metadata,
+              updatedAt: new Date().toISOString(),
+            },
           },
         }));
+
+        if (isSelected) {
+          get().createSnapshot(`Updated Selected Strategy (v${newVersion})`);
+        }
+
+        get().auditContradictions();
+      },
+
+      editDecision: (
+        decisionId: string,
+        updates: { approvedValue?: string; rationale?: string; tradeoff?: string }
+      ) => {
+        const { project } = get();
+        const existingNode = project.decisionGraph.nodes[decisionId];
+        if (!existingNode) return;
+
+        const newVersion = project.metadata.version + 1;
+        const updatedNode: DecisionNode = {
+          ...existingNode,
+          ...updates,
+          version: newVersion,
+          approvedAt: new Date().toISOString(),
+        };
+
+        // Sync back to selected PositioningWorld if this was a positioning_world decision
+        let updatedWorlds = project.positioningWorlds;
+        if (existingNode.category === 'positioning_world' && project.selectedWorldId) {
+          updatedWorlds = project.positioningWorlds.map((w) => {
+            if (w.id === project.selectedWorldId) {
+              return {
+                ...w,
+                ...(updates.approvedValue ? { valueProposition: updates.approvedValue } : {}),
+                ...(updates.tradeoff
+                  ? {
+                      tradeoffs: {
+                        ...w.tradeoffs,
+                        whatWeSacrifice: updates.tradeoff,
+                      },
+                    }
+                  : {}),
+              };
+            }
+            return w;
+          });
+        }
+
+        set((s) => ({
+          project: {
+            ...s.project,
+            positioningWorlds: updatedWorlds,
+            decisionGraph: {
+              ...s.project.decisionGraph,
+              nodes: {
+                ...s.project.decisionGraph.nodes,
+                [decisionId]: updatedNode,
+              },
+            },
+            decisions: {
+              ...s.project.decisions,
+              ...(s.project.decisions[decisionId]
+                ? {
+                    [decisionId]: {
+                      ...s.project.decisions[decisionId],
+                      value: updates.approvedValue ?? s.project.decisions[decisionId].value,
+                      rationale: updates.rationale ?? s.project.decisions[decisionId].rationale,
+                    },
+                  }
+                : {}),
+            },
+            metadata: {
+              ...s.project.metadata,
+              updatedAt: new Date().toISOString(),
+            },
+          },
+        }));
+
+        get().createSnapshot(`Edited Decision: ${updatedNode.title} (v${newVersion})`);
         get().auditContradictions();
       },
 

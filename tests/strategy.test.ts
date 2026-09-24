@@ -189,6 +189,42 @@ describe('Strategic Reasoning Layer & Decision Graph Suite', () => {
       expect(snapshots[0].label).toContain('Locked Positioning Strategy');
     });
 
+    it('editing an approved decision updates the decision graph and increments version with snapshot', () => {
+      useBrandStore.getState().loadDemoProject();
+      const brief = DEMO_BRAND_PRGUARD.ideaBrief;
+      const worlds = StrategyService.generateWorlds(brief);
+
+      useBrandStore.setState((s) => ({
+        project: {
+          ...s.project,
+          positioningWorlds: worlds,
+        },
+      }));
+
+      useBrandStore.getState().selectPositioningWorld('world-purist');
+
+      const v1 = useBrandStore.getState().project.metadata.version;
+      const decisionNodeId = Object.keys(useBrandStore.getState().project.decisionGraph.nodes)[0];
+
+      // Edit the decision directly
+      useBrandStore.getState().editDecision(decisionNodeId, {
+        approvedValue: 'Edited value proposition: Surgical PR review with zero false positives.',
+        tradeoff: 'Sacrificing broad non-technical appeal.',
+      });
+
+      const updatedProject = useBrandStore.getState().project;
+      const updatedNode = updatedProject.decisionGraph.nodes[decisionNodeId];
+
+      expect(updatedProject.metadata.version).toBeGreaterThan(v1);
+      expect(updatedNode.approvedValue).toBe(
+        'Edited value proposition: Surgical PR review with zero false positives.'
+      );
+      expect(updatedNode.version).toBe(updatedProject.metadata.version);
+
+      const snapshots = useBrandStore.getState().snapshots;
+      expect(snapshots.some((s) => s.label.includes('Edited Decision'))).toBe(true);
+    });
+
     it('preserves decision graph across JSON export and import', () => {
       useBrandStore.getState().loadDemoProject();
       const worlds = StrategyService.generateWorlds(DEMO_BRAND_PRGUARD.ideaBrief);
