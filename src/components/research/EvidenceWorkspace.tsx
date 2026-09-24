@@ -21,7 +21,7 @@ export const EvidenceWorkspace: React.FC = () => {
     isLoading,
     loadingMessage,
     runMarketResearch,
-    addCustomCompetitor,
+    addManualCompetitor,
     removeEvidenceRecord,
   } = useBrandStore();
 
@@ -41,14 +41,11 @@ export const EvidenceWorkspace: React.FC = () => {
 
   const handleAddCompetitor = () => {
     if (!compName.trim()) return;
-    addCustomCompetitor({
-      name: compName.trim(),
-      claimedPositioning: compPositioning.trim() || 'Unknown claimed value',
-      targetAudience: compAudience.trim() || 'General software developers',
-      apparentStrengths: ['Established category presence'],
-      apparentVulnerabilities: ['Generic messaging'],
-      sourceUrls: [],
-    });
+    addManualCompetitor(
+      compName.trim(),
+      compPositioning.trim() || 'Unknown claimed value',
+      compAudience.trim() || 'General market'
+    );
     setShowAddCompModal(false);
     setCompName('');
     setCompPositioning('');
