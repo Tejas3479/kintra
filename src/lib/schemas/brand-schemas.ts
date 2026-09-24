@@ -161,16 +161,25 @@ export const ProjectMetadataSchema = z.object({
 });
 
 import { MarketLandscapeSchema } from './research-schemas';
+import {
+  PositioningWorldSchema,
+  DecisionGraphStateSchema,
+  ContradictionAlertSchema,
+} from './strategy-schemas';
 
 export const CanonicalBrandStateSchema = z.object({
   metadata: ProjectMetadataSchema,
-  stage: z.enum(['intake', 'discovery', 'research', 'brief_review', 'strategy_locked']),
+  stage: z.enum(['intake', 'discovery', 'research', 'positioning', 'brief_review', 'strategy_locked']),
   rawFounderInput: z.string(),
   extractedFacts: z.array(ExtractedFactSchema),
   unresolvedQuestions: z.array(UnresolvedQuestionSchema),
   hypotheses: z.array(HypothesisSchema),
   interviewState: AdaptiveInterviewStateSchema,
   marketLandscape: MarketLandscapeSchema.nullable().default(null),
+  positioningWorlds: z.array(PositioningWorldSchema).default([]),
+  selectedWorldId: z.string().nullable().default(null),
+  decisionGraph: DecisionGraphStateSchema.default({ nodes: {}, edges: [] }),
+  contradictions: z.array(ContradictionAlertSchema).default([]),
   ideaBrief: IdeaBriefSchema.nullable(),
   decisions: z.record(z.string(), ApprovedDecisionSchema),
   artifacts: z.array(GeneratedArtifactSchema),

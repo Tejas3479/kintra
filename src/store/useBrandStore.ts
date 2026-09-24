@@ -9,6 +9,8 @@ import {
   ApprovedDecision,
 } from '@/types/brand';
 import { MarketLandscape, CompetitorProfile } from '@/types/research';
+import { PositioningWorld, DecisionNode, DecisionEdge } from '@/types/strategy';
+import { ContradictionDetector } from '@/lib/strategy/contradiction-detector';
 import { CanonicalBrandStateSchema } from '@/lib/schemas/brand-schemas';
 import { INITIAL_DEMO_PROJECT } from '@/fixtures/demo-brands';
 
@@ -44,6 +46,19 @@ interface BrandStoreState {
   addManualCompetitor: (name: string, claimedPositioning: string, targetAudience?: string) => void;
   removeEvidenceRecord: (id: string) => void;
   setMarketLandscape: (landscape: MarketLandscape) => void;
+
+  // Actions: Strategy & Positioning Worlds
+  generatePositioningWorlds: () => Promise<boolean>;
+  selectPositioningWorld: (worldId: string, rationale?: string) => void;
+  editPositioningWorld: (worldId: string, updates: Partial<PositioningWorld>) => void;
+  combinePositioningWorlds: (
+    title: string,
+    archetype: PositioningWorld['archetype'],
+    valueProp: string,
+    sacrifice: string
+  ) => void;
+  rejectPositioningWorld: (worldId: string, reason: string) => void;
+  auditContradictions: () => void;
 
   // Actions: User Control & Editing
   updateFact: (factId: string, statement: string, verified: boolean) => void;
@@ -83,6 +98,10 @@ const DEFAULT_EMPTY_PROJECT: CanonicalBrandState = {
     lastUpdated: new Date().toISOString(),
   },
   marketLandscape: null,
+  positioningWorlds: [],
+  selectedWorldId: null,
+  decisionGraph: { nodes: {}, edges: [] },
+  contradictions: [],
   ideaBrief: null,
   decisions: {},
   artifacts: [],
@@ -520,6 +539,216 @@ export const useBrandStore = create<BrandStoreState>()(
           project: {
             ...s.project,
             marketLandscape: landscape,
+            metadata: { ...s.project.metadata, updatedAt: new Date().toISOString() },
+          },
+        }));
+      },
+
+      generatePositioningWorlds: async () => {
+        const { ideaBrief, marketLandscape } = get().project;
+        if (!ideaBrief) {
+          set({ error: 'Please review and approve the Idea Brief before generating positioning worlds.' });
+          return false;
+        }
+
+        set({ isLoading: true, loadingMessage: 'Synthesizing high-contrast strategic positioning worlds...', error: null });
+
+        try {
+          const res = await fetch('/api/strategy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'generate_worlds',
+              brief: ideaBrief,
+              evidenceRecords: marketLandscape?.evidenceRecords || [],
+            }),
+          });
+
+          const json = await res.json();
+          if (!res.ok || !json.success) {
+            throw new Error(json.error || 'Failed to generate positioning worlds.');
+          }
+
+          const { worlds, contradictions } = json.data;
+
+          set((s) => ({
+            isLoading: false,
+            loadingMessage: '',
+            project: {
+              ...s.project,
+              stage: 'positioning',
+              positioningWorlds: worlds,
+              contradictions: contradictions || [],
+              metadata: { ...s.project.metadata, updatedAt: new Date().toISOString() },
+            },
+          }));
+
+          return true;
+        } catch (err: unknown) {
+          set({
+            isLoading: false,
+            loadingMessage: '',
+            error: err instanceof Error ? err.message : 'Positioning generation failed.',
+          });
+          return false;
+        }
+      },
+
+      selectPositioningWorld: (worldId: string, rationale = 'Founder approved strategic positioning territory.') => {
+        const { project } = get();
+        const { positioningWorlds } = project;
+        const selected = positioningWorlds.find((w) => w.id === worldId);
+        if (!selected) return;
+
+        const updatedWorlds = positioningWorlds.map((w) => ({
+          ...w,
+          status: (w.id === worldId ? 'selected' : 'rejected') as PositioningWorld['status'],
+        }));
+
+        // Build DecisionNode and Edge
+        const decisionId = `decision-world-${Date.now()}`;
+        const rejectedAlts = positioningWorlds
+          .filter((w) => w.id !== worldId)
+          .map((w) => ({
+            id: w.id,
+            title: w.title,
+            whyRejected: w.rejectionReason || `Rejected in favor of ${selected.title}.`,
+          }));
+
+        const decisionNode: DecisionNode = {
+          id: decisionId,
+          category: 'positioning_world',
+          title: `Positioning Territory: ${selected.title}`,
+          approvedValue: selected.valueProposition,
+          rationale: `${rationale} (Emphasizes: ${selected.tradeoffs.whatWeEmphasize}; Sacrifices: ${selected.tradeoffs.whatWeSacrifice})`,
+          evidenceIds: selected.supportingEvidenceIds,
+          rejectedAlternatives: rejectedAlts,
+          tradeoff: selected.tradeoffs.whatWeSacrifice,
+          dependsOn: ['brief-baseline'],
+          governs: ['identity_system', 'voice_sliders', 'hero_headline'],
+          status: 'approved',
+          approvedAt: new Date().toISOString(),
+          version: project.metadata.version,
+        };
+
+        const edge: DecisionEdge = {
+          id: `edge-brief-${Date.now()}`,
+          source: 'brief-baseline',
+          target: decisionId,
+          relation: 'supports',
+        };
+
+        const approvedDecision: ApprovedDecision = {
+          id: decisionId,
+          category: 'positioning',
+          title: `Positioning: ${selected.title}`,
+          value: selected.valueProposition,
+          rationale,
+          approvedAt: new Date().toISOString(),
+          approvedBy: 'founder',
+          version: project.metadata.version,
+        };
+
+        set((s) => ({
+          project: {
+            ...s.project,
+            stage: 'strategy_locked',
+            selectedWorldId: worldId,
+            positioningWorlds: updatedWorlds,
+            decisionGraph: {
+              nodes: { ...(s.project.decisionGraph?.nodes || {}), [decisionId]: decisionNode },
+              edges: [...(s.project.decisionGraph?.edges || []), edge],
+            },
+            decisions: {
+              ...s.project.decisions,
+              [decisionId]: approvedDecision,
+            },
+            metadata: {
+              ...s.project.metadata,
+              version: s.project.metadata.version + 1,
+              updatedAt: new Date().toISOString(),
+            },
+          },
+        }));
+
+        // Take snapshot of committed strategy
+        get().createSnapshot(`Locked Positioning Strategy: ${selected.title}`);
+      },
+
+      editPositioningWorld: (worldId: string, updates: Partial<PositioningWorld>) => {
+        set((s) => ({
+          project: {
+            ...s.project,
+            positioningWorlds: s.project.positioningWorlds.map((w) =>
+              w.id === worldId ? { ...w, ...updates, userCustomizations: 'User modified' } : w
+            ),
+            metadata: { ...s.project.metadata, updatedAt: new Date().toISOString() },
+          },
+        }));
+        get().auditContradictions();
+      },
+
+      combinePositioningWorlds: (
+        title: string,
+        archetype: PositioningWorld['archetype'],
+        valueProp: string,
+        sacrifice: string
+      ) => {
+        const id = `world-custom-${Date.now()}`;
+        const newWorld: PositioningWorld = {
+          id,
+          title,
+          archetype,
+          targetAudience: 'Founder-customized audience niche',
+          problemFraming: 'Custom synthesized problem framing',
+          valueProposition: valueProp,
+          differentiator: 'Custom hybrid strategic differentiator',
+          categoryFraming: 'Custom Positioning Category',
+          emotionalTerritory: 'Authentic founder conviction',
+          proofMechanism: 'Custom metric verification',
+          supportingEvidenceIds: [],
+          assumptions: ['Custom hybrid assumptions confirmed by founder.'],
+          risks: ['Hybrid approach must vigilantly avoid losing sharpness.'],
+          tradeoffs: {
+            whatWeEmphasize: 'Hybrid synthesis of key priorities',
+            whatWeSacrifice: sacrifice,
+          },
+          challenges: [],
+          status: 'custom_hybrid',
+        };
+
+        set((s) => ({
+          project: {
+            ...s.project,
+            positioningWorlds: [...s.project.positioningWorlds, newWorld],
+            metadata: { ...s.project.metadata, updatedAt: new Date().toISOString() },
+          },
+        }));
+
+        get().selectPositioningWorld(id, 'Founder synthesized custom hybrid positioning territory.');
+      },
+
+      rejectPositioningWorld: (worldId: string, reason: string) => {
+        set((s) => ({
+          project: {
+            ...s.project,
+            positioningWorlds: s.project.positioningWorlds.map((w) =>
+              w.id === worldId ? { ...w, status: 'rejected' as const, rejectionReason: reason } : w
+            ),
+            metadata: { ...s.project.metadata, updatedAt: new Date().toISOString() },
+          },
+        }));
+      },
+
+      auditContradictions: () => {
+        const { positioningWorlds, marketLandscape } = get().project;
+        const alerts = positioningWorlds.flatMap((w) =>
+          ContradictionDetector.auditPositioningWorld(w, marketLandscape?.evidenceRecords || [])
+        );
+        set((s) => ({
+          project: {
+            ...s.project,
+            contradictions: alerts,
             metadata: { ...s.project.metadata, updatedAt: new Date().toISOString() },
           },
         }));

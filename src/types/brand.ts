@@ -167,16 +167,21 @@ export interface ProjectSnapshot {
 }
 
 import { MarketLandscape } from './research';
+import { PositioningWorld, DecisionGraphState, ContradictionAlert } from './strategy';
 
 export interface CanonicalBrandState {
   metadata: ProjectMetadata;
-  stage: 'intake' | 'discovery' | 'research' | 'brief_review' | 'strategy_locked';
+  stage: 'intake' | 'discovery' | 'research' | 'positioning' | 'brief_review' | 'strategy_locked';
   rawFounderInput: string;
   extractedFacts: ExtractedFact[];
   unresolvedQuestions: UnresolvedQuestion[];
   hypotheses: Hypothesis[];
   interviewState: AdaptiveInterviewState;
   marketLandscape: MarketLandscape | null;
+  positioningWorlds: PositioningWorld[];
+  selectedWorldId: string | null;
+  decisionGraph: DecisionGraphState;
+  contradictions: ContradictionAlert[];
   ideaBrief: IdeaBrief | null;
   decisions: Record<string, ApprovedDecision>;
   artifacts: GeneratedArtifact[];
