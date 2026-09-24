@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useBrandStore } from '@/store/useBrandStore';
-import { GuardianArtifactType, BrandArtifact, GuardianFinding } from '@/types/guardian';
+import { GuardianArtifactType, GuardianFinding } from '@/types/guardian';
 import {
   ShieldCheck,
   ShieldAlert,
@@ -14,11 +14,8 @@ import {
   Wand2,
   Edit3,
   Check,
-  Eye,
   FileText,
   Sparkles,
-  ArrowRight,
-  ExternalLink,
 } from 'lucide-react';
 
 const ARTIFACT_TYPE_LABELS: Record<GuardianArtifactType, { label: string; icon: string; desc: string }> = {
@@ -67,7 +64,7 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
       setEditedText(selectedArtifact.content);
       setIsEditingContent(false);
     }
-  }, [selectedArtifact?.id, selectedArtifact?.content]);
+  }, [selectedArtifact]);
 
   // Stage Gating: Remind user if Creative Identity is not locked
   const isStrategyReady = !!project.selectedWorldId;
@@ -450,7 +447,7 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
                         {/* Exact Evidence Excerpt */}
                         <div className="bg-zinc-950 p-2.5 rounded border border-zinc-800/80 font-mono text-zinc-400 text-[11px]">
                           <span className="text-zinc-500">Detected: </span>
-                          <span className="text-red-300">"{finding.evidence}"</span>
+                          <span className="text-red-300">&quot;{finding.evidence}&quot;</span>
                         </div>
 
                         {/* Structured Explanation (WHAT, WHY, WHICH, HOW) */}
@@ -515,7 +512,7 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
 
                         {isIgnored && (
                           <div className="text-[10px] text-zinc-500 font-mono flex items-center gap-1.5 pt-1">
-                            <span>Ignored: "{finding.ignoredReason || 'Marked as acceptable by founder'}"</span>
+                            <span>Ignored: &quot;{finding.ignoredReason || 'Marked as acceptable by founder'}&quot;</span>
                           </div>
                         )}
                       </div>

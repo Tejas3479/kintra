@@ -11,7 +11,6 @@ import {
   DimensionEvaluation,
   ValidationDimension,
   GuardianArtifactType,
-  FindingSeverity,
 } from '@/types/guardian';
 import { CanonicalBrandState } from '@/types/brand';
 import { PositioningWorld, DecisionNode } from '@/types/strategy';
@@ -424,18 +423,23 @@ export class ConsistencyGuardian {
     }
 
     // Check geometry mismatch
-    if (spec.geometryStyle && brandVisual.shapes.borderRadius) {
-      const isSharpBrand = brandVisual.shapes.borderRadius.includes('rounded-none');
-      if (isSharpBrand && spec.geometryStyle === 'rounded_organic') {
+    if (spec.geometryStyle && brandVisual.shapes) {
+      const avoidsOrganic =
+        brandVisual.shapes.geometryNotes?.toLowerCase().includes('zero bubble pills') ||
+        brandVisual.shapes.borderRadius?.includes('rounded-none') ||
+        brandVisual.shapes.borderRadius?.includes('rounded-lg') ||
+        brandVisual.shapes.borderRadius?.includes('rounded-xl');
+
+      if (avoidsOrganic && spec.geometryStyle === 'rounded_organic') {
         findings.push({
           id: `vis-geo-${Date.now()}`,
           dimension: 'visual_alignment',
-          issue: `Geometry Mismatch: Organic rounded styling on a sharp-angled brand`,
+          issue: `Geometry Mismatch: Organic rounded styling on an architectural brand`,
           severity: 'medium',
           violatedRule: 'Visual shape consistency: Geometry must remain sharp and architectural',
           evidence: spec.geometryStyle,
           explanation: {
-            whatIsWrong: `Spec requests "rounded_organic" geometry, but brand guidelines specify sharp 90-degree corners.`,
+            whatIsWrong: `Spec requests "rounded_organic" geometry, but brand guidelines specify architectural surfaces (${brandVisual.shapes.geometryNotes}).`,
             whyItMatters: `Soft bubbles contradict the deterministic engineering ethos.`,
             whichDecisionConflicts: 'Visual System: Geometry & Corner Radii',
             howToCorrect: `Switch geometry style to "sharp_angled".`,
