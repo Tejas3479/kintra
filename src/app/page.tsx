@@ -7,6 +7,7 @@ import { DiscoveryWorkspace } from '@/components/discovery/DiscoveryWorkspace';
 import { EvidenceWorkspace } from '@/components/research/EvidenceWorkspace';
 import { PositioningWorkspace } from '@/components/strategy/PositioningWorkspace';
 import { CreativeIdentityWorkspace } from '@/components/identity/CreativeIdentityWorkspace';
+import { ConsistencyGuardianWorkspace } from '@/components/guardian/ConsistencyGuardianWorkspace';
 import { DecisionLedger } from '@/components/strategy/DecisionLedger';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 
@@ -22,6 +23,7 @@ export default function Home() {
             <EvidenceWorkspace />
             <PositioningWorkspace />
             <CreativeIdentityWorkspace />
+            <ConsistencyGuardianWorkspace />
             <DecisionLedger />
           </div>
         </ErrorBoundary>
