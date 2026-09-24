@@ -35,7 +35,7 @@ export const StageTracker: React.FC = () => {
     },
     {
       id: 'brief_review',
-      name: '4. Strategic Brief Review',
+      name: '4. Strategy Baseline',
       status:
         project.stage === 'intake' || project.stage === 'discovery' || project.stage === 'research'
           ? 'upcoming'
@@ -45,8 +45,13 @@ export const StageTracker: React.FC = () => {
     },
     {
       id: 'strategy_locked',
-      name: '5. Strategy Baseline Locked',
-      status: project.stage === 'strategy_locked' ? 'active' : 'upcoming',
+      name: '5. Creative Identity',
+      status:
+        project.stage === 'strategy_locked' || project.stage === 'identity'
+          ? 'active'
+          : project.stage === 'identity_locked'
+          ? 'completed'
+          : 'upcoming',
     },
   ];
 
