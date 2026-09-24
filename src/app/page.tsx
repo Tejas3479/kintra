@@ -5,6 +5,8 @@ import { Header } from '@/components/layout/Header';
 import { StageTracker } from '@/components/workflow/StageTracker';
 import { DiscoveryWorkspace } from '@/components/discovery/DiscoveryWorkspace';
 import { EvidenceWorkspace } from '@/components/research/EvidenceWorkspace';
+import { PositioningWorkspace } from '@/components/strategy/PositioningWorkspace';
+import { DecisionLedger } from '@/components/strategy/DecisionLedger';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 
 export default function Home() {
@@ -15,8 +17,10 @@ export default function Home() {
       <main className="flex-1 space-y-6 pb-12">
         <ErrorBoundary fallbackTitle="Workspace Encountered an Error">
           <DiscoveryWorkspace />
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             <EvidenceWorkspace />
+            <PositioningWorkspace />
+            <DecisionLedger />
           </div>
         </ErrorBoundary>
       </main>
