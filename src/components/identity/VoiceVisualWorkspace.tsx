@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useBrandStore } from '@/store/useBrandStore';
+import { sanitizeSvg } from '@/lib/security/content-sanitizer';
 import {
   Sliders,
   Palette,
@@ -234,7 +235,7 @@ export const VoiceVisualWorkspace: React.FC = () => {
               <div className="bg-zinc-900/90 border border-zinc-800 rounded-xl p-4 flex flex-col items-center justify-center space-y-3">
                 <div
                   className="w-48 h-48 max-w-full"
-                  dangerouslySetInnerHTML={{ __html: generatedVisuals[0].svgContent }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeSvg(generatedVisuals[0].svgContent) }}
                 />
                 <div className="text-[10px] text-zinc-500 flex items-center gap-2">
                   <span>Inherited Constraints:</span>

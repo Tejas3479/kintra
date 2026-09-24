@@ -81,10 +81,53 @@ export function sanitizeUntrustedContent(
 }
 
 /**
+ * Escapes characters that have special meaning in XML / SVG.
+ */
+export function escapeXml(str: string): string {
+  if (!str) return '';
+  return str.replace(/[<>&'"]/g, (c) => {
+    switch (c) {
+      case '<':
+        return '&lt;';
+      case '>':
+        return '&gt;';
+      case '&':
+        return '&amp;';
+      case "'":
+        return '&apos;';
+      case '"':
+        return '&quot;';
+      default:
+        return c;
+    }
+  });
+}
+
+/**
+ * Sanitizes SVG markup to remove script elements, external entity references,
+ * event handlers, and dangerous tags before rendering.
+ */
+export function sanitizeSvg(svgContent: string): string {
+  if (!svgContent) return '';
+  return svgContent
+    // Remove script tags and contents
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    // Remove foreignObject
+    .replace(/<foreignObject\b[^<]*(?:(?!<\/foreignObject>)<[^<]*)*<\/foreignObject>/gi, '')
+    // Remove inline event handlers (e.g. onload, onerror, onclick)
+    .replace(/\son\w+\s*=\s*(?:'[^']*'|"[^"]*"|[^\s>]+)/gi, '')
+    // Remove javascript: and data: URIs in href or xlink:href
+    .replace(/(?:href|xlink:href)\s*=\s*(?:'javascript:[^']*'|"javascript:[^"]*"|'data:[^']*'|"data:[^"]*")/gi, 'href=""');
+}
+
+/**
  * Formats untrusted content in defensive XML boundary delimiters with instruction immunity tags.
  */
 export function wrapInUntrustedBoundary(content: string, sourceId: string): string {
-  return `<untrusted_external_content source_id="${sourceId}">
-${content}
+  const safeContent = content.replaceAll('</untrusted_external_content>', '&lt;/untrusted_external_content&gt;');
+  const safeSourceId = sourceId.replace(/["<>]/g, '');
+  return `<untrusted_external_content source_id="${safeSourceId}">
+${safeContent}
 </untrusted_external_content>`;
 }
+

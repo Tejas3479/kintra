@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validateUrlForResearch } from '@/lib/security/ssrf-filter';
+import { validateUrlForResearch, isPrivateOrBlockedIp, validateUrlWithDns } from '@/lib/security/ssrf-filter';
 import { sanitizeUntrustedContent, wrapInUntrustedBoundary } from '@/lib/security/content-sanitizer';
 import { EvidenceEngine } from '@/lib/research/evidence-engine';
 import { MockResearchProvider } from '@/lib/research/research-provider';
@@ -38,6 +38,30 @@ describe('Research Engine & Source Safety Suite', () => {
       expect(valid.normalizedUrl).toBe('https://snyk.io/product/snyk-code/');
       expect(valid.normalizedUrl).not.toContain('utm_source');
       expect(valid.normalizedUrl).not.toContain('#section');
+    });
+
+    it('identifies private, reserved, and link-local IPs accurately via isPrivateOrBlockedIp (P0-2)', () => {
+      expect(isPrivateOrBlockedIp('127.0.0.1')).toBe(true);
+      expect(isPrivateOrBlockedIp('10.254.0.1')).toBe(true);
+      expect(isPrivateOrBlockedIp('172.20.0.1')).toBe(true);
+      expect(isPrivateOrBlockedIp('192.168.1.1')).toBe(true);
+      expect(isPrivateOrBlockedIp('169.254.169.254')).toBe(true);
+      expect(isPrivateOrBlockedIp('::1')).toBe(true);
+      expect(isPrivateOrBlockedIp('::ffff:127.0.0.1')).toBe(true);
+      expect(isPrivateOrBlockedIp('::ffff:10.0.0.1')).toBe(true);
+      expect(isPrivateOrBlockedIp('8.8.8.8')).toBe(false);
+      expect(isPrivateOrBlockedIp('1.1.1.1')).toBe(false);
+    });
+
+    it('asynchronously validates URLs with DNS lookup via validateUrlWithDns (P0-2)', async () => {
+      const blockedIpResult = await validateUrlWithDns('http://127.0.0.1/status');
+      expect(blockedIpResult.isValid).toBe(false);
+
+      const blockedHostResult = await validateUrlWithDns('http://metadata.google.internal/computeMetadata');
+      expect(blockedHostResult.isValid).toBe(false);
+
+      const validResult = await validateUrlWithDns('https://snyk.io');
+      expect(validResult.isValid).toBe(true);
     });
   });
 

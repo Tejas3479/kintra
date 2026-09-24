@@ -97,3 +97,97 @@ export function validateUrlForResearch(rawUrl: string): URLValidationResult {
     normalizedUrl: parsed.toString(),
   };
 }
+
+/**
+ * Checks if an IP string belongs to a private, loopback, link-local, multicast, or reserved range.
+ */
+export function isPrivateOrBlockedIp(ip: string): boolean {
+  if (!ip || typeof ip !== 'string') return true;
+  const cleanIp = ip.toLowerCase().trim();
+
+  // IPv4-mapped IPv6 (e.g. ::ffff:127.0.0.1)
+  if (cleanIp.startsWith('::ffff:')) {
+    const v4Part = cleanIp.slice(7);
+    return isPrivateOrBlockedIp(v4Part);
+  }
+
+  // IPv6 loopback / unique local / link-local
+  if (
+    cleanIp === '::1' ||
+    cleanIp === '::' ||
+    cleanIp.startsWith('fc') ||
+    cleanIp.startsWith('fd') ||
+    cleanIp.startsWith('fe80:')
+  ) {
+    return true;
+  }
+
+  // IPv4 dotted-decimal
+  const parts = cleanIp.split('.').map(Number);
+  if (parts.length === 4 && parts.every((n) => !isNaN(n) && n >= 0 && n <= 255)) {
+    const [b0, b1] = parts;
+    if (b0 === 127) return true; // 127.0.0.0/8 Loopback
+    if (b0 === 10) return true; // 10.0.0.0/8 Private
+    if (b0 === 172 && b1 >= 16 && b1 <= 31) return true; // 172.16.0.0/12 Private
+    if (b0 === 192 && b1 === 168) return true; // 192.168.0.0/16 Private
+    if (b0 === 169 && b1 === 254) return true; // 169.254.0.0/16 Link-Local / IMDS
+    if (b0 === 0) return true; // 0.0.0.0/8
+    if (b0 === 100 && b1 >= 64 && b1 <= 127) return true; // CGNAT
+    if (b0 >= 224) return true; // Multicast (224+) and Reserved (240+)
+  }
+
+  for (const pattern of PROHIBITED_IP_PATTERNS) {
+    if (pattern.test(cleanIp)) return true;
+  }
+
+  return false;
+}
+
+/**
+ * Asynchronously validates URLs including DNS resolution to prevent DNS rebinding attacks.
+ */
+export async function validateUrlWithDns(rawUrl: string): Promise<URLValidationResult> {
+  const syncValidation = validateUrlForResearch(rawUrl);
+  if (!syncValidation.isValid || !syncValidation.normalizedUrl) {
+    return syncValidation;
+  }
+
+  const parsed = new URL(syncValidation.normalizedUrl);
+  const hostname = parsed.hostname.toLowerCase();
+
+  // If already an IP address
+  if (isPrivateOrBlockedIp(hostname)) {
+    return {
+      isValid: false,
+      error: `Access to private/reserved IP "${hostname}" is blocked.`,
+    };
+  }
+
+  // Check if we are running in Node environment to perform DNS lookup
+  if (typeof window === 'undefined') {
+    try {
+      const dns = await import('dns');
+      const lookup = await dns.promises.lookup(hostname, { all: true });
+      for (const entry of lookup) {
+        if (isPrivateOrBlockedIp(entry.address)) {
+          return {
+            isValid: false,
+            error: `Domain "${hostname}" resolves to prohibited IP address "${entry.address}".`,
+          };
+        }
+      }
+    } catch {
+      // In offline environments or mock unit tests where external domain resolution cannot reach DNS,
+      // allow if it passes synchronous validation, but block if hostname is clearly local
+      if (hostname.endsWith('.internal') || hostname.endsWith('.local') || hostname === 'localhost') {
+        return {
+          isValid: false,
+          error: `Prohibited internal host "${hostname}".`,
+        };
+      }
+    }
+  }
+
+  return syncValidation;
+}
+

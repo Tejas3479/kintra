@@ -1,4 +1,4 @@
-import { validateUrlForResearch } from '../security/ssrf-filter';
+import { validateUrlForResearch, validateUrlWithDns } from '../security/ssrf-filter';
 import { sanitizeUntrustedContent } from '../security/content-sanitizer';
 import { logger } from '../logger';
 
@@ -160,8 +160,8 @@ export class WebResearchProvider implements ResearchProvider {
   }
 
   async fetchContent(url: string): Promise<{ content: string; url: string; success: boolean; error?: string }> {
-    // 1. SSRF & Protocol Validation
-    const validation = validateUrlForResearch(url);
+    // 1. SSRF & Protocol Validation with DNS check
+    const validation = await validateUrlWithDns(url);
     if (!validation.isValid) {
       logger.warn('SSRF Blocked URL:', { url, reason: validation.error });
       return { content: '', url, success: false, error: validation.error };
@@ -171,33 +171,62 @@ export class WebResearchProvider implements ResearchProvider {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), this.timeoutMs);
 
-      const res = await fetch(validation.normalizedUrl!, {
-        headers: {
-          'User-Agent': 'KintraResearchBot/1.0 (+https://inkloom.art)',
-          Accept: 'text/html,text/plain',
-        },
-        signal: controller.signal,
-      });
+      let currentUrl = validation.normalizedUrl!;
+      let redirectCount = 0;
+      const maxRedirects = 2;
+      let finalResponse: Response | null = null;
+
+      while (redirectCount <= maxRedirects) {
+        const res = await fetch(currentUrl, {
+          headers: {
+            'User-Agent': 'KintraResearchBot/1.0 (+https://inkloom.art)',
+            Accept: 'text/html,text/plain',
+          },
+          signal: controller.signal,
+          redirect: 'manual',
+        });
+
+        if (res.status >= 300 && res.status < 400) {
+          redirectCount++;
+          const location = res.headers.get('location');
+          if (!location) {
+            clearTimeout(timeout);
+            return { content: '', url: currentUrl, success: false, error: 'Redirect location header missing' };
+          }
+          const nextUrl = new URL(location, currentUrl).toString();
+          const nextValidation = await validateUrlWithDns(nextUrl);
+          if (!nextValidation.isValid) {
+            clearTimeout(timeout);
+            logger.warn('SSRF Blocked redirect target:', { target: nextUrl, reason: nextValidation.error });
+            return { content: '', url: nextUrl, success: false, error: `Redirect blocked: ${nextValidation.error}` };
+          }
+          currentUrl = nextValidation.normalizedUrl!;
+          continue;
+        }
+
+        finalResponse = res;
+        break;
+      }
 
       clearTimeout(timeout);
 
-      if (!res.ok) {
+      if (!finalResponse || !finalResponse.ok) {
         return {
           content: '',
-          url: validation.normalizedUrl!,
+          url: currentUrl,
           success: false,
-          error: `HTTP Error ${res.status}`,
+          error: finalResponse ? `HTTP Error ${finalResponse.status}` : 'Too many redirects',
         };
       }
 
-      const rawText = await res.text();
+      const rawText = await finalResponse.text();
 
       // 2. Untrusted Content Sanitization & Truncation
       const sanitized = sanitizeUntrustedContent(rawText, 12000);
 
       return {
         content: sanitized.sanitizedText,
-        url: validation.normalizedUrl!,
+        url: currentUrl,
         success: true,
       };
     } catch (err: unknown) {

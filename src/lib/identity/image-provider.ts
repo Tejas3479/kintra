@@ -1,5 +1,6 @@
 import { GeneratedVisualAsset } from '@/types/identity';
 import { logger } from '@/lib/logger';
+import { escapeXml } from '@/lib/security/content-sanitizer';
 
 export interface ImagePromptContext {
   positioningArchetype: string;
@@ -32,9 +33,15 @@ export class SvgBrandVisualGenerator {
   static createBrandMarkSvg(ctx: ImagePromptContext): string {
     const { primaryHex, secondaryHex, accentHex, brandName, positioningArchetype } = ctx;
 
+    const safePrimary = /^#[0-9a-fA-F]{3,8}$/.test(primaryHex) ? primaryHex : '#09090b';
+    const safeSecondary = /^#[0-9a-fA-F]{3,8}$/.test(secondaryHex) ? secondaryHex : '#27272a';
+    const safeAccent = /^#[0-9a-fA-F]{3,8}$/.test(accentHex) ? accentHex : '#6366f1';
+    const safeBrandName = escapeXml(brandName ? brandName.toUpperCase() : 'BRAND');
+
     // Determine geometry based on archetype
     const isPurist = positioningArchetype.toLowerCase().includes('purist');
     const isGatekeeper = positioningArchetype.toLowerCase().includes('gatekeeper');
+
 
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="100%" height="100%" class="rounded-xl shadow-2xl">
   <defs>
@@ -43,8 +50,8 @@ export class SvgBrandVisualGenerator {
       <stop offset="100%" stop-color="#18181b" />
     </linearGradient>
     <linearGradient id="grad-accent" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="${accentHex}" />
-      <stop offset="100%" stop-color="${primaryHex}" />
+      <stop offset="0%" stop-color="${safeAccent}" />
+      <stop offset="100%" stop-color="${safePrimary}" />
     </linearGradient>
   </defs>
 
@@ -52,27 +59,27 @@ export class SvgBrandVisualGenerator {
   <rect width="240" height="240" fill="url(#grad-bg)" rx="24" />
   
   <!-- Geometric Grid Motif -->
-  <path d="M 40 120 H 200 M 120 40 V 200" stroke="${secondaryHex}" stroke-width="1" stroke-dasharray="4 4" opacity="0.3" />
-  <circle cx="120" cy="120" r="70" fill="none" stroke="${secondaryHex}" stroke-width="1" opacity="0.2" />
+  <path d="M 40 120 H 200 M 120 40 V 200" stroke="${safeSecondary}" stroke-width="1" stroke-dasharray="4 4" opacity="0.3" />
+  <circle cx="120" cy="120" r="70" fill="none" stroke="${safeSecondary}" stroke-width="1" opacity="0.2" />
 
   ${
     isPurist
       ? `<!-- Surgical Precision Motif (Target crosshair & diamond) -->
   <polygon points="120,60 180,120 120,180 60,120" fill="none" stroke="url(#grad-accent)" stroke-width="3" />
-  <circle cx="120" cy="120" r="16" fill="${accentHex}" fill-opacity="0.15" stroke="${accentHex}" stroke-width="2" />
-  <line x1="100" y1="120" x2="140" y2="120" stroke="${accentHex}" stroke-width="2" />
-  <line x1="120" y1="100" x2="120" y2="140" stroke="${accentHex}" stroke-width="2" />`
+  <circle cx="120" cy="120" r="16" fill="${safeAccent}" fill-opacity="0.15" stroke="${safeAccent}" stroke-width="2" />
+  <line x1="100" y1="120" x2="140" y2="120" stroke="${safeAccent}" stroke-width="2" />
+  <line x1="120" y1="100" x2="120" y2="140" stroke="${safeAccent}" stroke-width="2" />`
       : isGatekeeper
       ? `<!-- Sovereign Gatekeeper Motif (Shielded hexagonal node) -->
   <polygon points="120,50 180,85 180,155 120,190 60,155 60,85" fill="none" stroke="url(#grad-accent)" stroke-width="3.5" />
-  <path d="M 80 120 L 110 150 L 165 95" fill="none" stroke="${accentHex}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />`
+  <path d="M 80 120 L 110 150 L 165 95" fill="none" stroke="${safeAccent}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />`
       : `<!-- Velocity Flow Motif (Dynamic converging vectors) -->
   <circle cx="120" cy="120" r="55" fill="none" stroke="url(#grad-accent)" stroke-width="3" />
-  <path d="M 90 90 L 150 120 L 90 150 Z" fill="${accentHex}" fill-opacity="0.2" stroke="${accentHex}" stroke-width="2" />`
+  <path d="M 90 90 L 150 120 L 90 150 Z" fill="${safeAccent}" fill-opacity="0.2" stroke="${safeAccent}" stroke-width="2" />`
   }
 
   <!-- Typography Wordmark Anchor -->
-  <text x="120" y="215" font-family="monospace" font-size="12" font-weight="700" fill="#a1a1aa" text-anchor="middle" letter-spacing="3">${brandName.toUpperCase()}</text>
+  <text x="120" y="215" font-family="monospace" font-size="12" font-weight="700" fill="#a1a1aa" text-anchor="middle" letter-spacing="3">${safeBrandName}</text>
 </svg>`;
   }
 }
