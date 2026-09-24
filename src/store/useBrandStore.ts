@@ -19,6 +19,13 @@ import { ContradictionDetector } from '@/lib/strategy/contradiction-detector';
 import { IdentityConsistencyChecker } from '@/lib/identity/identity-consistency-checker';
 import { IdentityService } from '@/lib/identity/identity-service';
 import { DefaultImageGenerationProvider } from '@/lib/identity/image-provider';
+import {
+  BrandArtifact,
+  GuardianArtifactType,
+  VisualSpecOverride,
+  ArtifactValidationReport,
+} from '@/types/guardian';
+import { ConsistencyGuardian } from '@/lib/guardian/consistency-guardian';
 import { CanonicalBrandStateSchema } from '@/lib/schemas/brand-schemas';
 import { INITIAL_DEMO_PROJECT } from '@/fixtures/demo-brands';
 
@@ -83,6 +90,23 @@ interface BrandStoreState {
   approveCreativeIdentity: (rationale?: string) => void;
   auditIdentityConsistency: () => void;
 
+  // Actions: Consistency Guardian & Artifact Validation
+  generateArtifact: (artifactType: GuardianArtifactType) => Promise<boolean>;
+  createCustomArtifact: (
+    name: string,
+    artifactType: GuardianArtifactType,
+    content: string,
+    visualSpec?: VisualSpecOverride
+  ) => void;
+  selectArtifact: (artifactId: string) => void;
+  validateArtifact: (artifactId: string) => Promise<boolean>;
+  acceptRepair: (artifactId: string, findingId: string) => Promise<boolean>;
+  manuallyEditArtifact: (artifactId: string, newContent: string, reason?: string) => void;
+  regenerateArtifact: (artifactId: string) => Promise<boolean>;
+  ignoreFinding: (artifactId: string, findingId: string, reason: string) => void;
+  lockApprovedArtifact: (artifactId: string, rationale?: string) => void;
+  unlockArtifact: (artifactId: string) => void;
+
   // Actions: User Control & Editing
   updateFact: (factId: string, statement: string, verified: boolean) => void;
   deleteFact: (factId: string) => void;
@@ -129,6 +153,8 @@ const DEFAULT_EMPTY_PROJECT: CanonicalBrandState = {
   creativeIdentity: null,
   decisions: {},
   artifacts: [],
+  brandArtifacts: [],
+  selectedArtifactId: null,
   validationHistory: [],
 };
 
@@ -1323,6 +1349,432 @@ export const useBrandStore = create<BrandStoreState>()(
                   consistencyConflicts: conflicts,
                 }
               : null,
+          },
+        }));
+      },
+
+      generateArtifact: async (artifactType: GuardianArtifactType) => {
+        const { project } = get();
+        set({
+          isLoading: true,
+          loadingMessage: `Generating and validating on-brand ${artifactType}...`,
+          error: null,
+        });
+
+        try {
+          let artifact: BrandArtifact;
+          try {
+            const res = await fetch('/api/guardian', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'generate_artifact', artifactType, brandState: project }),
+            });
+            const json = await res.json();
+            if (res.ok && json.success && json.data.artifact) {
+              artifact = json.data.artifact;
+            } else {
+              throw new Error(json.error || 'Failed to generate artifact via API.');
+            }
+          } catch {
+            // Fallback to local ConsistencyGuardian
+            artifact = ConsistencyGuardian.generateDefaultArtifact(artifactType, project);
+            const report = ConsistencyGuardian.evaluateArtifact(artifact, project);
+            artifact.validationReport = report;
+          }
+
+          const existingArtifacts = project.brandArtifacts || [];
+          const updatedArtifacts = [artifact, ...existingArtifacts.filter((a) => a.id !== artifact.id)];
+
+          set((s) => ({
+            isLoading: false,
+            loadingMessage: '',
+            project: {
+              ...s.project,
+              stage: s.project.stage === 'identity_locked' ? 'guardian' : s.project.stage,
+              brandArtifacts: updatedArtifacts,
+              selectedArtifactId: artifact.id,
+              metadata: { ...s.project.metadata, updatedAt: new Date().toISOString() },
+            },
+          }));
+
+          return true;
+        } catch (err: unknown) {
+          set({
+            isLoading: false,
+            loadingMessage: '',
+            error: err instanceof Error ? err.message : 'Artifact generation failed.',
+          });
+          return false;
+        }
+      },
+
+      createCustomArtifact: (name, artifactType, content, visualSpec) => {
+        const { project } = get();
+        const now = new Date().toISOString();
+        const newArtifact: BrandArtifact = {
+          id: `art-${artifactType}-${Date.now()}`,
+          name,
+          artifactType,
+          content,
+          targetAudience: project.positioningWorlds.find((w) => w.id === project.selectedWorldId)?.targetAudience,
+          visualSpec,
+          versionHistory: [
+            {
+              version: 1,
+              content,
+              editedAt: now,
+              editedBy: 'user',
+              editReason: 'Custom artifact created',
+            },
+          ],
+          status: 'draft',
+          isApproved: false,
+          isLocked: false,
+          createdAt: now,
+          updatedAt: now,
+        };
+
+        const report = ConsistencyGuardian.evaluateArtifact(newArtifact, project);
+        newArtifact.validationReport = report;
+
+        const existing = project.brandArtifacts || [];
+        set((s) => ({
+          project: {
+            ...s.project,
+            stage: s.project.stage === 'identity_locked' ? 'guardian' : s.project.stage,
+            brandArtifacts: [newArtifact, ...existing],
+            selectedArtifactId: newArtifact.id,
+            metadata: { ...s.project.metadata, updatedAt: now },
+          },
+        }));
+      },
+
+      selectArtifact: (artifactId: string) => {
+        set((s) => ({
+          project: {
+            ...s.project,
+            selectedArtifactId: artifactId,
+          },
+        }));
+      },
+
+      validateArtifact: async (artifactId: string) => {
+        const { project } = get();
+        const artifact = (project.brandArtifacts || []).find((a) => a.id === artifactId);
+        if (!artifact) return false;
+
+        set({ isLoading: true, loadingMessage: 'Auditing artifact across 9 validation dimensions...', error: null });
+
+        try {
+          let report: ArtifactValidationReport;
+          try {
+            const res = await fetch('/api/guardian', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'validate_artifact', artifact, brandState: project }),
+            });
+            const json = await res.json();
+            if (res.ok && json.success && json.data) {
+              report = json.data;
+            } else {
+              throw new Error(json.error || 'Failed to validate artifact via API.');
+            }
+          } catch {
+            report = ConsistencyGuardian.evaluateArtifact(artifact, project);
+          }
+
+          set((s) => ({
+            isLoading: false,
+            loadingMessage: '',
+            project: {
+              ...s.project,
+              brandArtifacts: (s.project.brandArtifacts || []).map((a) =>
+                a.id === artifactId ? { ...a, validationReport: report, updatedAt: new Date().toISOString() } : a
+              ),
+            },
+          }));
+
+          return true;
+        } catch (err: unknown) {
+          set({
+            isLoading: false,
+            loadingMessage: '',
+            error: err instanceof Error ? err.message : 'Validation failed.',
+          });
+          return false;
+        }
+      },
+
+      acceptRepair: async (artifactId: string, findingId: string) => {
+        const { project } = get();
+        const artifact = (project.brandArtifacts || []).find((a) => a.id === artifactId);
+        if (!artifact) return false;
+
+        if (artifact.isLocked) {
+          set({ error: `Artifact "${artifact.name}" is locked. Unlock it first to accept repairs.` });
+          return false;
+        }
+
+        set({ isLoading: true, loadingMessage: 'Applying suggested repair non-destructively...', error: null });
+
+        try {
+          let repaired: BrandArtifact;
+          try {
+            const res = await fetch('/api/guardian', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'apply_repair', artifact, findingId }),
+            });
+            const json = await res.json();
+            if (res.ok && json.success && json.data) {
+              repaired = json.data;
+            } else {
+              throw new Error(json.error || 'Failed to apply repair via API.');
+            }
+          } catch {
+            repaired = ConsistencyGuardian.applyRepair(artifact, findingId);
+          }
+
+          // Re-evaluate repaired artifact against brand state
+          const newReport = ConsistencyGuardian.evaluateArtifact(repaired, project);
+          repaired.validationReport = newReport;
+
+          set((s) => ({
+            isLoading: false,
+            loadingMessage: '',
+            project: {
+              ...s.project,
+              brandArtifacts: (s.project.brandArtifacts || []).map((a) => (a.id === artifactId ? repaired : a)),
+              metadata: { ...s.project.metadata, updatedAt: new Date().toISOString() },
+            },
+          }));
+
+          return true;
+        } catch (err: unknown) {
+          set({
+            isLoading: false,
+            loadingMessage: '',
+            error: err instanceof Error ? err.message : 'Repair failed.',
+          });
+          return false;
+        }
+      },
+
+      manuallyEditArtifact: (artifactId: string, newContent: string, reason = 'Manual edit by founder') => {
+        const { project } = get();
+        const artifact = (project.brandArtifacts || []).find((a) => a.id === artifactId);
+        if (!artifact) return;
+
+        if (artifact.isLocked) {
+          set({ error: `Artifact "${artifact.name}" is locked and cannot be edited silently.` });
+          return;
+        }
+
+        const now = new Date().toISOString();
+        const updatedHistory = [
+          ...artifact.versionHistory,
+          {
+            version: artifact.versionHistory.length + 1,
+            content: newContent,
+            editedAt: now,
+            editReason: reason,
+            editedBy: 'user' as const,
+          },
+        ];
+
+        const updatedArtifact: BrandArtifact = {
+          ...artifact,
+          content: newContent,
+          versionHistory: updatedHistory,
+          status: 'under_review',
+          isApproved: false,
+          updatedAt: now,
+        };
+
+        const report = ConsistencyGuardian.evaluateArtifact(updatedArtifact, project);
+        updatedArtifact.validationReport = report;
+
+        set((s) => ({
+          project: {
+            ...s.project,
+            brandArtifacts: (s.project.brandArtifacts || []).map((a) => (a.id === artifactId ? updatedArtifact : a)),
+            metadata: { ...s.project.metadata, updatedAt: now },
+          },
+        }));
+      },
+
+      regenerateArtifact: async (artifactId: string) => {
+        const { project } = get();
+        const artifact = (project.brandArtifacts || []).find((a) => a.id === artifactId);
+        if (!artifact) return false;
+
+        if (artifact.isLocked) {
+          set({ error: `Artifact "${artifact.name}" is locked. Unlock to regenerate.` });
+          return false;
+        }
+
+        const fresh = ConsistencyGuardian.generateDefaultArtifact(artifact.artifactType, project);
+        const now = new Date().toISOString();
+
+        const updatedHistory = [
+          ...artifact.versionHistory,
+          {
+            version: artifact.versionHistory.length + 1,
+            content: fresh.content,
+            editedAt: now,
+            editReason: 'Regenerated from current brand state',
+            editedBy: 'regeneration' as const,
+          },
+        ];
+
+        const updatedArtifact: BrandArtifact = {
+          ...artifact,
+          content: fresh.content,
+          versionHistory: updatedHistory,
+          status: 'under_review',
+          isApproved: false,
+          updatedAt: now,
+        };
+
+        const report = ConsistencyGuardian.evaluateArtifact(updatedArtifact, project);
+        updatedArtifact.validationReport = report;
+
+        set((s) => ({
+          project: {
+            ...s.project,
+            brandArtifacts: (s.project.brandArtifacts || []).map((a) => (a.id === artifactId ? updatedArtifact : a)),
+            metadata: { ...s.project.metadata, updatedAt: now },
+          },
+        }));
+
+        return true;
+      },
+
+      ignoreFinding: (artifactId: string, findingId: string, reason: string) => {
+        set((s) => {
+          const artifacts = s.project.brandArtifacts || [];
+          const updated = artifacts.map((art) => {
+            if (art.id !== artifactId || !art.validationReport) return art;
+
+            const updatedFindings = art.validationReport.findings.map((f) =>
+              f.id === findingId ? { ...f, status: 'ignored' as const, ignoredReason: reason } : f
+            );
+
+            const activeBlocking = updatedFindings.filter(
+              (f) => f.severity === 'blocking' && f.status !== 'ignored'
+            ).length;
+            const activeHigh = updatedFindings.filter(
+              (f) => f.severity === 'high' && f.status !== 'ignored'
+            ).length;
+
+            return {
+              ...art,
+              validationReport: {
+                ...art.validationReport,
+                findings: updatedFindings,
+                passed: activeBlocking === 0 && activeHigh === 0,
+                blockingFindingsCount: activeBlocking,
+              },
+              updatedAt: new Date().toISOString(),
+            };
+          });
+
+          return {
+            project: {
+              ...s.project,
+              brandArtifacts: updated,
+              metadata: { ...s.project.metadata, updatedAt: new Date().toISOString() },
+            },
+          };
+        });
+      },
+
+      lockApprovedArtifact: (artifactId: string, rationale = 'Approved by founder as canonical brand asset.') => {
+        const { project } = get();
+        const artifact = (project.brandArtifacts || []).find((a) => a.id === artifactId);
+        if (!artifact) return;
+
+        const now = new Date().toISOString();
+        const newVersion = project.metadata.version + 1;
+        const decisionId = `decision-artifact-${Date.now()}`;
+
+        const decisionNode: DecisionNode = {
+          id: decisionId,
+          category: 'value_proposition',
+          title: `Canonical Artifact: ${artifact.name}`,
+          approvedValue: artifact.content,
+          rationale: `${rationale} (Artifact Type: ${artifact.artifactType})`,
+          evidenceIds: [],
+          rejectedAlternatives: artifact.versionHistory.slice(0, -1).map((v) => ({
+            id: `v-${v.version}`,
+            title: `Draft v${v.version}`,
+            whyRejected: v.editReason || 'Superseded by approved canonical version',
+          })),
+          tradeoff: 'Locked canonical copy format across marketing channels.',
+          dependsOn: Object.keys(project.decisionGraph?.nodes || {}).slice(0, 2),
+          governs: ['external_publishing'],
+          status: 'approved',
+          approvedAt: now,
+          version: newVersion,
+        };
+
+        const updatedArtifacts = (project.brandArtifacts || []).map((a) =>
+          a.id === artifactId
+            ? {
+                ...a,
+                isApproved: true,
+                isLocked: true,
+                status: 'locked' as const,
+                approvedAt: now,
+                lockedAt: now,
+                updatedAt: now,
+              }
+            : a
+        );
+
+        set((s) => ({
+          project: {
+            ...s.project,
+            stage: 'guardian_locked',
+            brandArtifacts: updatedArtifacts,
+            decisionGraph: {
+              nodes: {
+                ...s.project.decisionGraph.nodes,
+                [decisionId]: decisionNode,
+              },
+              edges: s.project.decisionGraph.edges,
+            },
+            decisions: {
+              ...s.project.decisions,
+              [decisionId]: {
+                id: decisionId,
+                category: 'voice',
+                title: decisionNode.title,
+                value: decisionNode.approvedValue,
+                rationale: decisionNode.rationale,
+                approvedAt: now,
+                approvedBy: 'founder',
+                version: newVersion,
+              },
+            },
+            metadata: {
+              ...s.project.metadata,
+              updatedAt: now,
+            },
+          },
+        }));
+
+        get().createSnapshot(`Locked Canonical Artifact: ${artifact.name}`);
+      },
+
+      unlockArtifact: (artifactId: string) => {
+        set((s) => ({
+          project: {
+            ...s.project,
+            brandArtifacts: (s.project.brandArtifacts || []).map((a) =>
+              a.id === artifactId ? { ...a, isLocked: false, status: 'under_review' as const } : a
+            ),
+            metadata: { ...s.project.metadata, updatedAt: new Date().toISOString() },
           },
         }));
       },

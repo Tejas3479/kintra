@@ -169,6 +169,7 @@ export interface ProjectSnapshot {
 import { MarketLandscape } from './research';
 import { PositioningWorld, DecisionGraphState, ContradictionAlert } from './strategy';
 import { CreativeIdentity } from './identity';
+import { BrandArtifact } from './guardian';
 
 export interface CanonicalBrandState {
   metadata: ProjectMetadata;
@@ -180,7 +181,9 @@ export interface CanonicalBrandState {
     | 'brief_review'
     | 'strategy_locked'
     | 'identity'
-    | 'identity_locked';
+    | 'identity_locked'
+    | 'guardian'
+    | 'guardian_locked';
   rawFounderInput: string;
   extractedFacts: ExtractedFact[];
   unresolvedQuestions: UnresolvedQuestion[];
@@ -195,5 +198,7 @@ export interface CanonicalBrandState {
   creativeIdentity: CreativeIdentity | null;
   decisions: Record<string, ApprovedDecision>;
   artifacts: GeneratedArtifact[];
+  brandArtifacts?: BrandArtifact[];
+  selectedArtifactId?: string | null;
   validationHistory: ValidationResult[];
 }

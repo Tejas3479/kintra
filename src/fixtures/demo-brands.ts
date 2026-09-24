@@ -304,5 +304,7 @@ export const INITIAL_DEMO_PROJECT: CanonicalBrandState = {
   creativeIdentity: null,
   decisions: {},
   artifacts: [],
+  brandArtifacts: [],
+  selectedArtifactId: null,
   validationHistory: [],
 };

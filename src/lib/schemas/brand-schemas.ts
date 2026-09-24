@@ -167,6 +167,7 @@ import {
   ContradictionAlertSchema,
 } from './strategy-schemas';
 import { CreativeIdentitySchema } from './identity-schemas';
+import { BrandArtifactSchema } from './guardian-schemas';
 
 export const CanonicalBrandStateSchema = z.object({
   metadata: ProjectMetadataSchema,
@@ -179,6 +180,8 @@ export const CanonicalBrandStateSchema = z.object({
     'strategy_locked',
     'identity',
     'identity_locked',
+    'guardian',
+    'guardian_locked',
   ]),
   rawFounderInput: z.string(),
   extractedFacts: z.array(ExtractedFactSchema),
@@ -194,6 +197,8 @@ export const CanonicalBrandStateSchema = z.object({
   creativeIdentity: CreativeIdentitySchema.nullable().default(null),
   decisions: z.record(z.string(), ApprovedDecisionSchema),
   artifacts: z.array(GeneratedArtifactSchema),
+  brandArtifacts: z.array(BrandArtifactSchema).optional().default([]),
+  selectedArtifactId: z.string().nullable().optional().default(null),
   validationHistory: z.array(ValidationResultSchema),
 });
 
