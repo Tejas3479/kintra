@@ -22,10 +22,47 @@ body {
 .bg-obsidian-mesh {
   background-color: #07080a;
   background-image: 
-    radial-gradient(circle at 18% 0%, rgba(212, 180, 131, 0.045) 0%, transparent 35%),
-    radial-gradient(circle at 82% 12%, rgba(142, 155, 174, 0.035) 0%, transparent 40%),
-    radial-gradient(circle at 50% 60%, rgba(212, 180, 131, 0.02) 0%, transparent 60%);
+    radial-gradient(circle at 18% 0%, rgba(212, 180, 131, 0.05) 0%, transparent 35%),
+    radial-gradient(circle at 82% 12%, rgba(142, 155, 174, 0.04) 0%, transparent 40%),
+    radial-gradient(circle at 50% 60%, rgba(212, 180, 131, 0.025) 0%, transparent 60%);
   background-attachment: fixed;
+}
+
+/* Subtle Cybernetic Grid Pattern */
+.bg-grid-cyber {
+  background-size: 48px 48px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}
+
+/* Dot Matrix Telemetry Canvas */
+.bg-dot-matrix {
+  background-size: 24px 24px;
+  background-image: radial-gradient(rgba(212, 180, 131, 0.12) 1px, transparent 1px);
+}
+
+/* Radial Vignette Mask */
+.mask-radial-fade {
+  mask-image: radial-gradient(ellipse at center, rgba(0, 0, 0, 1) 30%, rgba(0, 0, 0, 0) 80%);
+  -webkit-mask-image: radial-gradient(ellipse at center, rgba(0, 0, 0, 1) 30%, rgba(0, 0, 0, 0) 80%);
+}
+
+/* Atmospheric Glow Orbs */
+.glow-orb-gold {
+  position: absolute;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(212, 180, 131, 0.18) 0%, rgba(212, 180, 131, 0.03) 55%, transparent 70%);
+  filter: blur(48px);
+  pointer-events: none;
+}
+
+.glow-orb-steel {
+  position: absolute;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(148, 163, 184, 0.12) 0%, rgba(148, 163, 184, 0.02) 60%, transparent 75%);
+  filter: blur(56px);
+  pointer-events: none;
 }
 
 /* Obsidian Glass Surface Primitives */

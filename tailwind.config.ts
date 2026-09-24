@@ -55,6 +55,9 @@ export default {
         "pulse-slow": "pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite",
         "glow-pulse": "glowPulse 3s ease-in-out infinite",
         radar: "radarSweep 3s cubic-bezier(0.4, 0, 0.2, 1) infinite",
+        float: "float 6s ease-in-out infinite",
+        "float-delayed": "floatDelayed 7s ease-in-out infinite 2s",
+        scanline: "scanline 8s linear infinite",
       },
       keyframes: {
         shimmer: {
@@ -68,6 +71,18 @@ export default {
         radarSweep: {
           "0%": { transform: "rotate(0deg)" },
           "100%": { transform: "rotate(360deg)" },
+        },
+        float: {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-12px)" },
+        },
+        floatDelayed: {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(10px)" },
+        },
+        scanline: {
+          "0%": { transform: "translateY(-100%)" },
+          "100%": { transform: "translateY(1000%)" },
         },
       },
       boxShadow: {
