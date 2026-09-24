@@ -21,8 +21,8 @@ export const PresentationModeModal: React.FC = () => {
 
   const kit = project.launchKit;
   const guidelines = kit?.guidelines;
-  const brandName = guidelines?.naming.approvedName || project.metadata.name;
-  const tagline = guidelines?.naming.approvedTagline || 'Autonomous Brand Intelligence';
+  const brandName = guidelines?.brandName || guidelines?.naming.approvedName || project.metadata.name;
+  const tagline = guidelines?.tagline || 'Autonomous Brand Intelligence';
 
   const slides = [
     { id: 'cover', title: 'Executive Summary & Pitch' },
