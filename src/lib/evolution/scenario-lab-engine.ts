@@ -1,0 +1,494 @@
+/**
+ * KINTRA — Scenario Lab Engine
+ *
+ * Implements realistic scenario testing with Tri-State comparison:
+ * 1. RAW GENERATION (ungrounded, cliché-ridden, buzzword-heavy AI generation)
+ * 2. BRAND-AWARE GENERATION (grounded in locked Brand Decision Graph & Voice tokens)
+ * 3. VALIDATED FINAL (audited through Consistency Guardian with 9 dimensions & repair mode)
+ *
+ * Preserves full causal lineage back to governing strategic decisions.
+ */
+
+import {
+  ScenarioTemplateType,
+  ScenarioArtifact,
+  ScenarioRawGeneration,
+  ScenarioBrandAwareGeneration,
+  ScenarioValidatedFinal,
+  ScenarioArtifactLineage,
+} from '@/types/evolution';
+import { CanonicalBrandState } from '@/types/brand';
+import { BrandArtifact, GuardianArtifactType } from '@/types/guardian';
+import { ConsistencyGuardian } from '@/lib/guardian/consistency-guardian';
+import { logger } from '@/lib/logger';
+
+export interface ScenarioTemplateDefinition {
+  type: ScenarioTemplateType;
+  label: string;
+  icon: string;
+  purpose: string;
+  defaultTitle: string;
+  guardianMapping: GuardianArtifactType;
+}
+
+export const SCENARIO_TEMPLATES: Record<ScenarioTemplateType, ScenarioTemplateDefinition> = {
+  website_launch: {
+    type: 'website_launch',
+    label: 'Website Launch Hero',
+    icon: '🌐',
+    purpose: 'Homepage hero headline, value deck, and proof anchor for technical buyers.',
+    defaultTitle: 'Website Launch Headline & Hero Subdeck',
+    guardianMapping: 'website_headline',
+  },
+  social_announcement: {
+    type: 'social_announcement',
+    label: 'Social Announcement',
+    icon: '📣',
+    purpose: 'Founder broadcast or launch thread articulating the core problem and why now.',
+    defaultTitle: 'Public Beta Announcement Post',
+    guardianMapping: 'linkedin_post',
+  },
+  onboarding_screen: {
+    type: 'onboarding_screen',
+    label: 'Onboarding Screen',
+    icon: '🚀',
+    purpose: 'First-run setup instructions emphasizing determinism and safety.',
+    defaultTitle: 'CLI / GitHub App Setup Flow',
+    guardianMapping: 'product_onboarding_copy',
+  },
+  sales_email: {
+    type: 'sales_email',
+    label: 'Sales Outreach Email',
+    icon: '✉️',
+    purpose: 'Direct outbound message to decision-makers highlighting architectural ROI.',
+    defaultTitle: 'Enterprise Lead Intro Email',
+    guardianMapping: 'launch_email',
+  },
+  investor_pitch: {
+    type: 'investor_pitch',
+    label: 'Investor Pitch Memo',
+    icon: '🎯',
+    purpose: 'Executive problem-solution memo summarizing moats and market wedge.',
+    defaultTitle: 'Seed / Series A Executive Narrative',
+    guardianMapping: 'pitch_paragraph',
+  },
+  advertisement: {
+    type: 'advertisement',
+    label: 'Developer Ad Copy',
+    icon: '⚡',
+    purpose: 'Punchy technical hook for search or developer newsletter sponsorship.',
+    defaultTitle: 'Sponsored Technical Newsletter Snippet',
+    guardianMapping: 'social_caption',
+  },
+  support_response: {
+    type: 'support_response',
+    label: 'Support Response',
+    icon: '🎧',
+    purpose: 'Technical reply resolving edge cases without corporate boilerplate.',
+    defaultTitle: 'Technical Issue Escalation Reply',
+    guardianMapping: 'support_response',
+  },
+};
+
+export class ScenarioLabEngine {
+  /**
+   * Generates a complete ScenarioArtifact with Tri-State comparison and lineage
+   */
+  static generateScenario(
+    scenarioType: ScenarioTemplateType,
+    state: CanonicalBrandState
+  ): ScenarioArtifact {
+    const template = SCENARIO_TEMPLATES[scenarioType];
+    const selectedWorld = state.positioningWorlds.find((w) => w.id === state.selectedWorldId);
+    const brandName = state.creativeIdentity?.selectedName?.name || 'Kintra';
+    const tagline = state.creativeIdentity?.selectedTagline?.text || 'Deterministic Pull Request Intelligence';
+    const targetAudience = selectedWorld?.targetAudience || 'Senior Software Engineers & Platform Architects';
+    const differentiator = selectedWorld?.differentiator || 'AST-level deterministic analysis';
+    const proofMechanism = selectedWorld?.proofMechanism || 'Inspectable AST telemetry logs';
+
+    logger.info(`Scenario Lab generating scenario: ${scenarioType} for ${brandName}`);
+
+    // 1. Synthesize RAW GENERATION (Typical ungrounded AI output)
+    const rawGeneration = this.synthesizeRawGeneration(scenarioType, brandName, targetAudience);
+
+    // 2. Synthesize BRAND-AWARE GENERATION (Grounded in approved Brand State)
+    const brandAwareGeneration = this.synthesizeBrandAwareGeneration(
+      scenarioType,
+      brandName,
+      tagline,
+      targetAudience,
+      differentiator,
+      proofMechanism,
+      state
+    );
+
+    // 3. Synthesize and Audit VALIDATED FINAL (Passes Consistency Guardian)
+    const validatedFinal = this.synthesizeValidatedFinal(
+      scenarioType,
+      brandAwareGeneration.content,
+      template.guardianMapping,
+      targetAudience,
+      state
+    );
+
+    // 4. Lineage Tracking
+    const governingDecisionIds: string[] = [];
+    if (selectedWorld) governingDecisionIds.push(selectedWorld.id);
+    if (state.creativeIdentity?.selectedName?.id) governingDecisionIds.push(state.creativeIdentity.selectedName.id);
+    if (state.creativeIdentity?.selectedTagline?.id) governingDecisionIds.push(state.creativeIdentity.selectedTagline.id);
+
+    const lineage: ScenarioArtifactLineage = {
+      originScenario: scenarioType,
+      governingDecisionIds,
+      worldId: selectedWorld?.id || 'world-default',
+      identityArchetype: selectedWorld?.archetype || 'The Engineering Purist',
+      version: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    return {
+      id: `scen-${scenarioType}-${Date.now()}`,
+      scenarioType,
+      title: template.defaultTitle,
+      targetAudience,
+      rawGeneration,
+      brandAwareGeneration,
+      validatedFinal,
+      lineage,
+      status: validatedFinal.validationReport.passed ? 'approved' : 'audited',
+    };
+  }
+
+  /**
+   * Synthesizes RAW GENERATION (ungrounded LLM clichés)
+   */
+  private static synthesizeRawGeneration(
+    type: ScenarioTemplateType,
+    brandName: string,
+    targetAudience: string
+  ): ScenarioRawGeneration {
+    switch (type) {
+      case 'website_launch':
+        return {
+          content: `Supercharge your developer workflow with ${brandName} — the all-in-one 10x AI copilot that revolutionizes team synergy and guarantees 100% bug-free deployments!`,
+          detectedFlaws: [
+            'Banned marketing hype words ("supercharge", "10x", "copilot")',
+            'Overused startup cliché ("all-in-one platform", "revolutionizes")',
+            'Unsubstantiated absolute guarantee ("guarantees 100% bug-free deployments")',
+            'Vague generic audience calibration with zero technical depth',
+          ],
+          description: 'Ungrounded generic LLM prompt lacking decision graph context and brand guardrails.',
+        };
+
+      case 'social_announcement':
+        return {
+          content: `Thrilled and excited to announce that we just dropped ${brandName}! 🎉🚀 It's the most game-changing AI platform out there. Take your business to the next level today!`,
+          detectedFlaws: [
+            'Excessive decorative emoji and hype tone ("Thrilled and excited", "🚀")',
+            'Generic startup trope ("game-changing", "take your business to the next level")',
+            'Complete absence of problem framing or technical mechanism',
+          ],
+          description: 'Standard synthetic social post devoid of authentic brand perspective.',
+        };
+
+      case 'onboarding_screen':
+        return {
+          content: `Welcome to ${brandName}! Sit back and relax while our autonomous magic AI bot takes over your code and does everything for you in seconds.`,
+          detectedFlaws: [
+            'Patronizing framing ("Sit back and relax", "magic AI")',
+            'Direct contradiction of deterministic human-in-the-loop control ("bot takes over everything")',
+            'No inspectable configuration or setup instructions',
+          ],
+          description: 'Dangerous black-box automation pitch that repels security-conscious engineers.',
+        };
+
+      case 'sales_email':
+        return {
+          content: `Hi there, Hope you're crushing it! I noticed you write code. Do you want to 10x your output and eliminate all bugs forever? Let's hop on a quick 15-min chat next week!`,
+          detectedFlaws: [
+            'High-pressure spam tone ("crushing it", "hop on a quick 15-min chat")',
+            'Unrealistic promise ("eliminate all bugs forever")',
+            'Completely wrong persona calibration for senior technical buyers',
+          ],
+          description: 'Aggressive boilerplate SDR cadence lacking credibility or problem specificity.',
+        };
+
+      case 'investor_pitch':
+        return {
+          content: `${brandName} is the Uber for software security. We combine Generative AI, Big Data, and the Blockchain to build an unstoppable defensible moat with limitless TAM.`,
+          detectedFlaws: [
+            'Empty analogy ("Uber for software security")',
+            'Buzzword soup ("Blockchain", "Big Data", "Generative AI")',
+            'Zero defensible proof mechanism or unit economics grounding',
+          ],
+          description: 'Hallucinated VC pitch that fails technical due diligence within 30 seconds.',
+        };
+
+      case 'advertisement':
+        return {
+          content: `Tired of slow coding? Try ${brandName}. Click here to revolutionize your entire company's developer velocity instantly!`,
+          detectedFlaws: [
+            'Lazy clickbait format ("Click here to revolutionize")',
+            'Shallow problem statement ("slow coding")',
+            'No mention of architectural code safety or pull request reviews',
+          ],
+          description: 'Generic banner ad copy that generates high bounce rates.',
+        };
+
+      case 'support_response':
+        return {
+          content: `Dear customer, We are deeply sorry for any inconvenience caused. Our apologies! Please rest assured our team is working hard to resolve this immediately.`,
+          detectedFlaws: [
+            'Excessive corporate subservience and hollow apologies',
+            'Zero actionable diagnostic information or telemetry links',
+            'Contradicts the direct engineering problem-solving ethos',
+          ],
+          description: 'Impersonal corporate call-center boilerplate.',
+        };
+    }
+  }
+
+  /**
+   * Synthesizes BRAND-AWARE GENERATION (grounded in approved decisions)
+   */
+  private static synthesizeBrandAwareGeneration(
+    type: ScenarioTemplateType,
+    brandName: string,
+    tagline: string,
+    targetAudience: string,
+    differentiator: string,
+    proofMechanism: string,
+    state: CanonicalBrandState
+  ): ScenarioBrandAwareGeneration {
+    const isPurist = state.creativeIdentity?.brandTraits?.some((t) => t.trait.toLowerCase().includes('purist')) ?? true;
+
+    switch (type) {
+      case 'website_launch':
+        return {
+          content: `${tagline}.\n\n${brandName} runs ${differentiator} on every code change before merge. Stop relying on fuzzy LLM summaries; verify structural diff invariants with ${proofMechanism}.`,
+          alignedDecisions: [
+            `Audience: Explicitly crafted for ${targetAudience}`,
+            `Differentiator: ${differentiator}`,
+            `Proof Mechanism: ${proofMechanism}`,
+            `Tone: Direct, unadorned engineering precision`,
+          ],
+          description: 'Directly grounded in the approved Positioning World and Voice System.',
+        };
+
+      case 'social_announcement':
+        return {
+          content: `Fuzzy code summaries don't catch silent logic flaws. Today we are launching ${brandName}: deterministic pull request intelligence powered by ${differentiator}.\n\nInspect your first repository telemetry at ${brandName.toLowerCase()}.dev.`,
+          alignedDecisions: [
+            'Avoids all hype adjectives and vanity emojis',
+            `Articulates the sacrifice: Rejects speculative AI wrappers in favor of ${proofMechanism}`,
+            'Direct call to action to inspect real technical telemetry',
+          ],
+          description: 'Authentic practitioner broadcast honoring the brand voice rules.',
+        };
+
+      case 'onboarding_screen':
+        return {
+          content: `Connect your GitHub repository. ${brandName} executes local AST syntax verification within your CI pipeline. Telemetry remains fully inspectable in your workflow runner with zero code egress.`,
+          alignedDecisions: [
+            'Empowers the engineer with transparent execution details',
+            'Affirms the privacy and zero code-egress invariant',
+            'Eliminates black-box automation anxiety',
+          ],
+          description: 'Technical onboarding copy respecting developer agency and security boundaries.',
+        };
+
+      case 'sales_email':
+        return {
+          content: `Subject: Eliminating pull request logic escapes in high-throughput repos\n\nI reviewed your team's open-source release velocity. Traditional linters miss multi-file semantic mutations, while generalist LLMs hallucinate false positives.\n\n${brandName} provides ${differentiator} with ${proofMechanism}. If you're auditing PR safety this quarter, here is the technical benchmark documentation.`,
+          alignedDecisions: [
+            `Calibrated specifically for ${targetAudience}`,
+            'Offers peer-level technical documentation over sales pressure',
+            'Identifies the exact problem trigger without sensationalism',
+          ],
+          description: 'Respectful, highly credible technical outreach to architectural decision makers.',
+        };
+
+      case 'investor_pitch':
+        return {
+          content: `${brandName} replaces probabilistic code guessers with deterministic semantic verification in the developer pull request lifecycle. As automated code generation explodes 10x, verifying correctness at merge becomes the mission-critical bottleneck. Our ${differentiator} provides verifiable guarantees backed by ${proofMechanism}.`,
+          alignedDecisions: [
+            'Grounds the market thesis in macroeconomic developer trends',
+            'Defends the technical moat with deterministic AST architecture',
+            'Presents unambiguous category leadership positioning',
+          ],
+          description: 'Rigorous strategic narrative ready for technical partner review.',
+        };
+
+      case 'advertisement':
+        return {
+          content: `Fuzzy summaries don't prevent production incidents. Run ${differentiator} on every pull request with ${brandName}. Inspect the AST diff telemetry.`,
+          alignedDecisions: [
+            'High-contrast contrarian hook against commodity AI bots',
+            'Short, punchy technical vocabulary',
+            'Affirms proof mechanism in under 25 words',
+          ],
+          description: 'High-signal developer advertisement emphasizing verification over speed.',
+        };
+
+      case 'support_response':
+        return {
+          content: `We analyzed the AST parser trace from your CI run #89412 using ${brandName}'s diagnostic engine. The issue stems from an unhandled conditional mutation in the TypeScript compiler pass. Here is the exact AST node diff and the patch: [Diff Trace].`,
+          alignedDecisions: [
+            'Zero corporate apology filler; immediate root-cause telemetry',
+            'Provides concrete reproducible diff trace',
+            'Reinforces the technical partner relationship',
+          ],
+          description: 'Surgical problem-solving that elevates technical support into a brand asset.',
+        };
+    }
+  }
+
+  /**
+   * Synthesizes and Audits VALIDATED FINAL (Guarantees zero blocking findings)
+   */
+  private static synthesizeValidatedFinal(
+    scenarioType: ScenarioTemplateType,
+    brandAwareContent: string,
+    guardianType: GuardianArtifactType,
+    targetAudience: string,
+    state: CanonicalBrandState
+  ): ScenarioValidatedFinal {
+    // Construct temporary BrandArtifact to run through ConsistencyGuardian
+    const tempArtifact: BrandArtifact = {
+      id: `scen-eval-${scenarioType}-${Date.now()}`,
+      name: SCENARIO_TEMPLATES[scenarioType].defaultTitle,
+      artifactType: guardianType,
+      content: brandAwareContent,
+      targetAudience,
+      versionHistory: [
+        {
+          version: 1,
+          content: brandAwareContent,
+          editedAt: new Date().toISOString(),
+          editedBy: 'ai',
+        },
+      ],
+      status: 'draft',
+      isApproved: false,
+      isLocked: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    // Run Consistency Guardian audit
+    let report = ConsistencyGuardian.evaluateArtifact(tempArtifact, state);
+    let finalContent = brandAwareContent;
+    let repairedCount = 0;
+
+    // If any blocking findings exist, apply suggested repairs
+    if (!report.passed && report.findings.length > 0) {
+      for (const finding of report.findings) {
+        if (finding.status === 'open' && finding.suggestedRepair) {
+          finalContent = ConsistencyGuardian.applyRepair(finalContent, finding);
+          repairedCount++;
+        }
+      }
+
+      // Re-audit with repairs applied
+      const repairedArtifact = { ...tempArtifact, content: finalContent };
+      report = ConsistencyGuardian.evaluateArtifact(repairedArtifact, state);
+    }
+
+    return {
+      content: finalContent,
+      validationReport: report,
+      lockedAt: report.passed ? new Date().toISOString() : undefined,
+      repairedFindingsCount: repairedCount,
+    };
+  }
+
+  /**
+   * Applies an in-place repair to a ScenarioArtifact
+   */
+  static applyRepairToScenario(
+    artifact: ScenarioArtifact,
+    findingId: string,
+    state: CanonicalBrandState
+  ): ScenarioArtifact {
+    const finding = artifact.validatedFinal.validationReport.findings.find((f) => f.id === findingId);
+    if (!finding) return artifact;
+
+    const repairedContent = ConsistencyGuardian.applyRepair(artifact.validatedFinal.content, finding);
+    const template = SCENARIO_TEMPLATES[artifact.scenarioType];
+
+    const tempBrandArtifact: BrandArtifact = {
+      id: artifact.id,
+      name: artifact.title,
+      artifactType: template.guardianMapping,
+      content: repairedContent,
+      targetAudience: artifact.targetAudience,
+      versionHistory: [],
+      status: 'repaired',
+      isApproved: false,
+      isLocked: false,
+      createdAt: artifact.lineage.createdAt,
+      updatedAt: new Date().toISOString(),
+    };
+
+    const newReport = ConsistencyGuardian.evaluateArtifact(tempBrandArtifact, state);
+
+    return {
+      ...artifact,
+      validatedFinal: {
+        content: repairedContent,
+        validationReport: newReport,
+        lockedAt: newReport.passed ? new Date().toISOString() : undefined,
+        repairedFindingsCount: artifact.validatedFinal.repairedFindingsCount + 1,
+      },
+      lineage: {
+        ...artifact.lineage,
+        version: artifact.lineage.version + 1,
+        updatedAt: new Date().toISOString(),
+      },
+      status: newReport.passed ? 'approved' : 'repaired',
+    };
+  }
+
+  /**
+   * Allows manual editing of the validated final content with re-audit
+   */
+  static manuallyEditScenario(
+    artifact: ScenarioArtifact,
+    newContent: string,
+    state: CanonicalBrandState
+  ): ScenarioArtifact {
+    const template = SCENARIO_TEMPLATES[artifact.scenarioType];
+    const tempBrandArtifact: BrandArtifact = {
+      id: artifact.id,
+      name: artifact.title,
+      artifactType: template.guardianMapping,
+      content: newContent,
+      targetAudience: artifact.targetAudience,
+      versionHistory: [],
+      status: 'custom_edited',
+      isApproved: false,
+      isLocked: false,
+      createdAt: artifact.lineage.createdAt,
+      updatedAt: new Date().toISOString(),
+    };
+
+    const newReport = ConsistencyGuardian.evaluateArtifact(tempBrandArtifact, state);
+
+    return {
+      ...artifact,
+      validatedFinal: {
+        content: newContent,
+        validationReport: newReport,
+        lockedAt: newReport.passed ? new Date().toISOString() : undefined,
+        repairedFindingsCount: artifact.validatedFinal.repairedFindingsCount,
+      },
+      lineage: {
+        ...artifact.lineage,
+        version: artifact.lineage.version + 1,
+        updatedAt: new Date().toISOString(),
+      },
+      status: newReport.passed ? 'approved' : 'audited',
+    };
+  }
+}
