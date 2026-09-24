@@ -10,6 +10,7 @@
  */
 
 import {
+  AssumptionCategory,
   AssumptionChangeRequest,
   DependencyImpactReport,
   ImpactedNode,
@@ -19,6 +20,7 @@ import {
   BranchDiffItem,
 } from '@/types/evolution';
 import { CanonicalBrandState, ProjectSnapshot } from '@/types/brand';
+import { DecisionNode } from '@/types/strategy';
 import { BrandArtifact } from '@/types/guardian';
 import { ConsistencyGuardian } from '@/lib/guardian/consistency-guardian';
 import { logger } from '@/lib/logger';
@@ -352,47 +354,137 @@ export class BrandEvolutionEngine {
         }
         return w;
       });
+    } else if (request.category === 'pricing_tier') {
+      if (nextState.ideaBrief) {
+        nextState.ideaBrief.targetUser.buyingTrigger = `${nextState.ideaBrief.targetUser.buyingTrigger} (${request.proposedValue})`;
+      }
+      nextState.positioningWorlds = nextState.positioningWorlds.map((w) => {
+        if (w.id === nextState.selectedWorldId) {
+          return {
+            ...w,
+            assumptions: [...w.assumptions, `Pivoted pricing tier to: ${request.proposedValue}`],
+          };
+        }
+        return w;
+      });
+    } else if (request.category === 'emotional_territory') {
+      nextState.positioningWorlds = nextState.positioningWorlds.map((w) => {
+        if (w.id === nextState.selectedWorldId) {
+          return {
+            ...w,
+            emotionalTerritory: request.proposedValue,
+            assumptions: [...w.assumptions, `Pivoted emotional posture to: ${request.proposedValue}`],
+          };
+        }
+        return w;
+      });
+    } else if (request.category === 'primary_problem') {
+      if (nextState.ideaBrief) {
+        nextState.ideaBrief.problem.corePain = request.proposedValue;
+      }
+      nextState.positioningWorlds = nextState.positioningWorlds.map((w) => {
+        if (w.id === nextState.selectedWorldId) {
+          return {
+            ...w,
+            assumptions: [...w.assumptions, `Reframed primary problem: ${request.proposedValue}`],
+          };
+        }
+        return w;
+      });
+    } else if (request.category === 'category_frame') {
+      if (nextState.ideaBrief) {
+        nextState.ideaBrief.context.industryOrCategory = request.proposedValue;
+      }
+      nextState.positioningWorlds = nextState.positioningWorlds.map((w) => {
+        if (w.id === nextState.selectedWorldId) {
+          return {
+            ...w,
+            categoryFraming: request.proposedValue,
+            assumptions: [...w.assumptions, `Pivoted category framing: ${request.proposedValue}`],
+          };
+        }
+        return w;
+      });
+    } else if (request.category === 'market_motion') {
+      nextState.positioningWorlds = nextState.positioningWorlds.map((w) => {
+        if (w.id === nextState.selectedWorldId) {
+          return {
+            ...w,
+            assumptions: [...w.assumptions, `Pivoted market motion: ${request.proposedValue}`],
+          };
+        }
+        return w;
+      });
     }
 
     // 2. Update Decision Graph nodes (invalidate affected, retain unaffected)
+    const categoryToNodeCategory: Record<AssumptionCategory, DecisionNode['category']> = {
+      target_audience: 'target_niche',
+      pricing_tier: 'pricing_tier',
+      emotional_territory: 'voice_system',
+      primary_problem: 'problem_framing',
+      category_frame: 'category_frame',
+      market_motion: 'market_motion',
+    };
+
+    const targetNodeCategory = categoryToNodeCategory[request.category] || 'positioning_world';
     const graphNodes = nextState.decisionGraph.nodes;
     let targetNodeFound = false;
+
     for (const key of Object.keys(graphNodes)) {
-      if (graphNodes[key].category === 'target_niche') {
+      if (graphNodes[key].category === targetNodeCategory) {
         graphNodes[key].approvedValue = request.proposedValue;
         graphNodes[key].version += 1;
         graphNodes[key].rationale = `Evolved: ${request.rationale}`;
         targetNodeFound = true;
       }
     }
+
     if (!targetNodeFound) {
-      graphNodes['node-target-niche'] = {
-        id: 'node-target-niche',
-        category: 'target_niche',
-        title: 'Target Audience Decision',
+      const defaultId = `node-${request.category.replace(/_/g, '-')}`;
+      graphNodes[defaultId] = {
+        id: defaultId,
+        category: targetNodeCategory,
+        title: `${request.title} Decision`,
         approvedValue: request.proposedValue,
         rationale: `Evolved: ${request.rationale}`,
         evidenceIds: [],
         rejectedAlternatives: [],
-        tradeoff: 'Refocused on specific audience segment',
+        tradeoff: `Evolved ${request.category} parameter`,
         dependsOn: [],
         governs: [],
         status: 'approved',
-        version: 2,
+        version: nextState.metadata.version,
       };
     }
 
     // 3. Selectively regenerate only affected artifacts
     if (nextState.brandArtifacts && nextState.brandArtifacts.length > 0) {
       nextState.brandArtifacts = nextState.brandArtifacts.map((art) => {
-        // Only regenerate artifacts that directly depend on the changed assumption
-        if (
-          art.artifactType === 'launch_email' ||
-          art.artifactType === 'pitch_paragraph' ||
-          art.artifactType === 'website_headline'
-        ) {
-          const regenerated = this.regenerateArtifactForAudience(art, request.proposedValue, nextState);
-          return regenerated;
+        if (request.category === 'target_audience') {
+          if (
+            art.artifactType === 'launch_email' ||
+            art.artifactType === 'pitch_paragraph' ||
+            art.artifactType === 'website_headline'
+          ) {
+            return this.regenerateArtifactForAudience(art, request.proposedValue, nextState);
+          }
+        } else if (request.category === 'pricing_tier') {
+          if (art.artifactType === 'launch_email' || art.artifactType === 'pitch_paragraph') {
+            return this.regenerateArtifactForPricing(art, request.proposedValue, nextState);
+          }
+        } else if (request.category === 'emotional_territory') {
+          if (art.artifactType === 'website_headline' || art.artifactType === 'social_caption') {
+            return this.regenerateArtifactForEmotion(art, request.proposedValue, nextState);
+          }
+        } else if (request.category === 'primary_problem' || request.category === 'category_frame') {
+          if (
+            art.artifactType === 'website_headline' ||
+            art.artifactType === 'pitch_paragraph' ||
+            art.artifactType === 'launch_email'
+          ) {
+            return this.regenerateArtifactForFraming(art, request.category, request.proposedValue, nextState);
+          }
         }
         // Retain unaffected artifacts untouched!
         return art;
@@ -401,8 +493,8 @@ export class BrandEvolutionEngine {
 
     const summary =
       choice === 'branch_brand'
-        ? `Successfully branched into "${newBranch?.name}". Foundational assumption updated to "${request.proposedValue}". Affected artifacts regenerated; invariant decisions preserved.`
-        : `Successfully evolved brand state to Version ${nextState.metadata.version}. Target audience updated to "${request.proposedValue}". Downstream artifacts regenerated and re-audited.`;
+        ? `Successfully branched into "${newBranch?.name}". Foundational assumption for ${request.title} updated to "${request.proposedValue}". Affected artifacts regenerated; invariant decisions preserved.`
+        : `Successfully evolved brand state to Version ${nextState.metadata.version}. ${request.title} updated to "${request.proposedValue}". Downstream artifacts regenerated and re-audited.`;
 
     return {
       updatedState: nextState,
@@ -463,6 +555,166 @@ export class BrandEvolutionEngine {
     // Re-audit with Consistency Guardian
     const report = ConsistencyGuardian.evaluateArtifact(tempArt, state);
 
+    return {
+      ...tempArt,
+      status: report.passed ? 'approved' : 'draft',
+      isApproved: report.passed,
+    };
+  }
+
+  /**
+   * Regenerates a single artifact for an evolved pricing tier
+   */
+  private static regenerateArtifactForPricing(
+    artifact: BrandArtifact,
+    newPricing: string,
+    state: CanonicalBrandState
+  ): BrandArtifact {
+    const brandName =
+      state.creativeIdentity?.namingCandidates.find((n) => n.id === state.creativeIdentity?.selectedNameId)?.name ||
+      'Kintra';
+    const selectedWorld = state.positioningWorlds.find((w) => w.id === state.selectedWorldId);
+    const differentiator = selectedWorld?.differentiator || 'AST-level deterministic analysis';
+    const proofMechanism = selectedWorld?.proofMechanism || 'Inspectable AST telemetry logs';
+
+    let newContent = artifact.content;
+
+    if (artifact.artifactType === 'launch_email') {
+      newContent = `Subject: Commercial Rollout & Pricing Update: ${brandName}\n\nWe have updated our deployment and commercial model to ${newPricing}.\n\n${brandName} continues to provide ${differentiator} backed by ${proofMechanism}, now packaged for ${newPricing} scale.`;
+    } else if (artifact.artifactType === 'pitch_paragraph') {
+      newContent = `${brandName} delivers ${differentiator} with transparent ${newPricing} packaging. We eliminate silent logic bugs with mathematically inspectable telemetry.`;
+    }
+
+    const newVersion = (artifact.versionHistory?.length || 1) + 1;
+    const updatedHistory = [
+      ...(artifact.versionHistory || []),
+      {
+        version: newVersion,
+        content: newContent,
+        editedAt: new Date().toISOString(),
+        editedBy: 'regeneration' as const,
+        editReason: `Regenerated for evolved pricing tier: ${newPricing}`,
+      },
+    ];
+
+    const tempArt: BrandArtifact = {
+      ...artifact,
+      content: newContent,
+      versionHistory: updatedHistory,
+      status: 'draft',
+      isApproved: false,
+      isLocked: false,
+      updatedAt: new Date().toISOString(),
+    };
+
+    const report = ConsistencyGuardian.evaluateArtifact(tempArt, state);
+    return {
+      ...tempArt,
+      status: report.passed ? 'approved' : 'draft',
+      isApproved: report.passed,
+    };
+  }
+
+  /**
+   * Regenerates a single artifact for evolved emotional territory
+   */
+  private static regenerateArtifactForEmotion(
+    artifact: BrandArtifact,
+    newEmotion: string,
+    state: CanonicalBrandState
+  ): BrandArtifact {
+    const brandName =
+      state.creativeIdentity?.namingCandidates.find((n) => n.id === state.creativeIdentity?.selectedNameId)?.name ||
+      'Kintra';
+    const selectedWorld = state.positioningWorlds.find((w) => w.id === state.selectedWorldId);
+    const differentiator = selectedWorld?.differentiator || 'AST-level deterministic analysis';
+
+    let newContent = artifact.content;
+
+    if (artifact.artifactType === 'website_headline') {
+      newContent = `${brandName}: Verifiable Code Governance.\n\n${newEmotion}. Powered by ${differentiator}.`;
+    } else if (artifact.artifactType === 'social_caption') {
+      newContent = `${brandName} brings ${newEmotion} to engineering verification. Zero probabilistic guesswork, deterministic proof.`;
+    }
+
+    const newVersion = (artifact.versionHistory?.length || 1) + 1;
+    const updatedHistory = [
+      ...(artifact.versionHistory || []),
+      {
+        version: newVersion,
+        content: newContent,
+        editedAt: new Date().toISOString(),
+        editedBy: 'regeneration' as const,
+        editReason: `Regenerated for evolved emotional territory: ${newEmotion}`,
+      },
+    ];
+
+    const tempArt: BrandArtifact = {
+      ...artifact,
+      content: newContent,
+      versionHistory: updatedHistory,
+      status: 'draft',
+      isApproved: false,
+      isLocked: false,
+      updatedAt: new Date().toISOString(),
+    };
+
+    const report = ConsistencyGuardian.evaluateArtifact(tempArt, state);
+    return {
+      ...tempArt,
+      status: report.passed ? 'approved' : 'draft',
+      isApproved: report.passed,
+    };
+  }
+
+  /**
+   * Regenerates a single artifact for evolved problem or category framing
+   */
+  private static regenerateArtifactForFraming(
+    artifact: BrandArtifact,
+    category: AssumptionCategory,
+    newFraming: string,
+    state: CanonicalBrandState
+  ): BrandArtifact {
+    const brandName =
+      state.creativeIdentity?.namingCandidates.find((n) => n.id === state.creativeIdentity?.selectedNameId)?.name ||
+      'Kintra';
+    const selectedWorld = state.positioningWorlds.find((w) => w.id === state.selectedWorldId);
+    const differentiator = selectedWorld?.differentiator || 'AST-level deterministic analysis';
+
+    let newContent = artifact.content;
+
+    if (artifact.artifactType === 'website_headline') {
+      newContent = `${brandName}: Solves ${newFraming}.\n\nEngineered through ${differentiator} for uncompromising accuracy.`;
+    } else if (artifact.artifactType === 'pitch_paragraph') {
+      newContent = `${brandName} reframes the market around ${newFraming}. By replacing probabilistic checks with ${differentiator}, teams eliminate critical blindspots before release.`;
+    } else if (artifact.artifactType === 'launch_email') {
+      newContent = `Subject: Announcing ${brandName} — Solving ${newFraming}\n\nToday we are tackling ${newFraming} directly with ${differentiator}. Zero hallucinations, complete reproducibility.`;
+    }
+
+    const newVersion = (artifact.versionHistory?.length || 1) + 1;
+    const updatedHistory = [
+      ...(artifact.versionHistory || []),
+      {
+        version: newVersion,
+        content: newContent,
+        editedAt: new Date().toISOString(),
+        editedBy: 'regeneration' as const,
+        editReason: `Regenerated for evolved ${category}: ${newFraming}`,
+      },
+    ];
+
+    const tempArt: BrandArtifact = {
+      ...artifact,
+      content: newContent,
+      versionHistory: updatedHistory,
+      status: 'draft',
+      isApproved: false,
+      isLocked: false,
+      updatedAt: new Date().toISOString(),
+    };
+
+    const report = ConsistencyGuardian.evaluateArtifact(tempArt, state);
     return {
       ...tempArt,
       status: report.passed ? 'approved' : 'draft',

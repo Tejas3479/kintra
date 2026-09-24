@@ -378,5 +378,30 @@ describe('Consistency Guardian & Artifact Validation Suite (Prompt 09)', () => {
       expect(reloadedArt.isLocked).toBe(true);
       expect(reloadedArt.validationReport).toBeDefined();
     });
+
+    it('correctly repairs scattered exclamation marks without appending [Repaired: .] (P1-5)', () => {
+      const artWithExclamations = {
+        ...FIXTURE_TONE_VIOLATION,
+        content: 'Stop wasting time! Verify pull requests deterministically! Deploy with zero false alarms!',
+      };
+
+      const report = ConsistencyGuardian.evaluateArtifact(artWithExclamations, initializedState);
+      const exclamFinding = report.findings.find(
+        (f) => f.dimension === 'voice_alignment' && f.issue.toLowerCase().includes('exclamation')
+      );
+      expect(exclamFinding).toBeDefined();
+
+      const repaired = ConsistencyGuardian.applyRepair(
+        { ...artWithExclamations, validationReport: report },
+        exclamFinding!.id
+      );
+
+      // Repaired content must NOT append [Repaired: .]
+      expect(repaired.content).not.toContain('[Repaired: .]');
+      // Repaired content must have replaced the exclamation marks with periods
+      expect(repaired.content).not.toContain('!');
+      expect(repaired.content).toContain('Stop wasting time.');
+      expect(repaired.content).toContain('Verify pull requests deterministically.');
+    });
   });
 });

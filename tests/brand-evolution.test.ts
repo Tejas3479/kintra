@@ -231,4 +231,91 @@ describe('Brand Evolution Engine Suite (Prompt 10 Parts B-F)', () => {
     expect(diff.decisionDiffs.find((d) => d.key === 'brand_name')?.status).toBe('identical');
     expect(diff.divergenceScore).toBeGreaterThan(0);
   });
+
+  it('strictly preserves brand_name DecisionNode when evolving target_audience (P0-4)', () => {
+    // Add brand_name decision node
+    const testState: CanonicalBrandState = JSON.parse(JSON.stringify(initializedState));
+    testState.decisionGraph.nodes['decision-name-1'] = {
+      id: 'decision-name-1',
+      category: 'brand_name',
+      title: 'Brand Name: Kintra',
+      approvedValue: 'Kintra',
+      rationale: 'Selected kinetic brand name',
+      evidenceIds: [],
+      rejectedAlternatives: [],
+      tradeoff: 'Sharp phonetics',
+      dependsOn: [],
+      governs: [],
+      status: 'approved',
+      version: 1,
+    };
+
+    const changeRequest: AssumptionChangeRequest = {
+      id: 'req-aud-preserve',
+      category: 'target_audience',
+      title: 'Audience pivot',
+      currentValue: 'Senior Platform Engineers',
+      proposedValue: 'Enterprise CISOs',
+      rationale: 'Moving upmarket.',
+      requestedAt: '2026-09-24T12:00:00Z',
+    };
+
+    const evolved = BrandEvolutionEngine.applyEvolution(changeRequest, testState, 'apply_update');
+
+    // Brand name node MUST NOT be mutated to 'Enterprise CISOs'
+    expect(evolved.updatedState.decisionGraph.nodes['decision-name-1'].approvedValue).toBe('Kintra');
+    expect(evolved.updatedState.decisionGraph.nodes['decision-name-1'].category).toBe('brand_name');
+  });
+
+  it('supports pricing_tier evolution with selective artifact regeneration (P1-3)', () => {
+    const changeRequest: AssumptionChangeRequest = {
+      id: 'req-price-1',
+      category: 'pricing_tier',
+      title: 'Packaging evolution',
+      currentValue: 'Developer Free-Tier + Usage',
+      proposedValue: 'Enterprise Annual $50k Flat',
+      rationale: 'Shift to high-ACV enterprise contracts.',
+      requestedAt: '2026-09-24T12:00:00Z',
+    };
+
+    const evolved = BrandEvolutionEngine.applyEvolution(changeRequest, initializedState, 'apply_update');
+
+    expect(evolved.updatedState.metadata.version).toBe(initializedState.metadata.version + 1);
+    expect(evolved.summary).toContain('Enterprise Annual $50k Flat');
+
+    // Graph node should be created/updated for pricing_tier
+    const pricingNode = Object.values(evolved.updatedState.decisionGraph.nodes).find(
+      (n) => n.category === 'pricing_tier'
+    );
+    expect(pricingNode).toBeDefined();
+    expect(pricingNode?.approvedValue).toBe('Enterprise Annual $50k Flat');
+
+    // Launch email should be regenerated to reflect enterprise packaging
+    const launchEmail = evolved.updatedState.brandArtifacts?.find((a) => a.artifactType === 'launch_email');
+    expect(launchEmail?.content).toContain('Enterprise Annual $50k Flat');
+  });
+
+  it('supports emotional_territory evolution with headline tone updates (P1-3)', () => {
+    const changeRequest: AssumptionChangeRequest = {
+      id: 'req-emo-1',
+      category: 'emotional_territory',
+      title: 'Posture shift',
+      currentValue: 'Clinical, mathematical verification',
+      proposedValue: 'Unapologetic, razor-sharp defiance',
+      rationale: 'Differentiate with aggressive technical stance.',
+      requestedAt: '2026-09-24T12:00:00Z',
+    };
+
+    const evolved = BrandEvolutionEngine.applyEvolution(changeRequest, initializedState, 'apply_update');
+
+    const selectedWorld = evolved.updatedState.positioningWorlds.find(
+      (w) => w.id === evolved.updatedState.selectedWorldId
+    );
+    expect(selectedWorld?.emotionalTerritory).toBe('Unapologetic, razor-sharp defiance');
+
+    // Website headline should be regenerated to reflect emotional posture
+    const headline = evolved.updatedState.brandArtifacts?.find((a) => a.artifactType === 'website_headline');
+    expect(headline?.content).toContain('Unapologetic, razor-sharp defiance');
+  });
 });
+

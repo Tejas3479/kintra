@@ -329,7 +329,7 @@ export class ConsistencyGuardian {
         issue: `Tonal Exaggeration: ${exclamationCount} exclamation marks detected`,
         severity: 'low',
         violatedRule: 'Restrained technical voice: Suppress emotional punctuation and hype',
-        evidence: '!'.repeat(exclamationCount),
+        evidence: '!',
         explanation: {
           whatIsWrong: `Copy contains ${exclamationCount} exclamation marks.`,
           whyItMatters: `High precision (${voice?.tonalSliders.precision}%) demands calm, factual authority without forced cheerfulness.`,
@@ -714,7 +714,12 @@ export class ConsistencyGuardian {
     if (!finding) return artifact;
 
     let updatedContent = artifact.content;
-    if (finding.evidence && updatedContent.includes(finding.evidence)) {
+    if (
+      finding.issue.toLowerCase().includes('exclamation') ||
+      (finding.evidence && /^!+$/.test(finding.evidence))
+    ) {
+      updatedContent = updatedContent.replace(/!+/g, finding.suggestedRepair || '.');
+    } else if (finding.evidence && updatedContent.includes(finding.evidence)) {
       updatedContent = updatedContent.replace(finding.evidence, finding.suggestedRepair);
     } else {
       updatedContent = `${updatedContent}\n\n[Repaired: ${finding.suggestedRepair}]`;
