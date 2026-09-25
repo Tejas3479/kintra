@@ -376,13 +376,33 @@ export const useBrandStore = create<BrandStoreState>()(
       },
 
       exportProjectJSON: () => {
-        return JSON.stringify(get().project, null, 2);
+        const state = get();
+        const exportData = {
+          ...state.project,
+          scenarioArtifacts: state.scenarioArtifacts?.length ? state.scenarioArtifacts : state.project.scenarioArtifacts,
+          branches: state.branches?.length ? state.branches : state.project.branches,
+          currentBranchId: state.activeBranchId || state.project.currentBranchId,
+          launchKit: state.launchKit || state.project.launchKit,
+        };
+        return JSON.stringify(exportData, null, 2);
       },
 
       importProjectJSON: (jsonString: string) => {
         try {
           const parsed = JSON.parse(jsonString);
-          const validated = CanonicalBrandStateSchema.parse(parsed);
+          const sanitized = {
+            ...parsed,
+            artifacts: parsed.artifacts || [],
+            brandArtifacts: parsed.brandArtifacts || [],
+            scenarioArtifacts: parsed.scenarioArtifacts || [],
+            branches: parsed.branches || [],
+            extractedFacts: parsed.extractedFacts || [],
+            unresolvedQuestions: parsed.unresolvedQuestions || [],
+            hypotheses: parsed.hypotheses || [],
+            validationHistory: parsed.validationHistory || [],
+            decisions: parsed.decisions || {},
+          };
+          const validated = CanonicalBrandStateSchema.parse(sanitized);
           set({
             project: validated,
             scenarioArtifacts: validated.scenarioArtifacts || [],

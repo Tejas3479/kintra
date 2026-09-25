@@ -84,16 +84,19 @@ describe('useBrandStore Workspace & User Control', () => {
     );
   });
 
-  it('exports and round-trips state through JSON export/import', () => {
+  it('exports and round-trips state through JSON export/import including launchKit and branches', () => {
     useBrandStore.getState().loadDemoProject();
+    useBrandStore.getState().createBranch('Experimental Branch');
     const exportedJson = useBrandStore.getState().exportProjectJSON();
 
     useBrandStore.getState().resetProject();
     expect(useBrandStore.getState().project.extractedFacts).toHaveLength(0);
+    expect(useBrandStore.getState().branches).toHaveLength(0);
 
     const importResult = useBrandStore.getState().importProjectJSON(exportedJson);
     expect(importResult.success).toBe(true);
     expect(useBrandStore.getState().project.metadata.name).toBe('PRGuard Security');
+    expect(useBrandStore.getState().branches.length).toBeGreaterThan(0);
   });
 
   it('creates and restores version snapshots', () => {
