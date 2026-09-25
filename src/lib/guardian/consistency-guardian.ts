@@ -719,10 +719,23 @@ export class ConsistencyGuardian {
       (finding.evidence && /^!+$/.test(finding.evidence))
     ) {
       updatedContent = updatedContent.replace(/!+/g, finding.suggestedRepair || '.');
+    } else if (
+      finding.dimension === 'message_alignment' &&
+      finding.suggestedRepair &&
+      (finding.suggestedRepair.endsWith(artifact.content) || finding.suggestedRepair.includes(artifact.content))
+    ) {
+      // Clean full-content update for brand name anchoring without duplicating text
+      updatedContent = finding.suggestedRepair;
     } else if (finding.evidence && updatedContent.includes(finding.evidence)) {
       updatedContent = updatedContent.replace(finding.evidence, finding.suggestedRepair);
-    } else {
-      updatedContent = `${updatedContent}\n\n[Repaired: ${finding.suggestedRepair}]`;
+    } else if (
+      finding.evidence &&
+      new RegExp(finding.evidence.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i').test(updatedContent)
+    ) {
+      const regex = new RegExp(finding.evidence.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      updatedContent = updatedContent.replace(regex, finding.suggestedRepair);
+    } else if (finding.suggestedRepair) {
+      updatedContent = `${finding.suggestedRepair.replace(/^\[Repaired:\s*|\]$/g, '')} — ${updatedContent}`;
     }
 
     const newVersion = artifact.versionHistory.length + 1;

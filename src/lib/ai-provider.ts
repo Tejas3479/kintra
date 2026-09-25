@@ -170,6 +170,187 @@ export class MockAIProvider implements AIProvider {
   }
 }
 
+// JSON Schema representations for Gemini 3.8 Flash constrained decoding
+const SCHEMA_BLUEPRINTS: Record<string, object> = {
+  IntakeExtraction: {
+    type: 'OBJECT',
+    properties: {
+      extractedFacts: {
+        type: 'ARRAY',
+        items: {
+          type: 'OBJECT',
+          properties: {
+            statement: { type: 'STRING' },
+            confidence: { type: 'NUMBER' },
+          },
+          required: ['statement', 'confidence'],
+        },
+      },
+      unvalidatedAssumptions: {
+        type: 'ARRAY',
+        items: {
+          type: 'OBJECT',
+          properties: {
+            claim: { type: 'STRING' },
+            riskLevel: { type: 'STRING', enum: ['low', 'medium', 'critical'] },
+            potentialConsequenceIfFalse: { type: 'STRING' },
+          },
+          required: ['claim', 'riskLevel', 'potentialConsequenceIfFalse'],
+        },
+      },
+      initialQuestions: {
+        type: 'ARRAY',
+        items: {
+          type: 'OBJECT',
+          properties: {
+            topic: {
+              type: 'STRING',
+              enum: [
+                'idea',
+                'problem',
+                'audience',
+                'context',
+                'alternatives',
+                'value',
+                'constraints',
+                'desired_perception',
+                'founder_intent',
+              ],
+            },
+            question: { type: 'STRING' },
+            whyAsking: { type: 'STRING' },
+            suggestedAnswers: { type: 'ARRAY', items: { type: 'STRING' } },
+            answerType: { type: 'STRING', enum: ['text', 'choice', 'hybrid'] },
+          },
+          required: ['topic', 'question', 'whyAsking', 'answerType'],
+        },
+      },
+    },
+    required: ['extractedFacts', 'unvalidatedAssumptions', 'initialQuestions'],
+  },
+  NextAdaptiveQuestion: {
+    type: 'OBJECT',
+    properties: {
+      hasMoreQuestions: { type: 'BOOLEAN' },
+      reasonForCompletionOrNext: { type: 'STRING' },
+      nextQuestion: {
+        type: 'OBJECT',
+        properties: {
+          topic: {
+            type: 'STRING',
+            enum: [
+              'idea',
+              'problem',
+              'audience',
+              'context',
+              'alternatives',
+              'value',
+              'constraints',
+              'desired_perception',
+              'founder_intent',
+            ],
+          },
+          question: { type: 'STRING' },
+          whyAsking: { type: 'STRING' },
+          suggestedAnswers: { type: 'ARRAY', items: { type: 'STRING' } },
+          answerType: { type: 'STRING', enum: ['text', 'choice', 'hybrid'] },
+        },
+        required: ['topic', 'question', 'whyAsking', 'answerType'],
+      },
+    },
+    required: ['hasMoreQuestions', 'reasonForCompletionOrNext'],
+  },
+  IdeaBrief: {
+    type: 'OBJECT',
+    properties: {
+      id: { type: 'STRING' },
+      version: { type: 'INTEGER' },
+      problem: {
+        type: 'OBJECT',
+        properties: {
+          corePain: { type: 'STRING' },
+          whoSuffers: { type: 'STRING' },
+          triggerEvent: { type: 'STRING' },
+        },
+        required: ['corePain', 'whoSuffers', 'triggerEvent'],
+      },
+      targetUser: {
+        type: 'OBJECT',
+        properties: {
+          primaryNiche: { type: 'STRING' },
+          currentWorkarounds: { type: 'ARRAY', items: { type: 'STRING' } },
+          buyingTrigger: { type: 'STRING' },
+        },
+        required: ['primaryNiche', 'currentWorkarounds', 'buyingTrigger'],
+      },
+      context: {
+        type: 'OBJECT',
+        properties: {
+          industryOrCategory: { type: 'STRING' },
+          marketDynamics: { type: 'STRING' },
+        },
+        required: ['industryOrCategory', 'marketDynamics'],
+      },
+      proposedValue: {
+        type: 'OBJECT',
+        properties: {
+          mechanicOrSolution: { type: 'STRING' },
+          keyBenefit: { type: 'STRING' },
+          unfairAdvantage: { type: 'STRING' },
+        },
+        required: ['mechanicOrSolution', 'keyBenefit', 'unfairAdvantage'],
+      },
+      constraints: { type: 'ARRAY', items: { type: 'STRING' } },
+      assumptions: {
+        type: 'ARRAY',
+        items: {
+          type: 'OBJECT',
+          properties: {
+            id: { type: 'STRING' },
+            claim: { type: 'STRING' },
+            riskLevel: { type: 'STRING', enum: ['low', 'medium', 'critical'] },
+            potentialConsequenceIfFalse: { type: 'STRING' },
+            status: { type: 'STRING', enum: ['untested', 'confirmed', 'disproven', 'refined'] },
+          },
+          required: ['id', 'claim', 'riskLevel', 'potentialConsequenceIfFalse', 'status'],
+        },
+      },
+      openQuestions: {
+        type: 'ARRAY',
+        items: {
+          type: 'OBJECT',
+          properties: {
+            id: { type: 'STRING' },
+            topic: { type: 'STRING' },
+            question: { type: 'STRING' },
+            strategicImportance: { type: 'STRING', enum: ['essential', 'helpful', 'optional'] },
+            whyItMatters: { type: 'STRING' },
+            resolved: { type: 'BOOLEAN' },
+          },
+          required: ['id', 'topic', 'question', 'strategicImportance', 'whyItMatters', 'resolved'],
+        },
+      },
+      confidenceScore: { type: 'NUMBER' },
+      status: { type: 'STRING', enum: ['draft', 'under_review', 'approved', 'rejected'] },
+      generatedAt: { type: 'STRING' },
+    },
+    required: [
+      'id',
+      'version',
+      'problem',
+      'targetUser',
+      'context',
+      'proposedValue',
+      'constraints',
+      'assumptions',
+      'openQuestions',
+      'confidenceScore',
+      'status',
+      'generatedAt',
+    ],
+  },
+};
+
 /**
  * Gemini Provider using Google Gen AI SDK
  */
@@ -189,6 +370,20 @@ export class GeminiProvider implements AIProvider {
     let retries = 0;
     const maxRetries = 2;
 
+    // Resolve matching schema blueprint
+    let schemaBlueprint: object | undefined;
+    if ((schema as unknown) === IntakeExtractionOutputSchema || prompt.includes('intake') || prompt.includes('Deconstruct this raw founder idea')) {
+      schemaBlueprint = SCHEMA_BLUEPRINTS.IntakeExtraction;
+    } else if ((schema as unknown) === NextAdaptiveQuestionOutputSchema || prompt.includes('adaptive_question') || prompt.includes('Decide whether another question')) {
+      schemaBlueprint = SCHEMA_BLUEPRINTS.NextAdaptiveQuestion;
+    } else if ((schema as unknown) === IdeaBriefSchema || prompt.includes('Idea Brief') || prompt.includes('IdeaBrief')) {
+      schemaBlueprint = SCHEMA_BLUEPRINTS.IdeaBrief;
+    }
+
+    const schemaInstruction = schemaBlueprint
+      ? `\n\nREQUIRED JSON SCHEMA BLUEPRINT:\n${JSON.stringify(schemaBlueprint, null, 2)}\nYour JSON output MUST match this exact schema structure.`
+      : '';
+
     while (retries <= maxRetries) {
       try {
         // Dynamic import to avoid SSR bundling issues if SDK needs node env
@@ -198,7 +393,7 @@ export class GeminiProvider implements AIProvider {
         const fullPrompt = `${systemPrompt ? `${systemPrompt}\n\n` : ''}
 STRICT JSON OUTPUT REQUIREMENT:
 You must output a strictly valid JSON object that conforms to the requested schema.
-Do NOT wrap in markdown code blocks like \`\`\`json. Output raw JSON only.
+Do NOT wrap in markdown code blocks like \`\`\`json. Output raw JSON only.${schemaInstruction}
 
 User Request:
 ${prompt}`;
@@ -209,6 +404,7 @@ ${prompt}`;
           contents: fullPrompt,
           config: {
             responseMimeType: 'application/json',
+            ...(schemaBlueprint ? { responseSchema: schemaBlueprint } : {}),
           },
         });
 
