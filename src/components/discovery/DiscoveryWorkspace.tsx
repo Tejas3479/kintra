@@ -110,6 +110,7 @@ export const DiscoveryWorkspace: React.FC = () => {
 
         <div className="space-y-4">
           <textarea
+            aria-label="Raw brand idea input"
             value={ideaInput}
             onChange={(e) => setIdeaInput(e.target.value)}
             disabled={isLoading || project.stage !== 'intake'}
@@ -237,6 +238,7 @@ export const DiscoveryWorkspace: React.FC = () => {
                 </label>
                 <div className="flex gap-2">
                   <input
+                    aria-label="Custom answer input"
                     type="text"
                     value={customAnswer}
                     onChange={(e) => setCustomAnswer(e.target.value)}
@@ -340,6 +342,7 @@ export const DiscoveryWorkspace: React.FC = () => {
                 >
                   <div className="flex items-start gap-2.5 flex-1">
                     <input
+                      aria-label={`Verify fact: ${fact.statement}`}
                       type="checkbox"
                       checked={fact.verifiedByUser}
                       onChange={(e) => updateFact(fact.id, fact.statement, e.target.checked)}
@@ -347,6 +350,7 @@ export const DiscoveryWorkspace: React.FC = () => {
                       title="Verify as confirmed fact"
                     />
                     <input
+                      aria-label="Fact statement"
                       type="text"
                       value={fact.statement}
                       onChange={(e) => updateFact(fact.id, e.target.value, fact.verifiedByUser)}
@@ -367,6 +371,7 @@ export const DiscoveryWorkspace: React.FC = () => {
             {/* Add Fact Form */}
             <div className="flex gap-2 pt-2 border-t border-white/[0.05]">
               <input
+                aria-label="Add new fact statement"
                 type="text"
                 placeholder="Add another invariant fact..."
                 value={newFactInput}
@@ -438,6 +443,7 @@ export const DiscoveryWorkspace: React.FC = () => {
                         )
                       }
                       className="bg-obsidian-900 border border-white/[0.08] rounded px-1.5 py-0.5 text-[10px] text-zinc-300"
+                      aria-label="Hypothesis risk level"
                     >
                       <option value="critical">Critical</option>
                       <option value="medium">Medium</option>
@@ -445,6 +451,7 @@ export const DiscoveryWorkspace: React.FC = () => {
                     </select>
                   </div>
                   <input
+                    aria-label="Hypothesis claim"
                     type="text"
                     value={hyp.claim}
                     onChange={(e) => updateHypothesis(hyp.id, e.target.value, hyp.riskLevel)}
@@ -523,6 +530,7 @@ export const DiscoveryWorkspace: React.FC = () => {
                 <label className="text-[11px] text-zinc-500 font-mono">The Acute Pain Point:</label>
                 {editBriefMode ? (
                   <textarea
+                    aria-label="Core pain point"
                     value={project.ideaBrief.problem.corePain}
                     onChange={(e) =>
                       updateIdeaBriefField('problem', {
@@ -543,6 +551,7 @@ export const DiscoveryWorkspace: React.FC = () => {
                 <label className="text-[11px] text-zinc-500 font-mono">Trigger Event (When it hurts):</label>
                 {editBriefMode ? (
                   <input
+                    aria-label="Trigger event"
                     type="text"
                     value={project.ideaBrief.problem.triggerEvent}
                     onChange={(e) =>
@@ -568,6 +577,7 @@ export const DiscoveryWorkspace: React.FC = () => {
                 <label className="text-[11px] text-zinc-500 font-mono">Primary Niche:</label>
                 {editBriefMode ? (
                   <input
+                    aria-label="Target user primary niche"
                     type="text"
                     value={project.ideaBrief.targetUser.primaryNiche}
                     onChange={(e) =>
@@ -603,6 +613,7 @@ export const DiscoveryWorkspace: React.FC = () => {
                 <label className="text-[11px] text-zinc-500 font-mono">Mechanic / How it Works:</label>
                 {editBriefMode ? (
                   <textarea
+                    aria-label="Mechanic or how it works"
                     value={project.ideaBrief.proposedValue.mechanicOrSolution}
                     onChange={(e) =>
                       updateIdeaBriefField('proposedValue', {
@@ -623,6 +634,7 @@ export const DiscoveryWorkspace: React.FC = () => {
                 <label className="text-[11px] text-zinc-500 font-mono">Primary Benefit:</label>
                 {editBriefMode ? (
                   <input
+                    aria-label="Primary benefit"
                     type="text"
                     value={project.ideaBrief.proposedValue.keyBenefit}
                     onChange={(e) =>
@@ -723,6 +735,7 @@ export const DiscoveryWorkspace: React.FC = () => {
               Explain why this direction is incorrect so future iterations do not repeat this path.
             </p>
             <textarea
+              aria-label="Rejection reason for idea brief"
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
               placeholder="e.g. Target audience is too broad; we must focus strictly on B2B engineering leads..."

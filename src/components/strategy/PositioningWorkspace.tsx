@@ -203,6 +203,7 @@ export const PositioningWorkspace: React.FC = () => {
                     </label>
                     {editingWorldId === world.id ? (
                       <textarea
+                        aria-label="Edit strategic value proposition"
                         value={world.valueProposition}
                         onChange={(e) => editPositioningWorld(world.id, { valueProposition: e.target.value })}
                         className="w-full bg-obsidian-900 border border-white/[0.1] rounded p-2 text-xs text-white focus:outline-none focus:border-champagne-400"
@@ -335,6 +336,7 @@ export const PositioningWorkspace: React.FC = () => {
               <div>
                 <label className="text-xs text-zinc-400 font-mono">Strategy Name:</label>
                 <input
+                  aria-label="Strategy Name"
                   type="text"
                   placeholder="e.g. The Quiet Authority"
                   value={hybridTitle}
@@ -345,6 +347,7 @@ export const PositioningWorkspace: React.FC = () => {
               <div>
                 <label className="text-xs text-zinc-400 font-mono">Synthesized Value Proposition:</label>
                 <textarea
+                  aria-label="Synthesized Value Proposition"
                   placeholder="Articulate the core value proposition..."
                   value={hybridValue}
                   onChange={(e) => setHybridValue(e.target.value)}
@@ -355,6 +358,7 @@ export const PositioningWorkspace: React.FC = () => {
               <div>
                 <label className="text-xs text-zinc-400 font-mono">Explicit Strategic Sacrifice:</label>
                 <input
+                  aria-label="Explicit Strategic Sacrifice"
                   type="text"
                   placeholder="What will this brand explicitly refuse to do?"
                   value={hybridSacrifice}
@@ -391,6 +395,7 @@ export const PositioningWorkspace: React.FC = () => {
               Specify why this positioning world is rejected to record the alternative in the Decision Graph.
             </p>
             <textarea
+              aria-label="Reason for rejecting positioning territory"
               placeholder="e.g. Too compliance-heavy; our initial traction must come from bottom-up developers..."
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}

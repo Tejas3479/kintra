@@ -84,6 +84,7 @@ export const EvidenceWorkspace: React.FC = () => {
           <div className="relative">
             <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
+              aria-label="Search category landscape"
               type="text"
               placeholder="Search category landscape..."
               value={customQuery}
@@ -372,6 +373,7 @@ export const EvidenceWorkspace: React.FC = () => {
               <div>
                 <label className="text-xs text-zinc-400 font-mono">Competitor / Tool Name:</label>
                 <input
+                  aria-label="Competitor or tool name"
                   type="text"
                   placeholder="e.g. Snyk, Dependabot, SonarQube"
                   value={compName}
@@ -382,6 +384,7 @@ export const EvidenceWorkspace: React.FC = () => {
               <div>
                 <label className="text-xs text-zinc-400 font-mono">Their Claimed Positioning:</label>
                 <input
+                  aria-label="Competitor claimed positioning"
                   type="text"
                   placeholder="e.g. Developer-first security scanner"
                   value={compPositioning}
@@ -392,6 +395,7 @@ export const EvidenceWorkspace: React.FC = () => {
               <div>
                 <label className="text-xs text-zinc-400 font-mono">Target Audience:</label>
                 <input
+                  aria-label="Competitor target audience"
                   type="text"
                   placeholder="e.g. Enterprise CISOs or Solo Devs"
                   value={compAudience}

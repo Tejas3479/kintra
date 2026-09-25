@@ -48,6 +48,7 @@ export const ScenarioLabWorkspace: React.FC = () => {
   const [selectedTemplate, setSelectedTemplate] = useState<ScenarioTemplateType>('website_launch');
   const [editingContent, setEditingContent] = useState<string | null>(null);
   const [customBranchName, setCustomBranchName] = useState('');
+  const [mobileTriStateTab, setMobileTriStateTab] = useState<'all' | 'raw' | 'brand_aware' | 'validated'>('all');
 
   // Evolution Form State
   const [selectedCategory, setSelectedCategory] = useState<AssumptionCategory>('target_audience');
@@ -243,10 +244,64 @@ export const ScenarioLabWorkspace: React.FC = () => {
                 </div>
               </div>
 
+              {/* Mobile / Tablet Segmented Toggle */}
+              <div className="flex lg:hidden items-center justify-between p-1 bg-obsidian-950 border border-white/[0.08] rounded-xl text-xs font-mono mb-2">
+                <button
+                  type="button"
+                  onClick={() => setMobileTriStateTab('all')}
+                  className={`flex-1 py-1.5 px-2 rounded-lg text-center transition-all ${
+                    mobileTriStateTab === 'all'
+                      ? 'bg-champagne-500/20 text-champagne-300 font-bold border border-champagne-500/30'
+                      : 'text-zinc-400 hover:text-white'
+                  }`}
+                  aria-label="Show all three comparison columns"
+                >
+                  All (3)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMobileTriStateTab('raw')}
+                  className={`flex-1 py-1.5 px-2 rounded-lg text-center transition-all ${
+                    mobileTriStateTab === 'raw'
+                      ? 'bg-red-500/20 text-red-300 font-bold border border-red-500/30'
+                      : 'text-zinc-400 hover:text-white'
+                  }`}
+                  aria-label="Show raw generation column"
+                >
+                  Raw
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMobileTriStateTab('brand_aware')}
+                  className={`flex-1 py-1.5 px-2 rounded-lg text-center transition-all ${
+                    mobileTriStateTab === 'brand_aware'
+                      ? 'bg-champagne-500/20 text-champagne-300 font-bold border border-champagne-500/30'
+                      : 'text-zinc-400 hover:text-white'
+                  }`}
+                  aria-label="Show brand-aware column"
+                >
+                  Brand-Aware
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMobileTriStateTab('validated')}
+                  className={`flex-1 py-1.5 px-2 rounded-lg text-center transition-all ${
+                    mobileTriStateTab === 'validated'
+                      ? 'bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30'
+                      : 'text-zinc-400 hover:text-white'
+                  }`}
+                  aria-label="Show validated final column"
+                >
+                  Validated
+                </button>
+              </div>
+
               {/* Tri-State Comparison Grid */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* 1. RAW GENERATION (Generic LLM Clichés) */}
-                <div className="bg-obsidian-950/90 border border-red-500/25 rounded-2xl p-5 flex flex-col justify-between space-y-4">
+                <div className={`bg-obsidian-950/90 border border-red-500/25 rounded-2xl p-5 flex-col justify-between space-y-4 ${
+                  mobileTriStateTab === 'all' || mobileTriStateTab === 'raw' ? 'flex' : 'hidden lg:flex'
+                }`}>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between pb-2 border-b border-white/[0.04]">
                       <span className="text-xs font-semibold text-red-400 uppercase font-mono tracking-wider flex items-center gap-1.5">
@@ -286,7 +341,9 @@ export const ScenarioLabWorkspace: React.FC = () => {
                 </div>
 
                 {/* 2. BRAND-AWARE GENERATION (Grounded in Strategy & Voice) */}
-                <div className="monolith-card rounded-2xl p-5 flex flex-col justify-between space-y-4">
+                <div className={`monolith-card rounded-2xl p-5 flex-col justify-between space-y-4 ${
+                  mobileTriStateTab === 'all' || mobileTriStateTab === 'brand_aware' ? 'flex' : 'hidden lg:flex'
+                }`}>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between pb-2 border-b border-white/[0.04]">
                       <span className="text-xs font-semibold text-champagne-400 uppercase font-mono tracking-wider flex items-center gap-1.5">
@@ -326,7 +383,9 @@ export const ScenarioLabWorkspace: React.FC = () => {
                 </div>
 
                 {/* 3. VALIDATED FINAL (Passed Consistency Guardian) */}
-                <div className="rounded-2xl p-5 flex flex-col justify-between space-y-4 bg-gradient-to-b from-emerald-950/20 to-obsidian-950/90 border border-emerald-500/40 shadow-lg shadow-emerald-950/20">
+                <div className={`rounded-2xl p-5 flex-col justify-between space-y-4 bg-gradient-to-b from-emerald-950/20 to-obsidian-950/90 border border-emerald-500/40 shadow-lg shadow-emerald-950/20 ${
+                  mobileTriStateTab === 'all' || mobileTriStateTab === 'validated' ? 'flex' : 'hidden lg:flex'
+                }`}>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between pb-2 border-b border-white/[0.04]">
                       <span className="text-xs font-semibold text-emerald-400 uppercase font-mono tracking-wider flex items-center gap-1.5">
@@ -341,6 +400,7 @@ export const ScenarioLabWorkspace: React.FC = () => {
                     {editingContent !== null ? (
                       <div className="space-y-2">
                         <textarea
+                          aria-label="Edit scenario content"
                           value={editingContent}
                           onChange={(e) => setEditingContent(e.target.value)}
                           rows={6}
@@ -478,6 +538,7 @@ export const ScenarioLabWorkspace: React.FC = () => {
                   Assumption Category
                 </label>
                 <select
+                  aria-label="Assumption Category"
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value as AssumptionCategory)}
                   className="w-full bg-obsidian-900 border border-white/[0.08] rounded-xl p-2.5 text-xs text-zinc-200 focus:outline-none focus:border-champagne-400"
@@ -496,6 +557,7 @@ export const ScenarioLabWorkspace: React.FC = () => {
                   Proposed Value
                 </label>
                 <input
+                  aria-label="Proposed Value"
                   type="text"
                   placeholder="e.g. Enterprise CISOs & Compliance Officers"
                   value={proposedValue}
@@ -510,6 +572,7 @@ export const ScenarioLabWorkspace: React.FC = () => {
                   Strategic Rationale
                 </label>
                 <input
+                  aria-label="Strategic Rationale"
                   type="text"
                   placeholder="e.g. Centralized compliance budgets are 5x larger"
                   value={rationale}
@@ -683,6 +746,7 @@ export const ScenarioLabWorkspace: React.FC = () => {
                       <span>Branch Brand</span>
                     </div>
                     <input
+                      aria-label="Branch name for evolution"
                       type="text"
                       placeholder="Branch name (e.g. enterprise-ciso)"
                       value={customBranchName}
@@ -736,6 +800,7 @@ export const ScenarioLabWorkspace: React.FC = () => {
 
               <div className="flex items-center space-x-2">
                 <input
+                  aria-label="New branch name"
                   type="text"
                   placeholder="New branch name..."
                   value={customBranchName}
@@ -807,6 +872,7 @@ export const ScenarioLabWorkspace: React.FC = () => {
                   </span>
                   <div className="flex items-center space-x-2">
                     <select
+                      aria-label="Select branch to compare"
                       value={compareTargetBranchId}
                       onChange={(e) => setCompareTargetBranchId(e.target.value)}
                       className="bg-obsidian-900 border border-white/[0.08] rounded-xl px-2.5 py-1 text-xs text-zinc-200"

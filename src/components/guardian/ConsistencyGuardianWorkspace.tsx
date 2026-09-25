@@ -116,6 +116,7 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
         {/* Action: Generate On-Brand Artifact */}
         <div className="flex items-center space-x-2">
           <select
+            aria-label="Select artifact type to generate"
             value={selectedTypeToGen}
             onChange={(e) => setSelectedTypeToGen(e.target.value as GuardianArtifactType)}
             className="bg-zinc-900 border border-zinc-700 text-zinc-200 text-xs rounded-lg px-3 py-2 focus:ring-emerald-500"
@@ -259,6 +260,7 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
 
               {isEditingContent ? (
                 <textarea
+                  aria-label="Edit artifact content"
                   value={editedText}
                   onChange={(e) => setEditedText(e.target.value)}
                   rows={10}
@@ -559,6 +561,7 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
               {ignoreModalFinding.issue}
             </div>
             <textarea
+              aria-label="Reason for ignoring finding"
               value={ignoreReason}
               onChange={(e) => setIgnoreReason(e.target.value)}
               placeholder="e.g. Deliberately using this phrasing for a specific partner campaign..."
@@ -604,6 +607,7 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
               <div>
                 <label className="text-xs text-zinc-400 block mb-1">Artifact Name</label>
                 <input
+                  aria-label="Custom artifact name"
                   type="text"
                   value={customName}
                   onChange={(e) => setCustomName(e.target.value)}
@@ -614,6 +618,7 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
               <div>
                 <label className="text-xs text-zinc-400 block mb-1">Artifact Type</label>
                 <select
+                  aria-label="Custom artifact type"
                   value={customType}
                   onChange={(e) => setCustomType(e.target.value as GuardianArtifactType)}
                   className="w-full bg-zinc-950 border border-zinc-700 rounded-lg p-2 text-xs text-zinc-100 focus:outline-none focus:ring-1 focus:ring-emerald-500"
@@ -628,6 +633,7 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
               <div>
                 <label className="text-xs text-zinc-400 block mb-1">Content / Copy to Validate</label>
                 <textarea
+                  aria-label="Custom artifact content"
                   value={customContent}
                   onChange={(e) => setCustomContent(e.target.value)}
                   placeholder="Paste or write your marketing headline, pitch, or email copy here..."
