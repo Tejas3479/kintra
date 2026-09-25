@@ -13,6 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
   title: {
     default: "KINTRA — Causal Brand Decision Engine",
     template: "%s | KINTRA",
@@ -28,17 +29,34 @@ export const metadata: Metadata = {
     "launch kit",
   ],
   authors: [{ name: "Kintra Intelligence" }],
+  icons: {
+    icon: [
+      { url: '/icon.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-icon.png', sizes: '512x512', type: 'image/png' },
+    ],
+  },
   openGraph: {
     title: "KINTRA — Causal Brand Decision Engine",
     description: "Transform unshaped ideas into verifiable, contradiction-free brand systems backed by market evidence and causal DAGs.",
     type: "website",
     locale: "en_US",
     siteName: "KINTRA",
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1024,
+        height: 1024,
+        alt: 'KINTRA Monolith Logo',
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "KINTRA — Causal Brand Decision Engine",
     description: "Transform unshaped ideas into verifiable, contradiction-free brand systems.",
+    images: ['/og-image.png'],
   },
   robots: {
     index: true,
@@ -62,6 +80,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-obsidian-950 text-zinc-100 min-h-screen selection:bg-champagne-500/20 selection:text-champagne-300`}
       >
+        <div className="universe-texture-overlay" aria-hidden="true" />
         {children}
       </body>
     </html>

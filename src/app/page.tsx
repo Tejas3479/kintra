@@ -97,15 +97,17 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-obsidian-mesh text-zinc-100 flex flex-col font-sans selection:bg-champagne-500/30 selection:text-champagne-200">
-      <Header
-        viewMode={viewMode}
-        onToggleViewMode={setViewMode}
-        activeStageTitle={activeStageTitle}
-        onToggleMobileSidebar={() => setIsMobileSidebarOpen((prev) => !prev)}
-        isMobileSidebarOpen={isMobileSidebarOpen}
-        onToggleCollapseSidebar={() => setIsSidebarCollapsed((prev) => !prev)}
-        isSidebarCollapsed={isSidebarCollapsed}
-      />
+      {viewMode === 'studio' && (
+        <Header
+          viewMode={viewMode}
+          onToggleViewMode={setViewMode}
+          activeStageTitle={activeStageTitle}
+          onToggleMobileSidebar={() => setIsMobileSidebarOpen((prev) => !prev)}
+          isMobileSidebarOpen={isMobileSidebarOpen}
+          onToggleCollapseSidebar={() => setIsSidebarCollapsed((prev) => !prev)}
+          isSidebarCollapsed={isSidebarCollapsed}
+        />
+      )}
 
       {viewMode === 'landing' ? (
         <main className="flex-1">

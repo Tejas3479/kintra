@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { useBrandStore } from '@/store/useBrandStore';
 import {
   X,
@@ -80,8 +81,14 @@ export const PresentationModeModal: React.FC = () => {
       {/* Top Bar */}
       <header className="px-8 py-5 flex items-center justify-between border-b border-white/[0.06] bg-obsidian-950/80">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-champagne-500/10 border border-champagne-500/30 flex items-center justify-center text-champagne-400 font-mono text-sm font-bold shadow-inner">
-            K
+          <div className="w-8 h-8 rounded-lg overflow-hidden border border-champagne-500/35 shadow-md shadow-champagne-500/15 bg-obsidian-950 flex-shrink-0 flex items-center justify-center">
+            <Image
+              src="/logo.png"
+              alt="KINTRA Monolith Logo"
+              width={32}
+              height={32}
+              className="w-full h-full object-cover"
+            />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -399,18 +406,29 @@ export const PresentationModeModal: React.FC = () => {
                 <span className="text-xs font-mono text-zinc-400 uppercase tracking-wider block">
                   Brand Name & Mark
                 </span>
+                <div className="flex items-center justify-center p-3 bg-obsidian-950 rounded-xl border border-white/[0.04]">
+                  <div className="w-16 h-16 rounded-xl overflow-hidden border border-champagne-500/40 shadow-lg shadow-champagne-500/15 p-0.5 bg-obsidian-900">
+                    <Image
+                      src="/logo.png"
+                      alt="Brand Monolith Mark"
+                      width={64}
+                      height={64}
+                      className="w-full h-full object-cover rounded-lg"
+                    />
+                  </div>
+                </div>
                 <div className="p-3 bg-obsidian-950 rounded-lg border border-white/[0.04] space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold text-white tracking-wide">{guidelines?.naming.approvedName}</span>
-                    <span className="text-xs font-mono text-champagne-400">{guidelines?.naming.pronunciation}</span>
+                    <span className="text-lg font-bold text-white tracking-wide">{guidelines?.naming.approvedName || brandName}</span>
+                    <span className="text-xs font-mono text-champagne-400">{guidelines?.naming.pronunciation || '/ˈkɪn.trə/'}</span>
                   </div>
                   <p className="text-[11px] text-zinc-400 leading-snug">
-                    {guidelines?.naming.semanticRationale}
+                    {guidelines?.naming.semanticRationale || 'Engineered for deterministic precision, architectural strength, and causal clarity.'}
                   </p>
                 </div>
                 <div className="text-[11px] text-zinc-400 font-mono bg-obsidian-950 p-2.5 rounded border border-white/[0.04]">
                   <span className="text-zinc-500 block mb-1">Corner Radius:</span>
-                  <span className="text-zinc-200">{guidelines?.visualDirection.uiCornerRadius}</span>
+                  <span className="text-zinc-200">{guidelines?.visualDirection.uiCornerRadius || '12px (rounded-xl)'}</span>
                 </div>
               </div>
             </div>

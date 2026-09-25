@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="public/logo.png" alt="KINTRA Monolith Logo" width="128" height="128" style="border-radius: 20px; box-shadow: 0 0 35px rgba(212, 175, 55, 0.25); margin-bottom: 16px;" />
+
 # KINTRA
 ### Causal Brand Decision Engine
 

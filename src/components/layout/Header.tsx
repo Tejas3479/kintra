@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { useBrandStore } from '@/store/useBrandStore';
 import {
   Download,
@@ -124,8 +125,15 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={() => onToggleViewMode?.('landing')}
             className="flex items-center gap-2.5 text-left group cursor-pointer"
           >
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-champagne-400 via-champagne-500 to-champagne-700 flex items-center justify-center font-bold text-obsidian-950 shadow-md shadow-champagne-500/20 border border-white/30 group-hover:scale-105 transition-transform">
-              K
+            <div className="w-8 h-8 rounded-lg overflow-hidden border border-champagne-500/35 shadow-md shadow-champagne-500/15 group-hover:scale-105 group-hover:border-champagne-400 transition-all bg-obsidian-950 flex-shrink-0 flex items-center justify-center">
+              <Image
+                src="/logo.png"
+                alt="KINTRA Monolith Logo"
+                width={32}
+                height={32}
+                className="w-full h-full object-cover"
+                priority
+              />
             </div>
             <div className="flex flex-col">
               <span className="font-extrabold text-base tracking-widest text-titanium-shimmer leading-none">
