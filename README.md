@@ -7,7 +7,7 @@
 [![React](https://img.shields.io/badge/React-19.0.0-blue?style=for-the-badge&logo=react)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![Google Gemini](https://img.shields.io/badge/Google%20Gemini-3.8%20Flash-orange?style=for-the-badge&logo=google)](https://deepmind.google/technologies/gemini/)
-[![Tests](https://img.shields.io/badge/Vitest-122%20Passed-emerald?style=for-the-badge&logo=vitest)](https://vitest.dev/)
+[![Tests](https://img.shields.io/badge/Vitest-155%20Passed-emerald?style=for-the-badge&logo=vitest)](https://vitest.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-purple?style=for-the-badge)](LICENSE)
 
 **Deterministic brand strategy, adversarial challenge, consistency guardian, and causal evolution engine backed by verifiable evidence.**
@@ -231,7 +231,7 @@ KINTRA features a production-ready dual-engine architecture:
 KINTRA includes a test suite covering domain schemas, contradiction detection, SSRF defenses, consistency auditing, and end-to-end lifecycles:
 
 ```bash
-# Run all 15 test suites (122 tests)
+# Run all 16 test suites (155 tests)
 npm test
 
 # Run production build & type checks
@@ -239,9 +239,9 @@ npm run build
 ```
 
 ```
-Test Files  15 passed (15)
-     Tests  122 passed (122)
-  Duration  ~4.5s
+Test Files  16 passed (16)
+     Tests  155 passed (155)
+  Duration  ~5.5s
 Routes      12/12 compiled cleanly (0 errors)
 ```
 
