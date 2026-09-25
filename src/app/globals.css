@@ -142,6 +142,25 @@ body {
   50% { stroke-opacity: 1; stroke-width: 3.5; }
 }
 
+/* Studio Workspace Fluid Entrance Transition */
+@keyframes workspaceEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+    filter: blur(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0px);
+  }
+}
+
+.animate-workspace-enter {
+  animation: workspaceEnter 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: opacity, transform, filter;
+}
+
 /* Scroll Progress Line */
 .scroll-progress-line {
   position: fixed;

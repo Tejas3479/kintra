@@ -45,14 +45,14 @@ export const StageNavigationFooter: React.FC<StageNavigationFooterProps> = ({
         type="button"
         onClick={handlePrev}
         disabled={!prevStage}
-        className={`w-full sm:w-auto px-4 py-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+        className={`w-full sm:w-auto px-4 py-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer group ${
           prevStage
             ? 'bg-obsidian-900/90 text-zinc-300 border-white/[0.08] hover:border-champagne-500/35 hover:text-white hover:bg-obsidian-850 shadow-sm'
             : 'bg-obsidian-950/40 text-zinc-600 border-white/[0.03] cursor-not-allowed opacity-50'
         }`}
         title={prevStage ? `Navigate to ${prevStage.number}. ${prevStage.title}` : 'First Stage'}
       >
-        <ArrowLeft className="w-3.5 h-3.5" />
+        <ArrowLeft className={`w-3.5 h-3.5 ${prevStage ? 'group-hover:-translate-x-0.5 transition-transform text-zinc-400 group-hover:text-champagne-300' : ''}`} />
         <div className="flex flex-col text-left">
           <span className="text-[10px] text-zinc-500 font-mono">Previous Stage</span>
           <span className="truncate max-w-[140px] sm:max-w-[180px]">
@@ -68,7 +68,7 @@ export const StageNavigationFooter: React.FC<StageNavigationFooterProps> = ({
             Stage {currentStage.number} of {totalStages} ({percentComplete}%)
           </span>
           <span className="text-zinc-600">•</span>
-          <span className="text-xs text-zinc-400 font-medium">
+          <span className="text-xs text-zinc-300 font-medium">
             {currentStage.shortTitle}
           </span>
         </div>
@@ -86,9 +86,9 @@ export const StageNavigationFooter: React.FC<StageNavigationFooterProps> = ({
               title={`${s.number}. ${s.title}`}
               className={`h-1.5 rounded-full transition-all cursor-pointer ${
                 idx === currentIndex
-                  ? 'w-6 bg-champagne-400 ring-2 ring-champagne-500/30'
+                  ? 'w-7 bg-champagne-400 ring-2 ring-champagne-500/40 shadow-[0_0_8px_rgba(212,180,131,0.6)]'
                   : idx < currentIndex
-                  ? 'w-3 bg-emerald-500/80 hover:bg-emerald-400'
+                  ? 'w-3 bg-emerald-400/90 hover:bg-emerald-300 shadow-[0_0_6px_rgba(52,211,153,0.35)]'
                   : 'w-2 bg-white/[0.12] hover:bg-white/[0.25]'
               }`}
             />
@@ -101,19 +101,19 @@ export const StageNavigationFooter: React.FC<StageNavigationFooterProps> = ({
         <button
           type="button"
           onClick={handleNext}
-          className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-champagne-500/40 bg-champagne-500/15 hover:bg-champagne-500/25 text-champagne-200 text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-md shadow-champagne-500/10 cursor-pointer hover:scale-[1.02]"
+          className="btn-monolith-primary w-full sm:w-auto px-5 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-gold-glow cursor-pointer hover:scale-[1.02] group"
           title={`Proceed to ${nextStage.number}. ${nextStage.title}`}
         >
           <div className="flex flex-col text-right">
-            <span className="text-[10px] text-champagne-400/80 font-mono">Next Stage</span>
-            <span className="truncate max-w-[140px] sm:max-w-[180px]">
+            <span className="text-[10px] text-obsidian-900/80 font-mono font-semibold">Next Stage</span>
+            <span className="truncate max-w-[140px] sm:max-w-[180px] text-obsidian-950">
               {nextStage.number}. {nextStage.shortTitle}
             </span>
           </div>
-          <ArrowRight className="w-3.5 h-3.5 text-champagne-400" />
+          <ArrowRight className="w-3.5 h-3.5 text-obsidian-950 group-hover:translate-x-0.5 transition-transform" />
         </button>
       ) : (
-        <div className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 text-xs font-semibold flex items-center justify-center gap-2">
+        <div className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 text-xs font-semibold flex items-center justify-center gap-2 shadow-[0_0_12px_rgba(52,211,153,0.15)]">
           <CheckCircle2 className="w-4 h-4 text-emerald-400" />
           <span>Pipeline Complete</span>
         </div>

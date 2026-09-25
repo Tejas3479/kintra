@@ -316,7 +316,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
           </div>
           <div className="w-full h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-emerald-500 via-champagne-500 to-champagne-400 rounded-full transition-all duration-500 ease-out"
+              className="h-full bg-gradient-to-r from-emerald-500 via-champagne-500 to-champagne-400 rounded-full transition-all duration-500 ease-out shadow-[0_0_10px_rgba(212,180,131,0.5)]"
               style={{ width: `${readinessScore}%` }}
             />
           </div>
@@ -376,24 +376,29 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
               key={stage.id}
               type="button"
               onClick={() => handleStageClick(stage.id)}
-              className={`w-full text-left rounded-xl transition-all cursor-pointer flex items-center group relative ${
+              className={`w-full text-left rounded-xl transition-all cursor-pointer flex items-center group relative overflow-hidden ${
                 isCollapsed ? 'justify-center p-2.5' : 'px-3 py-2.5 gap-3'
               } ${
                 isActive
-                  ? 'bg-champagne-500/15 text-champagne-200 border border-champagne-500/35 shadow-sm shadow-champagne-500/10'
-                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04] border border-transparent'
+                  ? 'monolith-card-gold text-champagne-100 border border-champagne-500/40 shadow-sm shadow-champagne-500/15'
+                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04] border border-transparent hover:border-white/[0.08]'
               }`}
               title={`${stage.number}. ${stage.title} — ${stage.subtitle}`}
               aria-current={isActive ? 'step' : undefined}
             >
+              {/* Active stage left luminous indicator */}
+              {isActive && (
+                <div className="absolute left-0 top-2 bottom-2 w-1 bg-gradient-to-b from-champagne-300 to-champagne-500 rounded-r shadow-[0_0_8px_rgba(212,180,131,0.8)]" />
+              )}
+
               {/* Icon Container with Status dot */}
               <div className="relative shrink-0">
                 <div
                   className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
                     isActive
-                      ? 'bg-champagne-500/25 text-champagne-300 border border-champagne-500/40 shadow-inner'
+                      ? 'bg-champagne-500/25 text-champagne-300 border border-champagne-500/50 shadow-[0_0_12px_rgba(212,180,131,0.25)]'
                       : status === 'completed'
-                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 group-hover:bg-emerald-500/20'
+                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 group-hover:bg-emerald-500/20 group-hover:border-emerald-500/35'
                       : 'bg-obsidian-900 text-zinc-400 border border-white/[0.06] group-hover:text-zinc-200 group-hover:border-white/[0.12]'
                   }`}
                 >
@@ -456,13 +461,18 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
         <button
           type="button"
           onClick={() => togglePresentationMode(true)}
-          className={`w-full flex items-center rounded-xl text-xs font-medium text-champagne-300 hover:text-champagne-100 bg-champagne-500/10 hover:bg-champagne-500/20 border border-champagne-500/30 transition-all cursor-pointer ${
+          className={`w-full flex items-center rounded-xl text-xs font-medium text-champagne-200 hover:text-white bg-champagne-500/15 hover:bg-champagne-500/25 border border-champagne-500/35 hover:border-champagne-400/50 shadow-sm shadow-champagne-500/10 transition-all cursor-pointer group ${
             isCollapsed ? 'justify-center p-2.5' : 'px-3 py-2 gap-2.5'
           }`}
-          title="Open Executive Pitch & Presentation Deck (Full Screen)"
+          title="Open Executive Pitch & Presentation Deck (Full Screen • Press F5)"
         >
-          <Play className="w-3.5 h-3.5 text-champagne-400 shrink-0" />
-          {!isCollapsed && <span className="font-semibold truncate">Presentation Deck</span>}
+          <Play className="w-3.5 h-3.5 text-champagne-400 fill-champagne-400/30 group-hover:scale-110 transition-transform shrink-0" />
+          {!isCollapsed && (
+            <div className="flex items-center justify-between w-full min-w-0">
+              <span className="font-bold truncate">Presentation Deck</span>
+              <kbd className="text-[9px] px-1 py-0.2 rounded bg-black/40 text-champagne-300/80 font-mono border border-champagne-500/20">F5</kbd>
+            </div>
+          )}
         </button>
 
         {/* Snapshot Quick Action */}

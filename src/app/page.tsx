@@ -117,7 +117,15 @@ export default function Home() {
           />
         </main>
       ) : (
-        <div className="flex-1 flex min-h-[calc(100vh-4rem)]">
+        <div className="flex-1 flex min-h-[calc(100vh-4rem)] relative">
+          {/* Atmospheric Background Effects for Studio */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
+            <div className="absolute inset-0 bg-grid-cyber opacity-30 mask-radial-fade" />
+            <div className="absolute inset-0 bg-dot-matrix opacity-15" />
+            <div className="glow-orb-gold w-[560px] h-[560px] -top-32 right-[8%] opacity-20 pointer-events-none" />
+            <div className="glow-orb-steel w-[440px] h-[440px] bottom-[15%] left-[15%] opacity-15 pointer-events-none" />
+          </div>
+
           {/* Navigation Sidebar */}
           <StudioSidebar
             activeStage={activeStage}
@@ -136,7 +144,7 @@ export default function Home() {
             <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full space-y-6">
               <ErrorBoundary fallbackTitle="Workspace Encountered an Error">
                 {workspaceMode === 'focused' ? (
-                  <div className="space-y-6">
+                  <div key={activeStage} className="animate-workspace-enter space-y-6">
                     {activeStage === 'discovery' && (
                       <section id="stage-discovery">
                         <DiscoveryWorkspace />
@@ -221,27 +229,29 @@ export default function Home() {
       {/* Snapshot Dialog */}
       {showSnapshotDialog && (
         <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="monolith-card rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4 border border-white/[0.1]">
-            <h3 className="font-bold text-base text-zinc-100 flex items-center gap-2">
-              <Bookmark className="w-4 h-4 text-emerald-400" />
-              Save Immutable Version Snapshot
-            </h3>
-            <p className="text-xs text-zinc-400">
-              Creates a point-in-time snapshot of all brand decisions, positioning worlds, artifacts, and scenarios.
-            </p>
+          <div className="monolith-card-gold rounded-2xl p-6 sm:p-7 max-w-md w-full shadow-2xl space-y-4 border border-champagne-500/40 animate-workspace-enter">
+            <div>
+              <h3 className="font-bold text-base text-zinc-100 flex items-center gap-2">
+                <Bookmark className="w-4 h-4 text-champagne-400" />
+                <span className="text-titanium-shimmer">Save Immutable Version Snapshot</span>
+              </h3>
+              <p className="text-xs text-zinc-400 mt-1">
+                Creates a point-in-time snapshot of all brand decisions, positioning worlds, artifacts, and scenarios.
+              </p>
+            </div>
             <input
               type="text"
               value={snapshotLabel}
               onChange={(e) => setSnapshotLabel(e.target.value)}
               placeholder="e.g. Pre-series A Positioning Locked"
-              className="w-full bg-obsidian-900 border border-white/[0.1] rounded-xl px-3.5 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-champagne-500/50"
+              className="w-full bg-obsidian-950 border border-white/[0.1] rounded-xl px-3.5 py-2.5 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-champagne-500/50"
               autoFocus
             />
             <div className="flex justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setShowSnapshotDialog(false)}
-                className="text-xs px-3 py-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 cursor-pointer"
+                className="text-xs px-3.5 py-2 rounded-lg text-zinc-400 hover:text-zinc-200 cursor-pointer transition-colors"
               >
                 Cancel
               </button>
@@ -255,9 +265,9 @@ export default function Home() {
                   }
                 }}
                 disabled={!snapshotLabel.trim()}
-                className="btn-monolith-primary text-xs px-4 py-1.5 rounded-lg font-semibold disabled:opacity-50 cursor-pointer"
+                className="btn-monolith-primary text-xs px-4 py-2 rounded-xl disabled:opacity-50 cursor-pointer shadow-gold-glow"
               >
-                Create Snapshot
+                Save Snapshot
               </button>
             </div>
           </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useBrandStore } from '@/store/useBrandStore';
 import {
@@ -15,6 +15,7 @@ import {
   ChevronRight,
   PanelLeftClose,
   PanelLeftOpen,
+  Play,
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -43,11 +44,25 @@ export const Header: React.FC<HeaderProps> = ({
     resetProject,
     exportProjectJSON,
     importProjectJSON,
+    togglePresentationMode,
   } = useBrandStore();
 
   const [snapshotLabel, setSnapshotLabel] = useState('');
   const [showSnapshotDialog, setShowSnapshotDialog] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
+
+  // F5 keyboard shortcut: toggle presentation deck in studio mode
+  useEffect(() => {
+    if (viewMode !== 'studio') return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'F5') {
+        e.preventDefault();
+        togglePresentationMode(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [viewMode, togglePresentationMode]);
 
   const handleExport = () => {
     const jsonStr = exportProjectJSON();
@@ -199,6 +214,11 @@ export const Header: React.FC<HeaderProps> = ({
                   Demo Fixture
                 </span>
               )}
+              {/* Live DAG Engine Telemetry */}
+              <span className="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-[10px] font-mono text-emerald-400 font-semibold shadow-[0_0_10px_rgba(52,211,153,0.12)]">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                DAG_ACTIVE
+              </span>
             </div>
           )}
         </div>
@@ -229,6 +249,18 @@ export const Header: React.FC<HeaderProps> = ({
             </>
           ) : (
             <>
+              {/* Presentation Deck Shortcut Button */}
+              <button
+                type="button"
+                onClick={() => togglePresentationMode(true)}
+                className="text-xs px-2.5 py-1.5 rounded-lg bg-champagne-500/15 hover:bg-champagne-500/25 text-champagne-200 border border-champagne-500/35 hover:border-champagne-400/50 transition-all flex items-center gap-1.5 shadow-sm shadow-champagne-500/10 cursor-pointer"
+                title="Open Executive Presentation Deck (Press F5)"
+              >
+                <Play className="w-3.5 h-3.5 text-champagne-400 fill-champagne-400/40" />
+                <span className="hidden md:inline font-semibold">Deck</span>
+                <kbd className="hidden lg:inline text-[9px] px-1 py-0.2 rounded bg-black/40 text-champagne-300/80 font-mono border border-champagne-500/20">F5</kbd>
+              </button>
+
               {/* Quick Demo Pre-seed button */}
               <button
                 onClick={loadDemoProject}
@@ -286,14 +318,14 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Snapshot Modal */}
       {showSnapshotDialog && (
         <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="monolith-card rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4 border border-white/[0.1]">
+          <div className="monolith-card-gold rounded-2xl p-6 sm:p-7 max-w-md w-full shadow-2xl space-y-4 border border-champagne-500/40 animate-workspace-enter">
             <div>
               <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
                 <Bookmark className="w-4 h-4 text-champagne-400" />
-                Create Version Snapshot
+                <span className="text-titanium-shimmer">Save Immutable Version Snapshot</span>
               </h3>
               <p className="text-xs text-zinc-400">
-                Freeze current brand state into an immutable historical snapshot.
+                Creates a point-in-time snapshot of all brand decisions, positioning worlds, artifacts, and scenarios.
               </p>
             </div>
             <input
@@ -306,15 +338,17 @@ export const Header: React.FC<HeaderProps> = ({
             />
             <div className="flex justify-end gap-2 pt-2">
               <button
+                type="button"
                 onClick={() => setShowSnapshotDialog(false)}
-                className="px-3 py-1.5 text-xs text-zinc-400 hover:text-zinc-200"
+                className="px-3.5 py-2 text-xs text-zinc-400 hover:text-zinc-200 cursor-pointer transition-colors"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={handleCreateSnapshot}
                 disabled={!snapshotLabel.trim()}
-                className="btn-monolith-primary px-4 py-1.5 text-xs rounded-xl disabled:opacity-50"
+                className="btn-monolith-primary px-4 py-2 text-xs rounded-xl disabled:opacity-50 cursor-pointer shadow-gold-glow"
               >
                 Save Snapshot
               </button>
