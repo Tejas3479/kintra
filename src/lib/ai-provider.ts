@@ -1363,7 +1363,11 @@ Do NOT wrap in markdown code blocks like \`\`\`json. Output raw JSON only.${sche
 User Request:
 ${prompt}`;
 
-        const modelName = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+        const candidateModels = [
+          process.env.GEMINI_MODEL || 'gemini-3.8-flash',
+          'gemini-2.5-flash',
+        ];
+        const modelName = candidateModels[Math.min(retries, candidateModels.length - 1)];
         const response = await ai.models.generateContent({
           model: modelName,
           contents: fullPrompt,
