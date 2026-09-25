@@ -1,135 +1,115 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { ScenarioLabEngine } from '@/lib/evolution/scenario-lab-engine';
 import { BrandEvolutionEngine } from '@/lib/evolution/brand-evolution-engine';
 import { logger } from '@/lib/logger';
+import { CanonicalBrandStateSchema } from '@/lib/schemas/brand-schemas';
 import {
-  ScenarioTemplateType,
-  ScenarioArtifact,
-  AssumptionChangeRequest,
-  EvolutionApprovalChoice,
-  BrandBranch,
-} from '@/types/evolution';
-import { CanonicalBrandState } from '@/types/brand';
+  ScenarioTemplateTypeSchema,
+  ScenarioArtifactSchema,
+  AssumptionChangeRequestSchema,
+  EvolutionApprovalChoiceSchema,
+} from '@/lib/schemas/evolution-schemas';
+import { BrandBranch } from '@/types/evolution';
+
+const BrandBranchInputSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string().optional().default(''),
+  parentBranchId: z.string().optional(),
+  createdAt: z.string(),
+  snapshot: z.any(),
+});
+
+const EvolutionRequestSchema = z.discriminatedUnion('action', [
+  z.object({
+    action: z.literal('generate_scenario'),
+    scenarioType: ScenarioTemplateTypeSchema,
+    brandState: CanonicalBrandStateSchema,
+  }),
+  z.object({
+    action: z.literal('repair_scenario'),
+    scenarioArtifact: ScenarioArtifactSchema,
+    findingId: z.string().min(1),
+    brandState: CanonicalBrandStateSchema,
+  }),
+  z.object({
+    action: z.literal('manually_edit_scenario'),
+    scenarioArtifact: ScenarioArtifactSchema,
+    newContent: z.string().min(1),
+    brandState: CanonicalBrandStateSchema,
+  }),
+  z.object({
+    action: z.literal('analyze_impact'),
+    changeRequest: AssumptionChangeRequestSchema,
+    brandState: CanonicalBrandStateSchema,
+  }),
+  z.object({
+    action: z.literal('apply_evolution'),
+    changeRequest: AssumptionChangeRequestSchema,
+    brandState: CanonicalBrandStateSchema,
+    choice: EvolutionApprovalChoiceSchema,
+    branchName: z.string().optional(),
+  }),
+  z.object({
+    action: z.literal('compare_branches'),
+    baseBranch: BrandBranchInputSchema,
+    targetBranch: BrandBranchInputSchema,
+  }),
+]);
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { action } = body;
+    const parsed = EvolutionRequestSchema.safeParse(body);
 
-    logger.info('Evolution API route request:', { action });
+    if (!parsed.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Invalid request payload for Evolution API',
+          details: parsed.error.format(),
+        },
+        { status: 400 }
+      );
+    }
 
-    switch (action) {
+    const data = parsed.data;
+    logger.info('Evolution API route request:', { action: data.action });
+
+    switch (data.action) {
       case 'generate_scenario': {
-        const { scenarioType, brandState } = body as {
-          scenarioType: ScenarioTemplateType;
-          brandState: CanonicalBrandState;
-        };
-
-        if (!scenarioType || !brandState) {
-          return NextResponse.json(
-            { success: false, error: 'Both scenarioType and brandState are required.' },
-            { status: 400 }
-          );
-        }
-
-        const scenario = ScenarioLabEngine.generateScenario(scenarioType, brandState);
+        const scenario = ScenarioLabEngine.generateScenario(data.scenarioType, data.brandState);
         return NextResponse.json({ success: true, data: scenario });
       }
 
       case 'repair_scenario': {
-        const { scenarioArtifact, findingId, brandState } = body as {
-          scenarioArtifact: ScenarioArtifact;
-          findingId: string;
-          brandState: CanonicalBrandState;
-        };
-
-        if (!scenarioArtifact || !findingId || !brandState) {
-          return NextResponse.json(
-            { success: false, error: 'scenarioArtifact, findingId, and brandState are required.' },
-            { status: 400 }
-          );
-        }
-
-        const repaired = ScenarioLabEngine.applyRepairToScenario(scenarioArtifact, findingId, brandState);
+        const repaired = ScenarioLabEngine.applyRepairToScenario(data.scenarioArtifact, data.findingId, data.brandState);
         return NextResponse.json({ success: true, data: repaired });
       }
 
       case 'manually_edit_scenario': {
-        const { scenarioArtifact, newContent, brandState } = body as {
-          scenarioArtifact: ScenarioArtifact;
-          newContent: string;
-          brandState: CanonicalBrandState;
-        };
-
-        if (!scenarioArtifact || !newContent || !brandState) {
-          return NextResponse.json(
-            { success: false, error: 'scenarioArtifact, newContent, and brandState are required.' },
-            { status: 400 }
-          );
-        }
-
-        const updated = ScenarioLabEngine.manuallyEditScenario(scenarioArtifact, newContent, brandState);
+        const updated = ScenarioLabEngine.manuallyEditScenario(data.scenarioArtifact, data.newContent, data.brandState);
         return NextResponse.json({ success: true, data: updated });
       }
 
       case 'analyze_impact': {
-        const { changeRequest, brandState } = body as {
-          changeRequest: AssumptionChangeRequest;
-          brandState: CanonicalBrandState;
-        };
-
-        if (!changeRequest || !brandState) {
-          return NextResponse.json(
-            { success: false, error: 'Both changeRequest and brandState are required.' },
-            { status: 400 }
-          );
-        }
-
-        const report = BrandEvolutionEngine.analyzeAssumptionImpact(changeRequest, brandState);
+        const report = BrandEvolutionEngine.analyzeAssumptionImpact(data.changeRequest, data.brandState);
         return NextResponse.json({ success: true, data: report });
       }
 
       case 'apply_evolution': {
-        const { changeRequest, brandState, choice, branchName } = body as {
-          changeRequest: AssumptionChangeRequest;
-          brandState: CanonicalBrandState;
-          choice: EvolutionApprovalChoice;
-          branchName?: string;
-        };
-
-        if (!changeRequest || !brandState || !choice) {
-          return NextResponse.json(
-            { success: false, error: 'changeRequest, brandState, and choice are required.' },
-            { status: 400 }
-          );
-        }
-
-        const result = BrandEvolutionEngine.applyEvolution(changeRequest, brandState, choice, branchName);
+        const result = BrandEvolutionEngine.applyEvolution(data.changeRequest, data.brandState, data.choice, data.branchName);
         return NextResponse.json({ success: true, data: result });
       }
 
       case 'compare_branches': {
-        const { baseBranch, targetBranch } = body as {
-          baseBranch: BrandBranch;
-          targetBranch: BrandBranch;
-        };
-
-        if (!baseBranch || !targetBranch) {
-          return NextResponse.json(
-            { success: false, error: 'Both baseBranch and targetBranch are required.' },
-            { status: 400 }
-          );
-        }
-
-        const diff = BrandEvolutionEngine.compareBranches(baseBranch, targetBranch);
+        const diff = BrandEvolutionEngine.compareBranches(
+          data.baseBranch as unknown as BrandBranch,
+          data.targetBranch as unknown as BrandBranch
+        );
         return NextResponse.json({ success: true, data: diff });
       }
-
-      default:
-        return NextResponse.json(
-          { success: false, error: `Unrecognized action: ${action}` },
-          { status: 400 }
-        );
     }
   } catch (error) {
     logger.error('Error in Evolution API route:', error);

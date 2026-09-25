@@ -1,78 +1,108 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { IdentityService } from '@/lib/identity/identity-service';
 import { IdentityConsistencyChecker } from '@/lib/identity/identity-consistency-checker';
 import { AntiGenericNamer } from '@/lib/identity/anti-generic-namer';
 import { DefaultImageGenerationProvider } from '@/lib/identity/image-provider';
 import { logger } from '@/lib/logger';
+import { IdeaBriefSchema } from '@/lib/schemas/brand-schemas';
+import { PositioningWorldSchema } from '@/lib/schemas/strategy-schemas';
+import {
+  NamingCandidateSchema,
+  TaglineCandidateSchema,
+  VoiceSystemSchema,
+  VisualSystemSchema,
+} from '@/lib/schemas/identity-schemas';
+
+const IdentityRequestSchema = z.discriminatedUnion('action', [
+  z.object({
+    action: z.literal('generate_identity'),
+    world: PositioningWorldSchema,
+    brief: IdeaBriefSchema,
+    evidenceRecords: z.array(z.any()).optional().default([]),
+  }),
+  z.object({
+    action: z.literal('audit_consistency'),
+    selectedName: NamingCandidateSchema.optional().nullable(),
+    selectedTagline: TaglineCandidateSchema.optional().nullable(),
+    voiceSystem: VoiceSystemSchema.optional(),
+    visualSystem: VisualSystemSchema.optional(),
+    positioningWorld: PositioningWorldSchema.optional(),
+  }),
+  z.object({
+    action: z.literal('audit_name'),
+    name: z.string().min(1),
+    categoryFraming: z.string().optional().default(''),
+  }),
+  z.object({
+    action: z.literal('generate_visual'),
+    promptContext: z.object({
+      positioningArchetype: z.string(),
+      brandName: z.string(),
+      tagline: z.string().optional().default(''),
+      primaryHex: z.string(),
+      secondaryHex: z.string(),
+      accentHex: z.string(),
+      visualMetaphors: z.array(z.string()).optional().default([]),
+      audience: z.string(),
+      borderRadius: z.string(),
+      assetType: z.enum(['brand_mark', 'hero_graphic', 'system_badge']),
+    }),
+  }),
+]);
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { action } = body;
+    const parsed = IdentityRequestSchema.safeParse(body);
 
-    if (!action) {
-      return NextResponse.json({ error: 'Missing required field: action' }, { status: 400 });
+    if (!parsed.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Invalid request payload for Identity API',
+          details: parsed.error.format(),
+        },
+        { status: 400 }
+      );
     }
 
-    if (action === 'generate_identity') {
-      const { world, brief, evidenceRecords } = body;
-      if (!world) {
-        return NextResponse.json(
-          { error: 'Cannot generate creative identity without an approved Positioning World.' },
-          { status: 400 }
-        );
+    const data = parsed.data;
+    logger.info('API /api/identity action:', { action: data.action });
+
+    switch (data.action) {
+      case 'generate_identity': {
+        const identity = await IdentityService.generateIdentity(data.world, data.brief, data.evidenceRecords);
+        return NextResponse.json({ success: true, data: identity });
       }
-      if (!brief) {
-        return NextResponse.json(
-          { error: 'Cannot generate creative identity without an Idea Brief.' },
-          { status: 400 }
-        );
+
+      case 'audit_consistency': {
+        const conflicts = IdentityConsistencyChecker.auditConsistency({
+          selectedName: data.selectedName || undefined,
+          selectedTagline: data.selectedTagline || undefined,
+          voiceSystem: data.voiceSystem,
+          visualSystem: data.visualSystem,
+          positioningWorld: data.positioningWorld,
+        });
+        return NextResponse.json({ success: true, data: conflicts });
       }
 
-      logger.info('API /api/identity: generating creative identity from approved world:', {
-        worldId: world.id,
-      });
-
-      const identity = await IdentityService.generateIdentity(world, brief, evidenceRecords || []);
-      return NextResponse.json({ success: true, data: identity });
-    }
-
-    if (action === 'audit_consistency') {
-      const { selectedName, selectedTagline, voiceSystem, visualSystem, positioningWorld } = body;
-      const conflicts = IdentityConsistencyChecker.auditConsistency({
-        selectedName,
-        selectedTagline,
-        voiceSystem,
-        visualSystem,
-        positioningWorld,
-      });
-      return NextResponse.json({ success: true, data: conflicts });
-    }
-
-    if (action === 'audit_name') {
-      const { name, categoryFraming } = body;
-      if (!name) {
-        return NextResponse.json({ error: 'Missing name parameter' }, { status: 400 });
+      case 'audit_name': {
+        const audit = AntiGenericNamer.auditName(data.name, data.categoryFraming);
+        return NextResponse.json({ success: true, data: audit });
       }
-      const audit = AntiGenericNamer.auditName(name, categoryFraming || '');
-      return NextResponse.json({ success: true, data: audit });
-    }
 
-    if (action === 'generate_visual') {
-      const { promptContext } = body;
-      if (!promptContext) {
-        return NextResponse.json({ error: 'Missing promptContext parameter' }, { status: 400 });
+      case 'generate_visual': {
+        const provider = new DefaultImageGenerationProvider();
+        const result = await provider.generateVisual(data.promptContext);
+        return NextResponse.json({ success: true, data: result });
       }
-      const provider = new DefaultImageGenerationProvider();
-      const result = await provider.generateVisual(promptContext);
-      return NextResponse.json({ success: true, data: result });
     }
-
-    return NextResponse.json({ error: `Unknown action: ${action}` }, { status: 400 });
   } catch (err: unknown) {
     logger.error('API /api/identity error:', err);
     return NextResponse.json(
       {
+        success: false,
         error: err instanceof Error ? err.message : 'Identity processing failed.',
       },
       { status: 500 }

@@ -1,21 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { getResearchProvider } from '@/lib/research/research-provider';
 import { EvidenceEngine } from '@/lib/research/evidence-engine';
 import { MarketLandscapeSchema } from '@/lib/schemas/research-schemas';
 import { logger } from '@/lib/logger';
 
+const ResearchRequestSchema = z.object({
+  query: z.string().min(1, 'Missing required research search query.'),
+  rawIdea: z.string().optional(),
+});
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { query, rawIdea } = body;
+    const parsed = ResearchRequestSchema.safeParse(body);
 
-    if (!query || typeof query !== 'string') {
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Missing required research search query.' },
+        {
+          success: false,
+          error: 'Invalid request payload for Research API',
+          details: parsed.error.format(),
+        },
         { status: 400 }
       );
     }
 
+    const { query, rawIdea } = parsed.data;
     logger.info('API /api/research: executing market landscape research', { query });
 
     const provider = getResearchProvider();
@@ -34,6 +45,7 @@ export async function POST(req: NextRequest) {
     logger.error('API /api/research failed:', err);
     return NextResponse.json(
       {
+        success: false,
         error: err instanceof Error ? err.message : 'Research aggregation failed.',
       },
       { status: 500 }
