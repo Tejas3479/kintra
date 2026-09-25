@@ -179,7 +179,7 @@ export class WebResearchProvider implements ResearchProvider {
       while (redirectCount <= maxRedirects) {
         const res = await fetch(currentUrl, {
           headers: {
-            'User-Agent': 'KintraResearchBot/1.0 (+https://inkloom.art)',
+            'User-Agent': 'KintraResearchBot/1.0 (+https://kintra.ai)',
             Accept: 'text/html,text/plain',
           },
           signal: controller.signal,

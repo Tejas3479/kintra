@@ -15,11 +15,11 @@ import {
 } from 'lucide-react';
 
 export const PresentationModeModal: React.FC = () => {
-  const { project, isPresentationModeOpen, togglePresentationMode } = useBrandStore();
+  const { project, launchKit: topLaunchKit, isPresentationModeOpen, togglePresentationMode } = useBrandStore();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
-  const kit = project.launchKit;
+  const kit = project.launchKit || topLaunchKit;
   const guidelines = kit?.guidelines;
   const brandName = guidelines?.brandName || guidelines?.naming.approvedName || project.metadata.name;
   const tagline = guidelines?.tagline || 'Autonomous Brand Intelligence';
@@ -161,10 +161,13 @@ export const PresentationModeModal: React.FC = () => {
               </div>
               <p className="text-sm sm:text-base text-zinc-200 leading-relaxed font-sans italic border-l-2 border-champagne-500/80 pl-4 py-1">
                 &ldquo;{kit?.items.find((i) => i.id === 'spoken_pitch')?.content ||
-                  'PRGuard is the autonomous code review guardian that acts as a merciless principal engineer on every pull request.'}&rdquo;
+                  project.ideaBrief?.proposedValue?.keyBenefit ||
+                  project.ideaBrief?.problem?.corePain ||
+                  project.rawFounderInput ||
+                  `${brandName} delivers deterministic, evidence-grounded brand intelligence.`}&rdquo;
               </p>
               <div className="flex items-center justify-between pt-2 border-t border-white/[0.04] text-xs font-mono text-zinc-500">
-                <span>Proof: AST-based call-graph taint analysis</span>
+                <span>Proof: {project.ideaBrief?.problem?.corePain ? (project.ideaBrief.problem.corePain.length > 55 ? project.ideaBrief.problem.corePain.slice(0, 52) + '...' : project.ideaBrief.problem.corePain) : 'AST-based evidence ledger analysis'}</span>
                 <span>Zero Hallucinations</span>
               </div>
             </div>
