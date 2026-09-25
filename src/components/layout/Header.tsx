@@ -12,10 +12,6 @@ import {
   ShieldCheck,
   ArrowRight,
   Menu,
-  ChevronRight,
-  PanelLeftClose,
-  PanelLeftOpen,
-  Play,
   Settings,
   Activity,
   CheckCircle2,
@@ -39,8 +35,6 @@ export const Header: React.FC<HeaderProps> = ({
   activeStageTitle,
   onToggleMobileSidebar,
   isMobileSidebarOpen,
-  onToggleCollapseSidebar,
-  isSidebarCollapsed,
 }) => {
   const {
     project,
@@ -49,7 +43,6 @@ export const Header: React.FC<HeaderProps> = ({
     resetProject,
     exportProjectJSON,
     importProjectJSON,
-    togglePresentationMode,
   } = useBrandStore();
 
   const [snapshotLabel, setSnapshotLabel] = useState('');
@@ -93,19 +86,6 @@ export const Header: React.FC<HeaderProps> = ({
     }
   };
 
-  // F5 keyboard shortcut: toggle presentation deck in studio mode
-  useEffect(() => {
-    if (viewMode !== 'studio') return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'F5') {
-        e.preventDefault();
-        togglePresentationMode(true);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [viewMode, togglePresentationMode]);
-
   const handleExport = () => {
     const jsonStr = exportProjectJSON();
     const blob = new Blob([jsonStr], { type: 'application/json' });
@@ -146,14 +126,14 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="border-b border-white/[0.06] bg-obsidian-950/85 backdrop-blur-xl sticky top-0 z-40">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        {/* Left: Brand Identity & Mode Switcher */}
-        <div className="flex items-center gap-3 sm:gap-4">
+      <div className="w-full px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+        {/* Left: Brand Identity & Workspace Status */}
+        <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0">
           {viewMode === 'studio' && onToggleMobileSidebar && (
             <button
               type="button"
               onClick={onToggleMobileSidebar}
-              className="lg:hidden p-1.5 rounded-lg bg-obsidian-900 border border-white/[0.08] text-zinc-300 hover:text-white hover:border-champagne-500/35 transition-colors cursor-pointer"
+              className="lg:hidden h-8 w-8 rounded-lg bg-obsidian-900 border border-white/[0.08] text-zinc-300 hover:text-white hover:border-champagne-500/35 transition-colors cursor-pointer inline-flex items-center justify-center flex-shrink-0"
               aria-label="Toggle Stage Navigation Sidebar"
               aria-expanded={isMobileSidebarOpen}
               title="Open Navigation"
@@ -162,25 +142,11 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           )}
 
-          {viewMode === 'studio' && onToggleCollapseSidebar && (
-            <button
-              type="button"
-              onClick={onToggleCollapseSidebar}
-              className="hidden lg:flex p-1.5 rounded-lg bg-obsidian-900 border border-white/[0.08] text-zinc-400 hover:text-white hover:border-champagne-500/35 transition-colors cursor-pointer"
-              aria-label={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-              title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            >
-              {isSidebarCollapsed ? (
-                <PanelLeftOpen className="w-4 h-4 text-champagne-400" />
-              ) : (
-                <PanelLeftClose className="w-4 h-4 text-zinc-400" />
-              )}
-            </button>
-          )}
 
           <button
-            onClick={() => onToggleViewMode?.('landing')}
-            className="flex items-center gap-2.5 text-left group cursor-pointer"
+            onClick={() => onToggleViewMode?.(viewMode === 'studio' ? 'landing' : 'studio')}
+            className="flex items-center gap-2.5 text-left group cursor-pointer flex-shrink-0"
+            title={viewMode === 'studio' ? 'Switch to Landing Overview' : 'Open Brand Studio'}
           >
             <div className="w-8 h-8 rounded-lg overflow-hidden border border-champagne-500/35 shadow-md shadow-champagne-500/15 group-hover:scale-105 group-hover:border-champagne-400 transition-all bg-obsidian-950 flex-shrink-0 flex items-center justify-center">
               <Image
@@ -202,98 +168,71 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </button>
 
-          <div className="h-4 w-px bg-white/[0.08] hidden sm:block" />
-
-          {/* Mode Switcher Pill */}
-          {onToggleViewMode && (
-            <div className="flex items-center bg-obsidian-900/90 p-1 rounded-xl border border-white/[0.08] text-xs font-mono">
-              <button
-                onClick={() => onToggleViewMode('landing')}
-                className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
-                  viewMode === 'landing'
-                    ? 'bg-champagne-500/20 text-champagne-200 border border-champagne-500/35 font-semibold shadow-sm'
-                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03]'
-                }`}
-              >
-                Overview
-              </button>
-              <button
-                onClick={() => onToggleViewMode('studio')}
-                className={`px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
-                  viewMode === 'studio'
-                    ? 'bg-champagne-500/20 text-champagne-200 border border-champagne-500/35 font-semibold shadow-sm'
-                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03]'
-                }`}
-              >
-                <span>Studio</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              </button>
-            </div>
-          )}
-
-          {/* Active Stage Breadcrumb when in studio mode */}
-          {viewMode === 'studio' && activeStageTitle && (
-            <div className="hidden md:flex items-center gap-1.5 text-xs text-zinc-400 font-mono">
-              <ChevronRight className="w-3.5 h-3.5 text-zinc-600" />
-              <span className="text-champagne-300 font-semibold px-2 py-0.5 rounded-md bg-champagne-500/10 border border-champagne-500/20">
-                {activeStageTitle}
-              </span>
-            </div>
-          )}
-
-          {/* Studio Context info when in studio mode */}
+          {/* Active Stage Breadcrumb & Context info when in studio mode */}
           {viewMode === 'studio' && (
-            <div className="hidden lg:flex items-center gap-2">
-              <span className="text-sm font-semibold text-zinc-200 truncate max-w-[200px]">
-                {project.metadata.name}
-              </span>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-obsidian-900 border border-white/[0.06] text-champagne-400 font-mono">
-                v{project.metadata.version}
-              </span>
-              {project.metadata.isDemoProject && (
-                <span className="text-xs px-2.5 py-0.5 rounded-full bg-champagne-500/10 text-champagne-300 border border-champagne-500/25 inline-flex items-center gap-1.5 font-medium">
-                  <Sparkles className="w-3 h-3 text-champagne-400" />
-                  Demo Fixture
-                </span>
-              )}
-              {/* Live DAG Engine Telemetry */}
-              <span className="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-[10px] font-mono text-emerald-400 font-semibold shadow-[0_0_10px_rgba(52,211,153,0.12)]">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                DAG_ACTIVE
-              </span>
+            <>
+              <div className="h-4 w-px bg-white/[0.08] hidden md:block flex-shrink-0" />
 
-              {/* Live Engine Telemetry Pill */}
-              {engineStatus && (
-                <button
-                  type="button"
-                  onClick={() => setShowSettingsModal(true)}
-                  className={`hidden lg:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold border transition-all cursor-pointer ${
-                    engineStatus.hasApiKey && !engineStatus.isDemoMode
-                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20'
-                      : 'bg-amber-500/10 border-amber-500/30 text-amber-300 hover:bg-amber-500/20'
-                  }`}
-                  title="Click to view AI Engine Telemetry & Health"
-                >
-                  <span
-                    className={`w-1.5 h-1.5 rounded-full ${
-                      engineStatus.hasApiKey && !engineStatus.isDemoMode
-                        ? 'bg-emerald-400 animate-pulse'
-                        : 'bg-amber-400'
-                    }`}
-                  />
-                  <span>
-                    {engineStatus.hasApiKey && !engineStatus.isDemoMode
-                      ? 'AI: gemini-3.8-flash'
-                      : 'AI: Deterministic Fallback'}
+              {activeStageTitle && (
+                <div className="hidden md:flex items-center gap-1.5 text-xs text-zinc-400 font-mono whitespace-nowrap flex-shrink-0">
+                  <span className="text-champagne-300 font-semibold px-2 py-0.5 rounded-md bg-champagne-500/10 border border-champagne-500/20">
+                    {activeStageTitle}
                   </span>
-                </button>
+                </div>
               )}
-            </div>
+
+              <div className="hidden lg:flex items-center gap-2 flex-shrink-0">
+                <span className="text-sm font-semibold text-zinc-200 truncate max-w-[150px] xl:max-w-[220px]">
+                  {project.metadata.name}
+                </span>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-obsidian-900 border border-white/[0.06] text-champagne-400 font-mono flex-shrink-0">
+                  v{project.metadata.version}
+                </span>
+                {project.metadata.isDemoProject && (
+                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-champagne-500/10 text-champagne-300 border border-champagne-500/25 inline-flex items-center gap-1.5 font-medium whitespace-nowrap flex-shrink-0">
+                    <Sparkles className="w-3 h-3 text-champagne-400" />
+                    Demo Fixture
+                  </span>
+                )}
+                {/* Live DAG Engine Telemetry */}
+                <span className="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-[10px] font-mono text-emerald-400 font-semibold whitespace-nowrap flex-shrink-0 shadow-[0_0_10px_rgba(52,211,153,0.12)]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  DAG_ACTIVE
+                </span>
+
+                {/* Live Engine Telemetry Pill */}
+                {engineStatus && (
+                  <button
+                    type="button"
+                    onClick={() => setShowSettingsModal(true)}
+                    className={`hidden lg:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-semibold border transition-all cursor-pointer whitespace-nowrap flex-shrink-0 ${
+                      engineStatus.hasApiKey && !engineStatus.isDemoMode
+                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20'
+                        : 'bg-amber-500/10 border-amber-500/30 text-amber-300 hover:bg-amber-500/20'
+                    }`}
+                    title="Click to view AI Engine Telemetry & Health"
+                  >
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                        engineStatus.hasApiKey && !engineStatus.isDemoMode
+                          ? 'bg-emerald-400 animate-pulse'
+                          : 'bg-amber-400'
+                      }`}
+                    />
+                    <span>
+                      {engineStatus.hasApiKey && !engineStatus.isDemoMode
+                        ? 'AI: Gemini 3.8 Flash'
+                        : 'AI: Offline Fallback'}
+                    </span>
+                  </button>
+                )}
+              </div>
+            </>
           )}
         </div>
 
         {/* Right: Actions depending on viewMode */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           {viewMode === 'landing' ? (
             <>
               <button
@@ -301,16 +240,16 @@ export const Header: React.FC<HeaderProps> = ({
                   loadDemoProject();
                   onToggleViewMode?.('studio');
                 }}
-                className="text-xs px-3 py-1.5 rounded-lg bg-obsidian-900/90 hover:bg-obsidian-850 text-zinc-300 border border-white/[0.08] hover:border-champagne-500/30 transition-all hidden sm:flex items-center gap-1.5 shadow-sm cursor-pointer"
+                className="h-8 text-xs px-3 rounded-lg bg-obsidian-900/90 hover:bg-obsidian-850 text-zinc-300 border border-white/[0.08] hover:border-champagne-500/30 transition-all hidden sm:inline-flex items-center gap-1.5 shadow-sm cursor-pointer whitespace-nowrap"
                 title="Load PRGuard DevSecOps sample brand"
               >
-                <ShieldCheck className="w-3.5 h-3.5 text-champagne-400" />
+                <ShieldCheck className="w-3.5 h-3.5 text-champagne-400 flex-shrink-0" />
                 <span>Load Sample</span>
               </button>
 
               <button
                 onClick={() => onToggleViewMode?.('studio')}
-                className="btn-monolith-primary text-xs px-3.5 py-1.5 rounded-lg font-bold flex items-center gap-1.5 cursor-pointer shadow-sm"
+                className="btn-monolith-primary h-8 text-xs px-3.5 rounded-lg font-bold inline-flex items-center gap-1.5 cursor-pointer shadow-sm whitespace-nowrap"
               >
                 <span>Enter Studio</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -318,51 +257,39 @@ export const Header: React.FC<HeaderProps> = ({
             </>
           ) : (
             <>
-              {/* Presentation Deck Shortcut Button */}
-              <button
-                type="button"
-                onClick={() => togglePresentationMode(true)}
-                className="text-xs px-2.5 py-1.5 rounded-lg bg-champagne-500/15 hover:bg-champagne-500/25 text-champagne-200 border border-champagne-500/35 hover:border-champagne-400/50 transition-all flex items-center gap-1.5 shadow-sm shadow-champagne-500/10 cursor-pointer"
-                title="Open Executive Presentation Deck (Press F5)"
-              >
-                <Play className="w-3.5 h-3.5 text-champagne-400 fill-champagne-400/40" />
-                <span className="hidden md:inline font-semibold">Deck</span>
-                <kbd className="hidden lg:inline text-[9px] px-1 py-0.2 rounded bg-black/40 text-champagne-300/80 font-mono border border-champagne-500/20">F5</kbd>
-              </button>
-
               {/* Quick Demo Pre-seed button */}
               <button
                 onClick={loadDemoProject}
-                className="text-xs px-3 py-1.5 rounded-lg bg-obsidian-900/90 hover:bg-obsidian-800 text-zinc-300 border border-white/[0.08] hover:border-champagne-500/30 transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+                className="h-8 text-xs px-3 rounded-lg bg-obsidian-900/90 hover:bg-obsidian-800 text-zinc-300 border border-white/[0.08] hover:border-champagne-500/30 transition-all inline-flex items-center gap-1.5 shadow-sm cursor-pointer whitespace-nowrap flex-shrink-0"
                 title="Load sample PRGuard DevSecOps brand state"
               >
-                <ShieldCheck className="w-3.5 h-3.5 text-champagne-400" />
+                <ShieldCheck className="w-3.5 h-3.5 text-champagne-400 flex-shrink-0" />
                 <span className="hidden sm:inline">Load</span> Sample
               </button>
 
               {/* Snapshot Button */}
               <button
                 onClick={() => setShowSnapshotDialog(true)}
-                className="text-xs px-2.5 py-1.5 rounded-lg bg-obsidian-900/90 hover:bg-obsidian-800 text-zinc-300 border border-white/[0.08] hover:border-white/[0.15] transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
+                className="h-8 text-xs px-2.5 rounded-lg bg-obsidian-900/90 hover:bg-obsidian-800 text-zinc-300 border border-white/[0.08] hover:border-white/[0.15] transition-colors inline-flex items-center gap-1.5 shadow-sm cursor-pointer whitespace-nowrap flex-shrink-0"
                 title="Save version snapshot"
               >
-                <Bookmark className="w-3.5 h-3.5 text-emerald-400" />
+                <Bookmark className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
                 <span className="hidden md:inline">Snapshot</span>
               </button>
 
               {/* Export JSON */}
               <button
                 onClick={handleExport}
-                className="text-xs px-2.5 py-1.5 rounded-lg bg-obsidian-900/90 hover:bg-obsidian-800 text-zinc-300 border border-white/[0.08] hover:border-white/[0.15] transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
+                className="h-8 text-xs px-2.5 rounded-lg bg-obsidian-900/90 hover:bg-obsidian-800 text-zinc-300 border border-white/[0.08] hover:border-white/[0.15] transition-colors inline-flex items-center gap-1.5 shadow-sm cursor-pointer whitespace-nowrap flex-shrink-0"
                 title="Export brand state as JSON"
               >
-                <Download className="w-3.5 h-3.5 text-slate-300" />
+                <Download className="w-3.5 h-3.5 text-slate-300 flex-shrink-0" />
                 <span className="hidden md:inline">Export</span>
               </button>
 
               {/* Import JSON */}
-              <label className="text-xs px-2.5 py-1.5 rounded-lg bg-obsidian-900/90 hover:bg-obsidian-800 text-zinc-300 border border-white/[0.08] hover:border-white/[0.15] transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm">
-                <Upload className="w-3.5 h-3.5 text-slate-300" />
+              <label className="h-8 text-xs px-2.5 rounded-lg bg-obsidian-900/90 hover:bg-obsidian-800 text-zinc-300 border border-white/[0.08] hover:border-white/[0.15] transition-colors inline-flex items-center gap-1.5 cursor-pointer shadow-sm whitespace-nowrap flex-shrink-0">
+                <Upload className="w-3.5 h-3.5 text-slate-300 flex-shrink-0" />
                 <span className="hidden md:inline">Import</span>
                 <input type="file" accept=".json" onChange={handleImportFile} className="hidden" />
               </label>
@@ -374,7 +301,7 @@ export const Header: React.FC<HeaderProps> = ({
                     resetProject();
                   }
                 }}
-                className="text-xs p-1.5 rounded-lg hover:bg-obsidian-900 text-zinc-500 hover:text-zinc-300 transition-colors border border-transparent hover:border-white/[0.05] cursor-pointer"
+                className="h-8 w-8 rounded-lg hover:bg-obsidian-900 text-zinc-500 hover:text-zinc-300 transition-colors border border-transparent hover:border-white/[0.05] cursor-pointer inline-flex items-center justify-center flex-shrink-0"
                 title="Reset to blank brand project"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
@@ -384,7 +311,7 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 type="button"
                 onClick={() => setShowSettingsModal(true)}
-                className="text-xs p-1.5 rounded-lg hover:bg-obsidian-900 text-zinc-400 hover:text-champagne-300 transition-colors border border-transparent hover:border-white/[0.08] cursor-pointer"
+                className="h-8 w-8 rounded-lg hover:bg-obsidian-900 text-zinc-400 hover:text-champagne-300 transition-colors border border-transparent hover:border-white/[0.08] cursor-pointer inline-flex items-center justify-center flex-shrink-0"
                 title="AI Engine Telemetry & Connection Status"
               >
                 <Settings className="w-3.5 h-3.5" />
