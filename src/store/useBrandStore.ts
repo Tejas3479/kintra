@@ -53,6 +53,8 @@ interface BrandStoreState {
   isLoading: boolean;
   loadingMessage: string;
   error: string | null;
+  isHydrated: boolean;
+  setHydrated: (hydrated: boolean) => void;
 
   // Actions: Project Management
   createProject: (name: string, initialIdea?: string) => void;
@@ -133,13 +135,13 @@ interface BrandStoreState {
   // Actions: Scenario Lab
   runScenarioTest: (scenarioType: ScenarioTemplateType) => Promise<boolean>;
   selectScenario: (scenarioId: string) => void;
-  repairScenario: (scenarioId: string, findingId: string) => void;
-  manuallyEditScenario: (scenarioId: string, newContent: string) => void;
+  repairScenario: (scenarioId: string, findingId: string) => Promise<void> | void;
+  manuallyEditScenario: (scenarioId: string, newContent: string) => Promise<void> | void;
 
   // Actions: Assumption Evolution Engine
-  proposeAssumptionChange: (category: AssumptionCategory, proposedValue: string, rationale: string) => void;
+  proposeAssumptionChange: (category: AssumptionCategory, proposedValue: string, rationale: string) => Promise<void> | void;
   clearProposedAssumption: () => void;
-  approveEvolution: (choice: EvolutionApprovalChoice, branchName?: string) => void;
+  approveEvolution: (choice: EvolutionApprovalChoice, branchName?: string) => Promise<void> | void;
 
   // Actions: Branching & Versioning
   createBranch: (name: string, description?: string) => void;
@@ -233,6 +235,8 @@ export const useBrandStore = create<BrandStoreState>()(
       isLoading: false,
       loadingMessage: '',
       error: null,
+      isHydrated: false,
+      setHydrated: (hydrated) => set({ isHydrated: hydrated }),
 
       setLoading: (loading, message = '') => set({ isLoading: loading, loadingMessage: message }),
       setError: (error) => set({ error }),
@@ -298,7 +302,7 @@ export const useBrandStore = create<BrandStoreState>()(
         };
 
         set((s) => ({
-          snapshots: [snapshot, ...s.snapshots].slice(0, 10), // keep last 10 snapshots
+          snapshots: [snapshot, ...s.snapshots].slice(0, 3), // keep last 3 snapshots to prevent localStorage quota overflow
           project: {
             ...s.project,
             metadata: {
@@ -1040,7 +1044,7 @@ export const useBrandStore = create<BrandStoreState>()(
         }));
       },
 
-      auditContradictions: () => {
+      auditContradictions: async () => {
         const { positioningWorlds, marketLandscape } = get().project;
         const alerts = positioningWorlds.flatMap((w) =>
           ContradictionDetector.auditPositioningWorld(w, marketLandscape?.evidenceRecords || [])
@@ -1052,6 +1056,32 @@ export const useBrandStore = create<BrandStoreState>()(
             metadata: { ...s.project.metadata, updatedAt: new Date().toISOString() },
           },
         }));
+
+        const selectedWorld = positioningWorlds.find((w) => w.id === get().project.selectedWorldId);
+        if (selectedWorld) {
+          try {
+            const res = await fetch('/api/strategy', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'audit_contradictions',
+                world: selectedWorld,
+                evidenceRecords: marketLandscape?.evidenceRecords || [],
+              }),
+            });
+            const json = await res.json();
+            if (res.ok && json.success && Array.isArray(json.data)) {
+              set((s) => ({
+                project: {
+                  ...s.project,
+                  contradictions: json.data,
+                },
+              }));
+            }
+          } catch {
+            // Keep local alerts
+          }
+        }
       },
 
       generateCreativeIdentity: async () => {
@@ -1467,7 +1497,7 @@ export const useBrandStore = create<BrandStoreState>()(
         get().createSnapshot(`Approved Creative Identity: ${selectedName}`);
       },
 
-      auditIdentityConsistency: () => {
+      auditIdentityConsistency: async () => {
         const { project } = get();
         if (!project.creativeIdentity) return;
 
@@ -1498,6 +1528,37 @@ export const useBrandStore = create<BrandStoreState>()(
               : null,
           },
         }));
+
+        try {
+          const res = await fetch('/api/identity', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'audit_consistency',
+              selectedName,
+              selectedTagline,
+              voiceSystem: project.creativeIdentity.voiceSystem,
+              visualSystem: project.creativeIdentity.visualSystem,
+              positioningWorld: selectedWorld,
+            }),
+          });
+          const json = await res.json();
+          if (res.ok && json.success && Array.isArray(json.data)) {
+            set((s) => ({
+              project: {
+                ...s.project,
+                creativeIdentity: s.project.creativeIdentity
+                  ? {
+                      ...s.project.creativeIdentity,
+                      consistencyConflicts: json.data,
+                    }
+                  : null,
+              },
+            }));
+          }
+        } catch {
+          // Keep local conflicts
+        }
       },
 
       generateArtifact: async (artifactType: GuardianArtifactType) => {
@@ -2082,7 +2143,27 @@ export const useBrandStore = create<BrandStoreState>()(
       runScenarioTest: async (scenarioType: ScenarioTemplateType) => {
         get().setLoading(true, `Simulating realistic ${scenarioType} scenario...`);
         try {
-          const scenario = ScenarioLabEngine.generateScenario(scenarioType, get().project);
+          let scenario: ScenarioArtifact;
+          try {
+            const res = await fetch('/api/evolution', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'generate_scenario',
+                scenarioType,
+                brandState: get().project,
+              }),
+            });
+            const json = await res.json();
+            if (res.ok && json.success && json.data) {
+              scenario = json.data;
+            } else {
+              throw new Error(json.error || 'Failed to generate scenario via API');
+            }
+          } catch {
+            scenario = ScenarioLabEngine.generateScenario(scenarioType, get().project);
+          }
+
           set((s) => {
             const currentScenarios = s.scenarioArtifacts.filter((sc) => sc.scenarioType !== scenarioType);
             const updated = [scenario, ...currentScenarios];
@@ -2132,6 +2213,19 @@ export const useBrandStore = create<BrandStoreState>()(
             },
           };
         });
+
+        if (typeof window !== 'undefined') {
+          fetch('/api/evolution', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'repair_scenario',
+              scenarioArtifact: scenario,
+              findingId,
+              brandState: get().project,
+            }),
+          }).catch(() => {});
+        }
       },
 
       manuallyEditScenario: (scenarioId: string, newContent: string) => {
@@ -2149,6 +2243,19 @@ export const useBrandStore = create<BrandStoreState>()(
             },
           };
         });
+
+        if (typeof window !== 'undefined') {
+          fetch('/api/evolution', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'manually_edit_scenario',
+              scenarioArtifact: scenario,
+              newContent,
+              brandState: get().project,
+            }),
+          }).catch(() => {});
+        }
       },
 
       // Assumption Evolution Engine Actions
@@ -2182,6 +2289,25 @@ export const useBrandStore = create<BrandStoreState>()(
           activeChangeRequest: request,
           impactReport: impact,
         });
+
+        if (typeof window !== 'undefined') {
+          fetch('/api/evolution', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'analyze_impact',
+              changeRequest: request,
+              brandState: get().project,
+            }),
+          })
+            .then((res) => res.json())
+            .then((json) => {
+              if (json?.success && json?.data) {
+                set({ impactReport: json.data });
+              }
+            })
+            .catch(() => {});
+        }
       },
 
       clearProposedAssumption: () => {
@@ -2195,8 +2321,6 @@ export const useBrandStore = create<BrandStoreState>()(
         const request = get().activeChangeRequest;
         if (!request) return;
 
-        const result = BrandEvolutionEngine.applyEvolution(request, get().project, choice, branchName);
-
         if (choice === 'keep_old_decision') {
           set({
             activeChangeRequest: null,
@@ -2204,6 +2328,8 @@ export const useBrandStore = create<BrandStoreState>()(
           });
           return;
         }
+
+        const result = BrandEvolutionEngine.applyEvolution(request, get().project, choice, branchName);
 
         // Apply update or branch
         set((s) => {
@@ -2223,6 +2349,20 @@ export const useBrandStore = create<BrandStoreState>()(
 
         // Create automatic version snapshot
         get().createSnapshot(`Evolved Brand: ${request.title} (${request.proposedValue})`);
+
+        if (typeof window !== 'undefined') {
+          fetch('/api/evolution', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'apply_evolution',
+              changeRequest: request,
+              brandState: get().project,
+              choice,
+              branchName,
+            }),
+          }).catch(() => {});
+        }
       },
 
       // Branching Actions
@@ -2393,6 +2533,9 @@ export const useBrandStore = create<BrandStoreState>()(
         activeBranchId: state.activeBranchId,
         launchKit: state.launchKit,
       }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHydrated(true);
+      },
     }
   )
 );
