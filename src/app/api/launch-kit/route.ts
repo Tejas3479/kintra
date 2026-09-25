@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { LaunchKitEngine } from '@/lib/launch-kit/launch-kit-engine';
+
+export const maxDuration = 60;
 import { CanonicalBrandStateSchema } from '@/lib/schemas/brand-schemas';
 import { LaunchKitSchema } from '@/lib/schemas/launch-kit-schemas';
 import { logger } from '@/lib/logger';

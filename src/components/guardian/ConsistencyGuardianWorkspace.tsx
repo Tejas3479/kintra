@@ -454,6 +454,13 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
 
                         {/* Structured Explanation (WHAT, WHY, WHICH, HOW) */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 bg-obsidian-950/70 p-3 rounded-xl border border-white/[0.04] text-[11px] leading-relaxed">
+                          <div className="md:col-span-2 pb-1 border-b border-white/[0.04] flex items-center justify-between">
+                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-champagne-500/10 text-champagne-300 font-mono text-[10px] font-semibold border border-champagne-500/20">
+                              <Sparkles className="w-3 h-3 text-champagne-400" />
+                              ✨ AI Causal Audit Rationale
+                            </span>
+                            <span className="text-[10px] text-zinc-500 font-mono">Brand Decision Graph Traversal</span>
+                          </div>
                           <div>
                             <span className="font-semibold text-zinc-400">WHAT is wrong: </span>
                             <span className="text-zinc-300">{finding.explanation.whatIsWrong}</span>

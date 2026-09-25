@@ -35,6 +35,33 @@ export interface AIProvider {
   ): Promise<AIServiceResult<T>>;
 }
 
+function extractDomainSnippet(prompt: string, maxLen = 45): string {
+  const cleaned = prompt
+    .replace(/Analyze the following raw idea:?/gi, '')
+    .replace(/Extract facts and unvalidated assumptions from the following founder idea:?/gi, '')
+    .replace(/Synthesize divergent Positioning Worlds:?/gi, '')
+    .replace(/Generate creative identity:?/gi, '')
+    .replace(/Idea Brief:?/gi, '')
+    .replace(/User Request:?/gi, '')
+    .replace(/["\n\r]/g, ' ')
+    .trim();
+  const firstChunk = cleaned.split(/[.?!]/)[0]?.trim() || cleaned;
+  const words = firstChunk.split(/\s+/).slice(0, 5).join(' ');
+  return words.slice(0, maxLen).trim() || 'Modern Innovation';
+}
+
+function deriveRootWord(domain: string): string {
+  const words = domain
+    .split(/\s+/)
+    .filter(
+      (w) =>
+        w.length > 3 &&
+        !/^(with|from|that|this|about|into|over|your|their|platform|system|application|tool)$/i.test(w)
+    );
+  const chosen = words[0] || 'Venture';
+  return chosen.charAt(0).toUpperCase() + chosen.slice(1).toLowerCase().replace(/[^a-zA-Z]/g, '');
+}
+
 /**
  * Deterministic Mock AI Provider
  * Provides realistic, intelligent responses for demo stability, tests, and offline runs
@@ -47,61 +74,121 @@ export class MockAIProvider implements AIProvider {
     _systemPrompt?: string
   ): Promise<AIServiceResult<T>> {
     const startTime = Date.now();
+    const isSecurity =
+      prompt.toLowerCase().includes('pull request') ||
+      prompt.toLowerCase().includes('security') ||
+      prompt.toLowerCase().includes('code review') ||
+      prompt.includes('brief-prguard-1');
+    const domainSnippet = extractDomainSnippet(prompt);
+    const rootWord = deriveRootWord(domainSnippet);
 
     // Check which schema is being requested
     if ((schema as unknown) === IntakeExtractionOutputSchema || prompt.includes('intake') || prompt.includes('Extract facts')) {
-      const mockData = {
-        extractedFacts: [
-          {
-            statement: `Core product purpose identified from input: ${prompt.slice(0, 100).replace(/["\n]/g, ' ')}...`,
-            confidence: 0.95,
-          },
-          {
-            statement: 'Founder is targeting rapid time-to-market without traditional agency overhead.',
-            confidence: 0.9,
-          },
-          {
-            statement: 'Value proposition relies on automated intelligence rather than manual service delivery.',
-            confidence: 0.85,
-          },
-        ],
-        unvalidatedAssumptions: [
-          {
-            claim: 'Target customers already experience this pain acutely and actively search for a software solution.',
-            riskLevel: 'critical' as const,
-            potentialConsequenceIfFalse: 'Product struggles with customer acquisition and high bounce rates.',
-          },
-          {
-            claim: 'Users will trust an AI-driven workflow for strategic or high-consequence decisions.',
-            riskLevel: 'medium' as const,
-            potentialConsequenceIfFalse: 'Adoption stalls unless manual override and explanation controls are visible.',
-          },
-        ],
-        initialQuestions: [
-          {
-            topic: 'audience' as const,
-            question: 'Who is the exact individual that suffers most from this problem on a daily basis?',
-            whyAsking: 'Clarifying the specific human avatar anchors the tone and messaging before choosing brand archetypes.',
-            suggestedAnswers: [
-              'Solo builders and seed-stage founders',
-              'Engineering and product team leads',
-              'Marketing and creative directors',
+      const mockData = isSecurity
+        ? {
+            extractedFacts: [
+              {
+                statement: 'Core product purpose identified: Pull request review intelligence and automated logic verification.',
+                confidence: 0.95,
+              },
+              {
+                statement: 'Founder is targeting rapid time-to-market without traditional agency overhead.',
+                confidence: 0.9,
+              },
+              {
+                statement: 'Value proposition relies on automated intelligence rather than manual service delivery.',
+                confidence: 0.85,
+              },
             ],
-            answerType: 'hybrid' as const,
-          },
-          {
-            topic: 'alternatives' as const,
-            question: 'What is the current, painful workaround they use when your product is not available?',
-            whyAsking: 'Every successful brand positions against a concrete enemy: either a competitor or a messy manual routine.',
-            suggestedAnswers: [
-              'Cobbling together generic LLM prompts in ChatGPT',
-              'Paying high agency retainers or freelance designers',
-              'Ignoring the problem until it creates an acute crisis',
+            unvalidatedAssumptions: [
+              {
+                claim: 'Target customers already experience this pain acutely and actively search for a software solution.',
+                riskLevel: 'critical' as const,
+                potentialConsequenceIfFalse: 'Product struggles with customer acquisition and high bounce rates.',
+              },
+              {
+                claim: 'Users will trust an AI-driven workflow for strategic or high-consequence decisions.',
+                riskLevel: 'medium' as const,
+                potentialConsequenceIfFalse: 'Adoption stalls unless manual override and explanation controls are visible.',
+              },
             ],
-            answerType: 'choice' as const,
-          },
-        ],
-      };
+            initialQuestions: [
+              {
+                topic: 'audience' as const,
+                question: 'Who is the exact individual that suffers most from this problem on a daily basis?',
+                whyAsking: 'Clarifying the specific human avatar anchors the tone and messaging before choosing brand archetypes.',
+                suggestedAnswers: [
+                  'Senior DevOps and Platform Architects',
+                  'Engineering Leads and Staff Engineers',
+                  'Open Source Maintainers',
+                ],
+                answerType: 'hybrid' as const,
+              },
+              {
+                topic: 'alternatives' as const,
+                question: 'What is the current, painful workaround they use when your product is not available?',
+                whyAsking: 'Every successful brand positions against a concrete enemy: either a competitor or a messy manual routine.',
+                suggestedAnswers: [
+                  'Noisy SAST linters spamming false alarms',
+                  'Senior engineers spending 12h/week on manual reviews',
+                  'Ignoring subtle race conditions until production incidents',
+                ],
+                answerType: 'choice' as const,
+              },
+            ],
+          }
+        : {
+            extractedFacts: [
+              {
+                statement: `Core venture purpose identified: ${domainSnippet}.`,
+                confidence: 0.95,
+              },
+              {
+                statement: `Targeting high-conviction differentiation in the ${domainSnippet} space without legacy bloat.`,
+                confidence: 0.9,
+              },
+              {
+                statement: 'Value proposition delivers verified outcomes rather than generic uncalibrated claims.',
+                confidence: 0.85,
+              },
+            ],
+            unvalidatedAssumptions: [
+              {
+                claim: `Target customers in ${domainSnippet} experience acute friction with incumbent solutions.`,
+                riskLevel: 'critical' as const,
+                potentialConsequenceIfFalse: 'Product struggles with customer acquisition and high bounce rates.',
+              },
+              {
+                claim: `Buyers will trust a modern specialized platform designed specifically for ${domainSnippet}.`,
+                riskLevel: 'medium' as const,
+                potentialConsequenceIfFalse: 'Adoption stalls unless manual override and explanation controls are visible.',
+              },
+            ],
+            initialQuestions: [
+              {
+                topic: 'audience' as const,
+                question: `Who is the primary individual or team that struggles most with current ${domainSnippet} alternatives?`,
+                whyAsking: 'Clarifying the specific human avatar anchors the tone and messaging before choosing brand archetypes.',
+                suggestedAnswers: [
+                  `Specialized operators and practitioners in ${domainSnippet}`,
+                  'Modern teams and business decision makers',
+                  'Discerning end consumers',
+                ],
+                answerType: 'hybrid' as const,
+              },
+              {
+                topic: 'alternatives' as const,
+                question: 'What is the current, painful workaround they use when your solution is not available?',
+                whyAsking: 'Every successful brand positions against a concrete enemy: either a legacy competitor or a messy manual routine.',
+                suggestedAnswers: [
+                  'Cobbling together generic fragmented tools',
+                  'Paying high agency or consultant fees',
+                  'Settling for poor quality and slow turnaround',
+                ],
+                answerType: 'choice' as const,
+              },
+            ],
+          };
 
       return {
         success: true,
@@ -133,11 +220,60 @@ export class MockAIProvider implements AIProvider {
     }
 
     if ((schema as unknown) === IdeaBriefSchema || prompt.includes('Idea Brief')) {
-      const mockBrief = {
-        ...DEMO_BRAND_PRGUARD.ideaBrief,
-        id: `brief-${Date.now()}`,
-        generatedAt: new Date().toISOString(),
-      };
+      const mockBrief = isSecurity
+        ? {
+            ...DEMO_BRAND_PRGUARD.ideaBrief,
+            id: `brief-${Date.now()}`,
+            generatedAt: new Date().toISOString(),
+          }
+        : {
+            id: `brief-${Date.now()}`,
+            version: 1,
+            problem: {
+              corePain: `Current alternatives in ${domainSnippet} are fragmented, inconsistent, and lack modern craftsmanship.`,
+              whoSuffers: `Practitioners, operators, and discerning customers in the ${domainSnippet} space.`,
+              triggerEvent: 'When managing day-to-day operations or attempting to differentiate against mass-market commodity options.',
+            },
+            targetUser: {
+              primaryNiche: `Forward-thinking teams and demanding customers seeking uncompromising excellence in ${domainSnippet}.`,
+              currentWorkarounds: ['Generic mass-market providers', 'Fragmented manual routines', 'Uncalibrated DIY hacks'],
+              buyingTrigger: 'Acute frustration with mediocre quality, hidden compromises, and generic experiences.',
+            },
+            context: {
+              industryOrCategory: `${domainSnippet} Craft & Innovation`,
+              marketDynamics: 'Fragmented category ripe for high-conviction, differentiated brand leadership.',
+            },
+            proposedValue: {
+              mechanicOrSolution: `Purpose-built experience engineered specifically for the operational nuances of ${domainSnippet}.`,
+              keyBenefit: 'Verifiable quality, effortless clarity, and zero status-quo compromises.',
+              unfairAdvantage: 'Deep category dedication, authentic craft, and transparent execution standards.',
+            },
+            constraints: [
+              `Never compromise on the core quality standard for ${domainSnippet}.`,
+              'Maintain transparent pricing and authentic customer communication.',
+              'Avoid generic corporate buzzwords and unverified claims.',
+            ],
+            assumptions: [
+              {
+                id: 'hyp-1',
+                claim: `Target customers in ${domainSnippet} are willing to switch to a specialized provider for higher quality.`,
+                riskLevel: 'critical' as const,
+                potentialConsequenceIfFalse: 'Slower initial traction if customers prioritize low cost over quality.',
+                status: 'untested' as const,
+              },
+              {
+                id: 'hyp-2',
+                claim: `A direct, craft-grade brand voice resonates better than generic corporate marketing in ${domainSnippet}.`,
+                riskLevel: 'medium' as const,
+                potentialConsequenceIfFalse: 'Brand tone may require calibration if audience prefers conventional corporate style.',
+                status: 'untested' as const,
+              },
+            ],
+            openQuestions: [],
+            confidenceScore: 0.9,
+            status: 'draft' as const,
+            generatedAt: new Date().toISOString(),
+          };
 
       return {
         success: true,
@@ -267,17 +403,17 @@ export class MockAIProvider implements AIProvider {
         : [
             {
               id: 'world-purist',
-              title: 'The Uncompromising Purist',
+              title: `The Uncompromising ${rootWord} Purist`,
               archetype: 'The Engineering Purist' as const,
-              targetAudience: 'Discerning power users and domain connoisseurs who reject mass-market compromises.',
-              problemFraming: 'Mass-market solutions cut corners on craft and ingredients, delivering generic, commoditized experiences.',
-              valueProposition: 'Surgical dedication to source provenance, radical transparency, and master-level execution standards.',
-              differentiator: 'Direct single-origin sourcing with unvarnished, verifiable provenance tracking.',
-              categoryFraming: 'Craft-Grade Specialization',
+              targetAudience: `Discerning practitioners and power users seeking master-grade excellence in ${domainSnippet}.`,
+              problemFraming: `Mass-market options in ${domainSnippet} cut corners on craft and reliability, delivering commoditized experiences.`,
+              valueProposition: `Surgical dedication to verifiable quality, radical transparency, and precision execution standards for ${domainSnippet}.`,
+              differentiator: `Direct unvarnished provenance and rigorous standards purpose-built for ${domainSnippet}.`,
+              categoryFraming: `Craft-Grade ${rootWord} Specialization`,
               emotionalTerritory: 'Quiet technical mastery, unvarnished integrity, zero decorative theater.',
-              proofMechanism: 'Auditable provenance and batch-specific sensory profiles with zero intermediary blending.',
+              proofMechanism: `Auditable performance metrics and verified outcomes with zero intermediary compromises.`,
               supportingEvidenceIds: [],
-              assumptions: ['Customers will pay a premium for verifiable craftsmanship over branded mass convenience.'],
+              assumptions: [`Customers in ${domainSnippet} will pay for verifiable craftsmanship over uncalibrated mass convenience.`],
               risks: ['Niche appeal requiring ongoing education of mainstream buyers.'],
               tradeoffs: {
                 whatWeEmphasize: 'Uncompromising craft purity and radical transparency.',
@@ -286,9 +422,9 @@ export class MockAIProvider implements AIProvider {
               challenges: [
                 {
                   evaluatorRole: 'Contrarian' as const,
-                  perspective: 'Most consumers cannot discern microscopic quality differences and prioritize convenience and price.',
-                  potentialTrap: 'Trapped in a tiny boutique market that cannot sustain scalable growth.',
-                  unforgivingQuestion: 'Can you build a defensible venture-scale business selling exclusively to purists?',
+                  perspective: 'Most mainstream customers prioritize quick convenience and lower price over deep craft.',
+                  potentialTrap: 'Trapped in a tiny boutique niche that limits growth velocity.',
+                  unforgivingQuestion: `Can you build a defensible, scalable venture selling exclusively to ${domainSnippet} purists?`,
                 },
                 {
                   evaluatorRole: 'Audience Advocate' as const,
@@ -298,77 +434,77 @@ export class MockAIProvider implements AIProvider {
                 },
                 {
                   evaluatorRole: 'Competitive Challenger' as const,
-                  perspective: 'Category giants will launch a faux-craft sub-brand with 10x your marketing budget.',
-                  potentialTrap: 'Incumbent co-opting craft terminology without bearing the cost of genuine artisan sourcing.',
-                  unforgivingQuestion: 'How will you prevent supermarket conglomerates from marketing imitation artisanal products?',
+                  perspective: `Category giants will launch a feature that mimics ${domainSnippet} with 10x your marketing budget.`,
+                  potentialTrap: 'Incumbent co-opting terminology without bearing the operational discipline of genuine craft.',
+                  unforgivingQuestion: 'How will you defend against large incumbents copying your surface-level claims?',
                 },
               ],
               status: 'candidate' as const,
             },
             {
               id: 'world-partner',
-              title: 'The Frictionless Ritual Partner',
+              title: `The Frictionless ${rootWord} Partner`,
               archetype: 'The Frictionless Partner' as const,
-              targetAudience: 'Time-constrained professionals seeking premium quality without elaborate setup rituals.',
-              problemFraming: 'High-end artisan experiences demand tedious preparation and specialized equipment, causing daily friction.',
-              valueProposition: 'Effortless, streamlined access to exceptional quality tailored to everyday personal routines.',
-              differentiator: 'Pre-calibrated single-step delivery designed to integrate seamlessly into existing daily schedules.',
-              categoryFraming: 'Accessible Everyday Mastery',
+              targetAudience: `Demanding professionals who need high-performance outcomes in ${domainSnippet} without operational friction.`,
+              problemFraming: `Existing approaches to ${domainSnippet} demand complex setup, manual oversight, and tedious configuration.`,
+              valueProposition: 'Effortless, streamlined access to exceptional quality tailored to modern workflow velocity.',
+              differentiator: `Pre-calibrated, single-step integration engineered specifically for ${domainSnippet}.`,
+              categoryFraming: `Accessible Modern ${rootWord} Platform`,
               emotionalTerritory: 'Effortless calm, seamless routine, reliable satisfaction.',
-              proofMechanism: 'Zero-step calibration guaranteeing consistent sensory outcomes every single time.',
+              proofMechanism: 'Zero-overhead calibration guaranteeing consistent high-fidelity results every single time.',
               supportingEvidenceIds: [],
-              assumptions: ['Users want craft excellence but refuse complex, 15-minute preparation procedures.'],
-              risks: ['Perception of convenience eroding artisan prestige.'],
+              assumptions: [`Operators want top-tier results in ${domainSnippet} without cumbersome manual setup rituals.`],
+              risks: ['Perception of convenience eroding premium positioning.'],
               tradeoffs: {
-                whatWeEmphasize: 'Frictionless everyday integration and user convenience.',
+                whatWeEmphasize: 'Frictionless workflow integration and operational convenience.',
                 whatWeSacrifice: 'Complex manual customization and elaborate ceremonial rituals.',
               },
               challenges: [
                 {
                   evaluatorRole: 'Strategist' as const,
                   perspective: 'Convenience products face constant commoditization from cheap instant substitutes.',
-                  potentialTrap: 'Compromising too much on the product experience to maintain convenience.',
-                  unforgivingQuestion: 'What prevents convenience competitors from undercutting your unit economics?',
+                  potentialTrap: 'Compromising too much on the core depth to maintain convenience.',
+                  unforgivingQuestion: 'What prevents low-end competitors from undercutting your unit economics?',
                 },
                 {
                   evaluatorRole: 'Contrarian' as const,
-                  perspective: 'True connoisseurs value the ritual as much as the outcome.',
-                  potentialTrap: 'Losing high-reputation early adopters who demand manual control.',
-                  unforgivingQuestion: 'Will you lose word-of-mouth momentum by stripping away the ritual?',
+                  perspective: 'True domain connoisseurs demand deep manual control and transparency.',
+                  potentialTrap: 'Losing high-reputation early adopters who want granular knobs.',
+                  unforgivingQuestion: 'Will you lose high-conviction power users by over-simplifying the interface?',
                 },
               ],
               status: 'candidate' as const,
             },
             {
               id: 'world-challenger',
-              title: 'The Rebellious Challenger',
+              title: `The Open ${rootWord} Challenger`,
               archetype: 'The Rebellious Challenger' as const,
-              targetAudience: 'Next-generation consumers fed up with pompous gatekeeping and corporate greenwashing.',
-              problemFraming: 'Incumbent brands hide predatory supply chains behind romanticized storytelling and inflated retail markups.',
-              valueProposition: 'Democratizing direct access with transparent fair-trade economics, stripping away pretentious luxury taxes.',
-              differentiator: 'Open-book supplier payout transparency with zero luxury markup.',
-              categoryFraming: 'Direct-Trade Counter-Culture',
+              targetAudience: `Forward-thinking operators fed up with closed proprietary ecosystems and vendor lock-in in ${domainSnippet}.`,
+              problemFraming: `Legacy incumbents in ${domainSnippet} lock customers into opaque black boxes with inflated renewal pricing.`,
+              valueProposition: 'Democratizing transparent, modern workflows with open standards and community-first empowerment.',
+              differentiator: 'Radical openness and transparent pricing with zero proprietary lock-in.',
+              categoryFraming: `Decentralized Modern ${rootWord} Movement`,
               emotionalTerritory: 'Bold defiance, authentic community, unfiltered truth.',
-              proofMechanism: 'Public ledger of supplier invoices and farmer profit margins published openly.',
+              proofMechanism: 'Open architecture, transparent benchmarks, and auditable metrics published openly.',
               supportingEvidenceIds: [],
-              assumptions: ['Modern consumers actively choose brands that expose industry hypocrisy.'],
-              risks: ['Antagonizing incumbent distribution channels and retail partners.'],
+              assumptions: ['Modern buyers actively favor open, transparent alternatives over legacy corporate gatekeepers.'],
+              risks: ['Antagonizing incumbent channel partners and legacy distributors.'],
               tradeoffs: {
-                whatWeEmphasize: 'Radical economic transparency and bold anti-establishment identity.',
-                whatWeSacrifice: 'Traditional retail distributor relationships and conservative corporate partnerships.',
+                whatWeEmphasize: 'Radical openness and bold anti-establishment identity.',
+                whatWeSacrifice: 'Traditional enterprise reseller deals and conservative corporate partnerships.',
               },
               challenges: [
                 {
                   evaluatorRole: 'Audience Advocate' as const,
-                  perspective: 'Anger and rebellion attract early attention but rarely sustain ten-year customer loyalty.',
-                  potentialTrap: 'Becoming an exhausting outrage brand rather than an enduring daily companion.',
-                  unforgivingQuestion: 'How does your brand evolve when rebellion becomes the new corporate cliché?',
+                  perspective: 'Rebellion attracts early attention but rarely sustains enterprise customer loyalty.',
+                  potentialTrap: 'Becoming an exhausting protest brand rather than an enduring daily utility.',
+                  unforgivingQuestion: 'How does your brand evolve when rebellion becomes yesterday’s novelty?',
                 },
                 {
                   evaluatorRole: 'Competitive Challenger' as const,
-                  perspective: 'Incumbents can launch carbon-offset marketing campaigns that satisfy mainstream buyers.',
-                  potentialTrap: 'Mainstream buyers accepting superficial green certifications over genuine economic reform.',
-                  unforgivingQuestion: 'Can supply chain transparency compete with a $100M incumbent advertising blitz?',
+                  perspective: 'Incumbents can slash prices or launch open tiers to undercut your thesis.',
+                  potentialTrap: 'Mainstream buyers accepting free incumbent tiers over independent challengers.',
+                  unforgivingQuestion: 'Can open transparency alone beat massive enterprise distribution?',
                 },
               ],
               status: 'candidate' as const,
@@ -388,7 +524,11 @@ export class MockAIProvider implements AIProvider {
     }
 
     if ((schema as unknown) === IdentitySynthesisOutputSchema || prompt.includes('Creative Identity') || prompt.includes('IdentitySynthesis')) {
-      const isSecurity = prompt.toLowerCase().includes('pull request') || prompt.toLowerCase().includes('security') || prompt.toLowerCase().includes('code');
+      const isSecurity =
+        prompt.toLowerCase().includes('pull request') ||
+        prompt.toLowerCase().includes('security') ||
+        prompt.toLowerCase().includes('code review') ||
+        prompt.includes('brief-prguard-1');
       const mockIdentityOutput = isSecurity
         ? {
             personalityTraits: [
@@ -573,24 +713,24 @@ export class MockAIProvider implements AIProvider {
               {
                 id: 'trait-craft',
                 name: 'Radical Integrity',
-                definition: 'Relentless dedication to authentic materials, ethical sourcing, and uncompromising standards.',
+                definition: `Relentless dedication to authentic outcomes, transparent execution, and uncompromising standards in ${domainSnippet}.`,
                 audienceRelevance: 'Discerning customers demand verified truth over marketing romance.',
-                strategicBasis: 'Derived from uncompromising purist differentiator.',
+                strategicBasis: `Derived from uncompromising purist differentiator for ${domainSnippet}.`,
                 behaviorExamples: [
-                  'Publishes transparent origin metrics and lab test results directly on packaging.',
-                  'Rejects cheap industrial shortcuts regardless of margin pressure.',
+                  'Publishes auditable metrics and clear benchmarks with zero obfuscation.',
+                  'Rejects cheap industrial shortcuts regardless of short-term margin pressure.',
                 ],
-                traitToAvoid: 'Never make exaggerated wellness or magical transformation claims.',
+                traitToAvoid: 'Never make exaggerated wellness, magical transformation, or uncalibrated hype claims.',
                 confidence: 0.94,
               },
               {
                 id: 'trait-lucidity',
                 name: 'Direct Clarity',
                 definition: 'Speaks clearly without pretentious jargon, gatekeeping rituals, or decorative corporate theater.',
-                audienceRelevance: 'Modern consumers value accessible mastery and transparent honesty.',
-                strategicBasis: 'Rooted in accessible craftsmanship.',
+                audienceRelevance: `Demanding buyers in ${domainSnippet} value accessible mastery and transparent honesty.`,
+                strategicBasis: 'Rooted in accessible modern craftsmanship.',
                 behaviorExamples: [
-                  'Explains flavor profiles, origin notes, and preparation parameters in plain, descriptive language.',
+                  `Explains technical parameters, origin standards, and workflows in plain, descriptive language.`,
                 ],
                 traitToAvoid: 'Never demean or condescend to curious beginners.',
                 confidence: 0.91,
@@ -598,11 +738,11 @@ export class MockAIProvider implements AIProvider {
               {
                 id: 'trait-respect',
                 name: 'Quiet Defiance',
-                definition: 'Proudly challenges lazy commodity habits by demonstrating how exceptional honest craft can be.',
-                audienceRelevance: 'Conscious buyers want to align their daily rituals with ethical integrity.',
-                strategicBasis: 'Aligns with economic transparency proof mechanism.',
+                definition: `Proudly challenges lazy commodity habits by demonstrating how exceptional honest innovation in ${domainSnippet} can be.`,
+                audienceRelevance: 'Conscious operators want to align their daily tools with ethical integrity.',
+                strategicBasis: 'Aligns with operational transparency proof mechanism.',
                 behaviorExamples: [
-                  'Showcases producer partners and direct-trade payment receipts openly.',
+                  'Showcases open benchmarks and transparent operational standards openly.',
                 ],
                 traitToAvoid: 'Never engage in smug moralizing or competitor bashing.',
                 confidence: 0.89,
@@ -611,78 +751,78 @@ export class MockAIProvider implements AIProvider {
             namingTerritories: [
               {
                 id: 'territory-1',
-                name: 'Elemental Origin & Raw Provenance',
-                semanticLogic: 'Rooted in geographic bedrock, climate terroir, and pure raw elements.',
+                name: 'Elemental Provenance & Raw Essence',
+                semanticLogic: `Rooted in core category fundamentals, transparent materials, and authentic origins for ${domainSnippet}.`,
                 phoneticLogic: 'Deep earthen vowels anchored by crisp dental consonants.',
-                emotionalEffect: 'Grounds the brand in timeless geological authenticity and honest earth.',
-                risks: 'May sound overly agricultural if not balanced by modern typographic polish.',
-                categoryFit: 'High resonance with artisanal and single-origin markets.',
-                distinctivenessConsiderations: 'Rejects synthetic modern suffixes in favor of rooted nouns.',
+                emotionalEffect: 'Grounds the brand in timeless authenticity and honest foundation.',
+                risks: 'May sound overly industrial if not balanced by modern typographic polish.',
+                categoryFit: `High resonance with modern ${domainSnippet} practitioners.`,
+                distinctivenessConsiderations: 'Rejects synthetic generic suffixes in favor of rooted nouns.',
               },
               {
                 id: 'territory-2',
-                name: 'Measured Craft & Precision Alchemy',
-                semanticLogic: 'Draws from temperature, extraction physics, and artisanal discipline.',
+                name: 'Precision Craft & Modern Velocity',
+                semanticLogic: 'Draws from operational discipline, repeatable engineering, and high-velocity workflow.',
                 phoneticLogic: 'Balanced cadence with crisp final consonants.',
                 emotionalEffect: 'Communicates deliberate mastery and repeatable excellence.',
-                risks: 'Risk of sounding clinical if warmth is not preserved.',
-                categoryFit: 'High resonance with craft connoisseurs.',
+                risks: 'Risk of sounding clinical if human warmth is not preserved.',
+                categoryFit: 'High resonance with demanding operators and connoisseurs.',
                 distinctivenessConsiderations: 'Avoids whimsical fantasy words in favor of tactile real-world terms.',
               },
             ],
             rawNames: [
               {
-                name: 'Terravore',
-                territoryName: 'Elemental Origin & Raw Provenance',
-                rationale: 'Portmanteau of terra (earth) and voracious passion. Evokes raw, visceral connection to origin.',
-                semantic: 'Earth, appetite, origin, raw elemental power.',
-                pronunciation: 'TER-uh-vor',
+                name: `${rootWord}Craft`,
+                territoryName: 'Precision Craft & Modern Velocity',
+                rationale: `Combines the category root '${rootWord}' with deliberate artisan craftsmanship.`,
+                semantic: `Deliberate craft, repeatable excellence, dedicated focus on ${domainSnippet}.`,
+                pronunciation: `${rootWord.toUpperCase()}-kraft`,
                 ambiguity: 'Clean disyllable with strong physical resonance.',
-                strategicFit: 'Signals uncompromising focus on terroir and unblended single origins.',
+                strategicFit: `Signals uncompromising focus on craftsmanship and verifiable quality in ${domainSnippet}.`,
               },
               {
-                name: 'AuraCraft',
-                territoryName: 'Measured Craft & Precision Alchemy',
-                rationale: 'Combines the subtle sensory aura of freshly roasted beans with deliberate artisan craft.',
-                semantic: 'Sensory presence, deliberate craft, repeatable excellence.',
-                pronunciation: 'AW-ruh-kraft',
-                ambiguity: 'Two familiar morphemes; easy to spell and remember.',
-                strategicFit: 'Frames product as an intentional, elevated daily ritual.',
+                name: `Vera${rootWord}`,
+                territoryName: 'Elemental Provenance & Raw Essence',
+                rationale: `Draws from Latin 'veritas' (truth/verifiable) prefixed to '${rootWord}'. Evokes transparent integrity.`,
+                semantic: 'Truth, auditable standards, verified reality, zero false hype.',
+                pronunciation: `VEH-ruh-${rootWord.toLowerCase()}`,
+                ambiguity: 'Memorable brand mark with clear etymology.',
+                strategicFit: `Frames product as the honest, transparent standard in ${domainSnippet}.`,
               },
               {
-                name: 'SolisRoast',
-                territoryName: 'Elemental Origin & Raw Provenance',
-                rationale: 'Derived from solar energy that ripens high-altitude coffee cherries.',
-                semantic: 'Sunlight, high altitude, clarity, warmth.',
-                pronunciation: 'SO-lis-rohst',
-                ambiguity: 'Directly anchors in roasting category.',
-                strategicFit: 'Communicates warm radiant mastery.',
+                name: `${rootWord}Pulse`,
+                territoryName: 'Precision Craft & Modern Velocity',
+                rationale: `Suggests real-time responsiveness and active, living momentum in ${domainSnippet}.`,
+                semantic: 'Cadence, momentum, modern responsiveness, live feedback.',
+                pronunciation: `${rootWord.toUpperCase()}-puls`,
+                ambiguity: 'Direct and energetic.',
+                strategicFit: 'Communicates high-velocity operational mastery.',
               },
               {
-                name: 'VerdantPress',
-                territoryName: 'Measured Craft & Precision Alchemy',
-                rationale: 'Evokes the lush green highlands and the physical discipline of extraction.',
-                semantic: 'Freshness, vitality, deliberate physical extraction.',
-                pronunciation: 'VER-dnt-press',
-                ambiguity: 'Tactile and memorable.',
-                strategicFit: 'Reinforces ethical farming and craft mastery.',
+                name: `Nova${rootWord}`,
+                territoryName: 'Elemental Provenance & Raw Essence',
+                rationale: `Evokes a new generation of thinking, discarding legacy baggage in ${domainSnippet}.`,
+                semantic: 'New standard, clarity, fresh perspective, modern dawn.',
+                pronunciation: `NOH-vuh-${rootWord.toLowerCase()}`,
+                ambiguity: 'Crisp and globally accessible.',
+                strategicFit: 'Positions the brand as the modern challenger against sluggish incumbents.',
               },
             ],
             taglineCandidates: [
               {
-                tagline: 'Single origin. Zero compromise. Roasted for the obsessed.',
-                strategicMechanism: 'Enforces pure unblended single-origin focus and clear craft sacrifice.',
-                falsifiabilityScore: 0.94,
+                tagline: `Uncompromising craft. Zero compromises. Built for ${domainSnippet}.`,
+                strategicMechanism: 'Enforces pure dedication and clear category craft sacrifice.',
+                falsifiabilityScore: 0.93,
               },
               {
-                tagline: 'From farm invoice to cup. Radical coffee transparency.',
-                strategicMechanism: 'Articulates public ledger proof mechanism.',
+                tagline: 'Verifiable quality from first touch to delivery. No shortcuts.',
+                strategicMechanism: 'Articulates auditable proof mechanism.',
                 falsifiabilityScore: 0.91,
               },
               {
-                tagline: 'Mastery in every roast. No shortcuts, no blends.',
+                tagline: 'Mastery in every detail. Built for the obsessed.',
                 strategicMechanism: 'Anchors the uncompromising purist differentiator.',
-                falsifiabilityScore: 0.86,
+                falsifiabilityScore: 0.88,
               },
             ],
             voiceSystem: {
@@ -690,51 +830,51 @@ export class MockAIProvider implements AIProvider {
                 precision: 85,
                 warmth: 65,
                 authority: 80,
-                energy: 55,
+                energy: 60,
               },
               sentenceBehavior: {
                 averageLength: 'balanced' as const,
                 voicePreference: 'active_direct' as const,
-                cadenceDescription: 'Sensory, evocative description anchored by concrete extraction variables.',
+                cadenceDescription: `Evocative, high-conviction description anchored by concrete variables in ${domainSnippet}.`,
               },
               vocabulary: {
-                preferredTerms: ['single-origin', 'altitude', 'extraction', 'washed process', 'terroir', 'direct-trade'],
+                preferredTerms: ['verifiable', 'calibrated', 'provenance', 'clarity', 'uncompromising', rootWord.toLowerCase()],
                 technicalDensity: 'practitioner' as const,
-                signaturePhrases: ['Roasted in micro-batches.', 'Sourced directly from producer families.', 'Every harvest has a story.'],
+                signaturePhrases: [`Engineered for ${domainSnippet}.`, 'Crafted without compromise.', 'Auditable by design.'],
               },
-              bannedPatterns: ['best coffee in the world', 'miracle blend', 'guilt-free guiltless', 'supercharge your morning'],
+              bannedPatterns: ['supercharge your workflow', 'magic button', 'game-changing revolution', 'guaranteed success in minutes'],
               weSayVsWeAvoid: [
                 {
-                  weSay: 'Grown at 1,950m in Huila, Colombia. Notes of crisp green apple, cane sugar, and jasmine tea.',
-                  weAvoid: 'Get ready for an explosion of mind-blowing coffee euphoria that will totally change your life!',
-                  why: 'Honest sensory precision builds enduring trust; hyperbolic marketing tropes degrade credibility.',
+                  weSay: `Built specifically for ${domainSnippet}. Delivers verified outcomes with zero fluff.`,
+                  weAvoid: 'Get ready for an explosion of mind-blowing transformation that will totally change your life!',
+                  why: 'Honest precision builds enduring trust; hyperbolic marketing tropes degrade credibility.',
                 },
                 {
-                  weSay: 'We pay $4.20/lb directly to the Gomez family—2.5x the C-market commodity baseline.',
-                  weAvoid: 'We care super deeply about sustainable ethical green earth vibes!',
-                  why: 'Real numbers and verifiable receipts prove ethical sourcing far better than hollow slogans.',
+                  weSay: 'Transparent metrics, open standards, and direct accountability in every interaction.',
+                  weAvoid: 'We care super deeply about disruptive synergies and holistic vibes!',
+                  why: 'Real numbers and verifiable practices prove value far better than hollow slogans.',
                 },
               ],
               examples: [
                 {
                   channel: 'hero_copy' as const,
-                  sampleText: 'Unblended single-origin coffee. Sourced ethically, roasted with mathematical precision.',
-                  annotation: 'Clear positioning emphasizing both ethical provenance and extraction craft.',
+                  sampleText: `Dedicated to ${domainSnippet}. Built with mathematical precision and radical clarity.`,
+                  annotation: 'Clear positioning emphasizing both domain integrity and execution craft.',
                 },
                 {
                   channel: 'social' as const,
-                  sampleText: 'Batch #418 just came off the drum: 12 minutes, light-medium roast curve, maximizing the delicate citric acidity of this Ethiopian heirloom lot.',
+                  sampleText: `We measured the outcome across 100 iterations: zero false steps, full audit trail. That is how ${domainSnippet} should be done.`,
                   annotation: 'Technical transparency demonstrating authentic passion.',
                 },
               ],
               channelAdaptations: {
-                packaging: 'Prominent harvest date, elevation, varietal, and producer name.',
-                social: 'Sensory notes and behind-the-scenes roast curve charts.',
-                newsletter: 'Producer partner spotlights and seasonal harvest forecasts.',
+                packaging: 'Prominent specification details, verification seals, and batch markers.',
+                social: 'Behind-the-scenes engineering logs and objective benchmark comparisons.',
+                newsletter: 'In-depth practitioner insights and transparent product changelogs.',
               },
             },
-            visualMetaphors: ['Topographic contour maps', 'Warm copper and matte stone surfaces', 'Macro botanical photography'],
-            thingsToAvoid: ['Cheesy cartoon coffee bean mascots', 'Fake vintage burlap sack textures', 'Chaotic hipster grunge'],
+            visualMetaphors: ['Architectural blueprints', 'High-contrast typography grids', 'Crisp tactile material surfaces'],
+            thingsToAvoid: ['Cutesy cartoon mascot graphics', 'Chaotic neon gradient clutter', 'Generic stock corporate handshakes'],
           };
 
       return {

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+
+export const maxDuration = 60;
 import { IdentityService } from '@/lib/identity/identity-service';
 import { IdentityConsistencyChecker } from '@/lib/identity/identity-consistency-checker';
 import { AntiGenericNamer } from '@/lib/identity/anti-generic-namer';

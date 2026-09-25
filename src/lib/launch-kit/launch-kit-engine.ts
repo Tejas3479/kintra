@@ -578,8 +578,16 @@ Governed by ${governingDecisionIds.length} approved decisions in KINTRA Decision
 
     const sections: string[] = [];
 
+    const isDeveloperSecurity =
+      guidelines.positioning.proofMechanism.toLowerCase().includes('ast') ||
+      guidelines.positioning.categoryFraming.toLowerCase().includes('security') ||
+      guidelines.positioning.categoryFraming.toLowerCase().includes('code') ||
+      brandName.toLowerCase().includes('prguard');
+    const proofHeader = isDeveloperSecurity ? '### AST Proof Mechanism' : '### Proof Mechanism';
+
     // Header
     sections.push(`# ${brandName.toUpperCase()} — BRAND BOOK & LAUNCH KIT\n`);
+    sections.push(`### ✦ Official Multi-Channel Launch Kit & Strategy Thesis\n`);
     sections.push(`> **Version:** ${version} | **Generated:** ${new Date(generatedAt).toUTCString()} | **Engine:** KINTRA Decision Intelligence\n`);
     sections.push(`---\n`);
 
@@ -614,7 +622,7 @@ ${guidelines.positioning.valueProposition}
 ### Core Differentiator
 ${guidelines.positioning.differentiator}
 
-### AST Proof Mechanism
+${proofHeader}
 ${guidelines.positioning.proofMechanism}
 \n---\n`);
 

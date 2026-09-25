@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+
+export const maxDuration = 60;
 import { ConsistencyGuardian } from '@/lib/guardian/consistency-guardian';
 import { logger } from '@/lib/logger';
 import { enforceRateLimit, RATE_LIMIT_STANDARD } from '@/lib/security/rate-limiter';

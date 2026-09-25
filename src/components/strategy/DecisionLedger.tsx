@@ -8,8 +8,8 @@ import {
   CheckCircle2,
   Clock,
   ArrowRight,
-  ShieldCheck,
   Scale,
+  Sparkles,
   ExternalLink,
   Edit3,
   Save,
@@ -189,9 +189,9 @@ export const DecisionLedger: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
                     {/* WHY */}
                     <div className="bg-obsidian-950/60 border border-white/[0.05] rounded-lg p-3 space-y-1">
-                      <span className="text-[10px] font-bold text-champagne-400 uppercase tracking-wider flex items-center gap-1 font-mono">
-                        <ShieldCheck className="w-3.5 h-3.5" />
-                        Strategic Rationale (Why):
+                      <span className="text-[10px] font-bold text-champagne-400 uppercase tracking-wider flex items-center gap-1.5 font-mono">
+                        <Sparkles className="w-3.5 h-3.5 text-champagne-400" />
+                        ✨ AI Strategic Rationale:
                       </span>
                       <p className="text-zinc-300 leading-normal">{node.rationale}</p>
                     </div>

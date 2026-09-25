@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+
+export const maxDuration = 60;
 import { getResearchProvider } from '@/lib/research/research-provider';
 import { EvidenceEngine } from '@/lib/research/evidence-engine';
 import { MarketLandscapeSchema } from '@/lib/schemas/research-schemas';

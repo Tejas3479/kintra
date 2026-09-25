@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+
+export const maxDuration = 60;
 import { ScenarioLabEngine } from '@/lib/evolution/scenario-lab-engine';
 import { BrandEvolutionEngine } from '@/lib/evolution/brand-evolution-engine';
 import { logger } from '@/lib/logger';

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+
+export const maxDuration = 60;
 import { StrategyService } from '@/lib/strategy/strategy-service';
 import { ContradictionDetector } from '@/lib/strategy/contradiction-detector';
 import { logger } from '@/lib/logger';
