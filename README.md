@@ -8,7 +8,8 @@
 [![Next.js](https://img.shields.io/badge/Next.js-15.1.7-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19.0.0-blue?style=for-the-badge&logo=react)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
-[![Google Gemini](https://img.shields.io/badge/Google%20Gemini-3.8%20Flash-orange?style=for-the-badge&logo=google)](https://deepmind.google/technologies/gemini/)
+[![Google Gemini](https://img.shields.io/badge/Google%20Gemini-Flash%20(2.5%20--%203.8)-orange?style=for-the-badge&logo=google)](https://deepmind.google/technologies/gemini/)
+[![Tavily Search](https://img.shields.io/badge/Tavily-Live%20Search-blueviolet?style=for-the-badge&logo=search)](https://tavily.com/)
 [![Tests](https://img.shields.io/badge/Vitest-155%20Passed-emerald?style=for-the-badge&logo=vitest)](https://vitest.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-purple?style=for-the-badge)](LICENSE)
 
@@ -169,7 +170,7 @@ KINTRA features a production-ready dual-engine architecture:
     • Dynamic strategic reasoning    • Zero setup for judges/reviewers
 ```
 
-- **Production Mode**: When `GEMINI_API_KEY` is provided, KINTRA invokes Google's `gemini-3.8-flash` (supporting `gemini-3.5-flash` through `gemini-3.8-flash`) with strict JSON schema enforcement via `@google/genai`.
+- **Production Mode**: When `GEMINI_API_KEY` is provided, KINTRA invokes Google's `gemini-2.5-flash` or `gemini-3.8-flash` with strict JSON schema enforcement via `@google/genai` and automated high-demand failover. When `TAVILY_API_KEY` is configured, KINTRA conducts live web research and competitor crawling via the Tavily Search API.
 - **Demo / Offline Mode**: When running without credentials or in CI, KINTRA executes deterministic fixtures instantly with zero latency and zero billing cost.
 
 ---
@@ -180,7 +181,8 @@ KINTRA features a production-ready dual-engine architecture:
 | :--- | :--- | :--- |
 | **Framework** | [Next.js 15.1.7](https://nextjs.org/) (App Router) | High-performance React SSR/SSG and server routes |
 | **Runtime** | [React 19](https://react.dev/) + [TypeScript 5](https://www.typescriptlang.org/) | Strict type-safe UI components and domain modeling |
-| **AI Integration** | [@google/genai](https://www.npmjs.com/package/@google/genai) | Gemini 3.8 Flash (3.5–3.8) structured output synthesis |
+| **AI Integration** | [@google/genai](https://www.npmjs.com/package/@google/genai) | Gemini 2.5 / 3.8 Flash structured output synthesis with auto-failover |
+| **Market Research** | [Tavily Search API](https://tavily.com/) | Real-time competitor crawling & market landscape evidence ledger |
 | **State Store** | [Zustand 5](https://github.com/pmndrs/zustand) | Client-side persistent reactive brand state & snapshotting |
 | **Validation** | [Zod 3](https://zod.dev/) | Strict runtime schema enforcement for all domain types |
 | **Styling** | [Tailwind CSS 3](https://tailwindcss.com/) | Dark obsidian terminal aesthetic with WCAG AA compliance |
@@ -212,11 +214,15 @@ KINTRA features a production-ready dual-engine architecture:
    ```bash
    cp .env.example .env.local
    ```
-   Add your Gemini API Key if you wish to run live inference:
+   Add your Gemini and Tavily API Keys if you wish to run live inference and live market research:
    ```env
    # .env.local (Git-ignored)
    GEMINI_API_KEY=your_google_gemini_api_key
+   GOOGLE_API_KEY=your_google_gemini_api_key
+   GEMINI_MODEL=gemini-2.5-flash
+   TAVILY_API_KEY=your_tavily_search_api_key
    NEXT_PUBLIC_DEMO_MODE=false
+   DEMO_MODE=false
    ```
    *(If unset, KINTRA runs in complete offline mode with realistic deterministic fixtures).*
 

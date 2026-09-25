@@ -1364,7 +1364,8 @@ User Request:
 ${prompt}`;
 
         const candidateModels = [
-          process.env.GEMINI_MODEL || 'gemini-3.8-flash',
+          process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+          'gemini-3.8-flash',
           'gemini-2.5-flash',
         ];
         const modelName = candidateModels[Math.min(retries, candidateModels.length - 1)];
