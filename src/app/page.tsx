@@ -27,7 +27,7 @@ export default function Home() {
   const [showSnapshotDialog, setShowSnapshotDialog] = useState(false);
   const [snapshotLabel, setSnapshotLabel] = useState('');
 
-  const { loadDemoProject, createSnapshot } = useBrandStore();
+  const { loadDemoProject, createSnapshot, isHydrated } = useBrandStore();
 
   // Check URL hash / query on client mount for direct stage navigation
   useEffect(() => {
@@ -94,6 +94,20 @@ export default function Home() {
   const activeStageTitle = activeStageConfig
     ? `${activeStageConfig.number}. ${activeStageConfig.shortTitle}`
     : undefined;
+
+  if (viewMode === 'studio' && !isHydrated) {
+    return (
+      <div className="min-h-screen bg-obsidian-mesh text-zinc-100 flex items-center justify-center font-sans">
+        <div className="flex flex-col items-center space-y-4 p-8 rounded-2xl bg-zinc-900/60 border border-zinc-800/80 backdrop-blur-xl max-w-sm text-center">
+          <div className="w-10 h-10 border-2 border-champagne-400 border-t-transparent rounded-full animate-spin" />
+          <div>
+            <h3 className="font-serif text-lg font-medium text-champagne-200">Rehydrating Studio</h3>
+            <p className="text-xs text-zinc-400 mt-1">Restoring canonical state and decision ledger...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-obsidian-mesh text-zinc-100 flex flex-col font-sans selection:bg-champagne-500/30 selection:text-champagne-200">

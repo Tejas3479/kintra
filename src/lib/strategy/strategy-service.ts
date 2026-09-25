@@ -3,6 +3,9 @@ import { IdeaBrief } from '@/types/brand';
 import { EvidenceRecord } from '@/types/research';
 import { ContradictionDetector } from './contradiction-detector';
 import { logger } from '../logger';
+import { getAIProvider } from '../ai-provider';
+import { PositioningWorldsOutputSchema } from '../schemas/strategy-schemas';
+import { getServerEnv } from '../env';
 
 export class StrategyService {
   /**
@@ -153,7 +156,197 @@ export class StrategyService {
       status: 'candidate',
     };
 
-    return [worldA, worldB, worldC];
+    const isSecurity =
+      brief.id === 'brief-prguard-1' ||
+      /pull\s*request|sast|linter|security|ci\/cd|code\s*review/i.test(
+        brief.context.industryOrCategory + ' ' + brief.problem.corePain + ' ' + brief.proposedValue.mechanicOrSolution
+      );
+
+    if (isSecurity) {
+      return [worldA, worldB, worldC];
+    }
+
+    // Dynamic brief-derived worlds for offline / fallback execution
+    const worldCustomA: PositioningWorld = {
+      id: `world-purist-${Date.now()}`,
+      title: 'The Uncompromising Purist',
+      archetype: 'The Engineering Purist',
+      targetAudience: brief.targetUser.primaryNiche,
+      problemFraming: brief.problem.corePain,
+      valueProposition: `${brief.proposedValue.keyBenefit}. Engineered with uncompromising standards and zero commodity shortcuts.`,
+      differentiator: brief.proposedValue.unfairAdvantage,
+      categoryFraming: `Craft-Grade ${brief.context.industryOrCategory}`,
+      emotionalTerritory: 'Quiet technical mastery, unvarnished integrity, zero decorative theater.',
+      proofMechanism: `Verifiable quality metrics delivering ${brief.proposedValue.keyBenefit}.`,
+      supportingEvidenceIds: evidenceIds,
+      assumptions: [
+        `Target users in ${brief.context.industryOrCategory} will pay a premium for verified craftsmanship over cheap mass-market alternatives.`,
+      ],
+      risks: ['Niche appeal requiring ongoing education of mainstream buyers.'],
+      tradeoffs: {
+        whatWeEmphasize: 'Absolute craft purity, radical transparency, and highest execution standards.',
+        whatWeSacrifice: 'Mass-market commodity volume and cheap promotional discounting.',
+      },
+      challenges: [
+        {
+          evaluatorRole: 'Contrarian',
+          perspective: 'Mainstream buyers often prioritize convenience and low pricing over craft purity.',
+          potentialTrap: 'Trapped in an ultra-niche boutique customer segment that limits venture scale.',
+          unforgivingQuestion: `How will you expand beyond early adopters in ${brief.targetUser.primaryNiche} without compromising your core craft standards?`,
+        },
+        {
+          evaluatorRole: 'Audience Advocate',
+          perspective: 'Extreme purity can intimidate everyday consumers looking for a simple solution.',
+          potentialTrap: 'Elitist brand tone alienating approachable potential advocates.',
+          unforgivingQuestion: 'How do you welcome curious newcomers without diluting your strict craft positioning?',
+        },
+        {
+          evaluatorRole: 'Competitive Challenger',
+          perspective: 'Category giants will launch a faux-craft imitation with 10x your marketing budget.',
+          potentialTrap: 'Incumbent co-opting craft terminology without bearing the cost of genuine sourcing.',
+          unforgivingQuestion: 'What prevents mass-market incumbents from co-opting your positioning with superficial claims?',
+        },
+      ],
+      status: 'candidate',
+    };
+
+    const worldCustomB: PositioningWorld = {
+      id: `world-partner-${Date.now()}`,
+      title: 'The Frictionless Partner',
+      archetype: 'The Frictionless Partner',
+      targetAudience: `Time-constrained customers seeking ${brief.proposedValue.keyBenefit} without tedious friction.`,
+      problemFraming: `Legacy solutions in ${brief.context.industryOrCategory} require painful manual effort and fragmented tools.`,
+      valueProposition: `The fastest, most seamless way to achieve ${brief.proposedValue.keyBenefit} in seconds.`,
+      differentiator: `Single-step workflow solving ${brief.problem.corePain} directly in existing customer routines.`,
+      categoryFraming: `Frictionless ${brief.context.industryOrCategory} Accelerator`,
+      emotionalTerritory: 'Effortless flow, instant relief, reliable momentum.',
+      proofMechanism: `Direct time-to-value benchmarks demonstrating measurable reduction in user friction.`,
+      supportingEvidenceIds: evidenceIds,
+      assumptions: [
+        `Customers value immediate speed and ease-of-use above all other product attributes.`,
+      ],
+      risks: ['Commoditization pressure from fast-following copycats if technical moat is low.'],
+      tradeoffs: {
+        whatWeEmphasize: 'Instant setup, frictionless daily adoption, and immediate time-to-value.',
+        whatWeSacrifice: 'Exhaustive edge-case customization and complex ceremonial procedures.',
+      },
+      challenges: [
+        {
+          evaluatorRole: 'Strategist',
+          perspective: 'Convenience alone is a fragile moat; users will churn to whichever app is 5% cheaper.',
+          potentialTrap: 'Competing purely on ease-of-use invites aggressive commoditization.',
+          unforgivingQuestion: 'What prevents well-funded competitors from cloning your frictionless user experience?',
+        },
+        {
+          evaluatorRole: 'Contrarian',
+          perspective: 'Advanced power users often demand manual fine-tuning and reject oversimplified workflows.',
+          potentialTrap: 'Alienating high-LTV power users by enforcing an overly automated flow.',
+          unforgivingQuestion: 'How will you retain advanced users when they outgrow your simplified workflow?',
+        },
+      ],
+      status: 'candidate',
+    };
+
+    const worldCustomC: PositioningWorld = {
+      id: `world-challenger-${Date.now()}`,
+      title: 'The Rebellious Challenger',
+      archetype: 'The Rebellious Challenger',
+      targetAudience: `Frustrated users fed up with incumbent monopolies in ${brief.context.industryOrCategory}.`,
+      problemFraming: `Incumbent platforms exploit customer lock-in with inflated pricing and mediocre service.`,
+      valueProposition: `Tearing down the outdated conventions of ${brief.context.industryOrCategory} with radical transparency and customer sovereignty.`,
+      differentiator: `Open, fair, customer-aligned economics with zero hidden fees or lock-in traps.`,
+      categoryFraming: `Next-Generation ${brief.context.industryOrCategory} Alternative`,
+      emotionalTerritory: 'Bold defiance, authentic community, unvarnished truth.',
+      proofMechanism: `Open-ledger transparency and public customer bill-of-rights.`,
+      supportingEvidenceIds: evidenceIds,
+      assumptions: [
+        `Market dissatisfaction with legacy players has reached a tipping point, creating strong demand for a rebellious alternative.`,
+      ],
+      risks: [
+        'Risk of brand perception being defined purely by opposition rather than enduring standalone value.',
+      ],
+      tradeoffs: {
+        whatWeEmphasize: 'Radical customer alignment, transparent pricing, and anti-establishment boldness.',
+        whatWeSacrifice: 'Comfortable legacy enterprise distribution and conservative corporate partnerships.',
+      },
+      challenges: [
+        {
+          evaluatorRole: 'Audience Advocate',
+          perspective: 'Outrage and rebellion generate clicks, but long-term retention requires undeniable utility.',
+          potentialTrap: 'Becoming an exhausting protest brand that customers abandon once the novelty fades.',
+          unforgivingQuestion: 'What is your product moat once the novelty of attacking incumbents wears off?',
+        },
+        {
+          evaluatorRole: 'Competitive Challenger',
+          perspective: 'Incumbents have deep balance sheets to match pricing cuts or launch predatory retaliation.',
+          potentialTrap: 'Getting dragged into a price war with an incumbent who has 100x your capital.',
+          unforgivingQuestion: 'How will you survive if the dominant incumbent slashes prices to starve your runway?',
+        },
+      ],
+      status: 'candidate',
+    };
+
+    return [worldCustomA, worldCustomB, worldCustomC];
+  }
+
+  /**
+   * Generates 3-5 strategically divergent Positioning Worlds asynchronously using AI (Gemini)
+   * with deterministic fallback for offline/demo reliability.
+   */
+  static async generateWorldsAsync(
+    brief: IdeaBrief,
+    evidenceRecords: EvidenceRecord[] = []
+  ): Promise<PositioningWorld[]> {
+    logger.info('Generating Positioning Worlds asynchronously:', { briefId: brief.id });
+
+    const env = getServerEnv();
+    if (env.isDemoMode || !env.geminiApiKey || brief.id === 'brief-prguard-1') {
+      return this.generateWorlds(brief, evidenceRecords);
+    }
+
+    try {
+      const provider = getAIProvider();
+      const prompt = `Synthesize 3 divergent, high-contrast Positioning Worlds for the following startup Idea Brief.
+
+IDEA BRIEF CONTEXT:
+- Problem Core Pain: "${brief.problem.corePain}"
+- Who Suffers: "${brief.problem.whoSuffers}"
+- Trigger Event: "${brief.problem.triggerEvent}"
+- Target User Primary Niche: "${brief.targetUser.primaryNiche}"
+- Current Workarounds: ${brief.targetUser.currentWorkarounds.join(', ')}
+- Industry / Category: "${brief.context.industryOrCategory}"
+- Proposed Solution: "${brief.proposedValue.mechanicOrSolution}"
+- Key Benefit: "${brief.proposedValue.keyBenefit}"
+- Unfair Advantage: "${brief.proposedValue.unfairAdvantage}"
+
+EVIDENCE RECORDS:
+${evidenceRecords.slice(0, 3).map((e) => `- ${e.publisher}: ${e.extractedClaim}`).join('\n') || 'No external records provided.'}
+
+INSTRUCTIONS:
+Generate 3 distinct, highly divergent Positioning Worlds.
+Each world MUST:
+1. Select one of the 5 archetypes: 'The Rebellious Challenger', 'The Engineering Purist', 'The Frictionless Partner', 'The Sovereign Gatekeeper', 'The Human-Centric Mentor'.
+2. Make distinct strategic tradeoffs with explicit 'whatWeEmphasize' and 'whatWeSacrifice' (the sacrifice must be painful and genuine).
+3. Include 2-3 tough challenges with evaluatorRole ('Contrarian', 'Audience Advocate', 'Competitive Challenger'), perspective, potentialTrap, and an unforgivingQuestion.
+4. Set status: 'candidate'.
+5. Include id starting with 'world-'.`;
+
+      const result = await provider.generateStructured(
+        prompt,
+        PositioningWorldsOutputSchema,
+        'You are an elite Brand Strategist and Positioning Architect. Generate high-contrast, deeply strategic positioning options for startups.'
+      );
+
+      if (result.success && result.data && result.data.worlds.length >= 3) {
+        return result.data.worlds;
+      }
+    } catch (err) {
+      logger.warn('AI Positioning Worlds generation failed, falling back to deterministic generation:', {
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+
+    return this.generateWorlds(brief, evidenceRecords);
   }
 
   /**

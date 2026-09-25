@@ -56,6 +56,12 @@ export const BrandGuidelinesSchema = z.object({
     differentiator: z.string().min(1),
     proofMechanism: z.string().min(1),
     categoryFraming: z.string().min(1),
+    tradeoffs: z
+      .object({
+        whatWeEmphasize: z.string(),
+        whatWeSacrifice: z.string(),
+      })
+      .optional(),
   }),
   personality: z.object({
     traits: z.array(

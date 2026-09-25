@@ -84,7 +84,7 @@ export const STUDIO_STAGES: StageConfig[] = [
     number: 5,
     title: 'Consistency Guardian',
     shortTitle: 'Guardian',
-    subtitle: '6D integrity gatekeeper',
+    subtitle: '9-dimension integrity gatekeeper',
     icon: ShieldCheck,
     sectionId: 'stage-guardian',
   },

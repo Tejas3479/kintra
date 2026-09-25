@@ -14,6 +14,9 @@ import { AntiGenericNamer } from './anti-generic-namer';
 import { DefaultImageGenerationProvider } from './image-provider';
 import { IdentityConsistencyChecker } from './identity-consistency-checker';
 import { logger } from '../logger';
+import { getAIProvider } from '../ai-provider';
+import { getServerEnv } from '../env';
+import { IdentitySynthesisOutputSchema } from '../schemas/identity-schemas';
 
 export class IdentityService {
   /**
@@ -29,6 +32,247 @@ export class IdentityService {
       archetype: world.archetype,
       evidenceCount: evidenceRecords.length,
     });
+
+    const env = getServerEnv();
+    const isSecurityOrDemo =
+      brief.id === 'brief-prguard-1' ||
+      /pull\s*request|sast|linter|security|ci\/cd|code\s*review/i.test(
+        brief.context.industryOrCategory + ' ' + brief.problem.corePain + ' ' + world.categoryFraming
+      );
+
+    if (!isSecurityOrDemo && !env.isDemoMode && env.geminiApiKey) {
+      try {
+        const provider = getAIProvider();
+        const prompt = `Synthesize a comprehensive, high-conviction Creative Brand Identity derived directly from the approved Positioning World and Idea Brief.
+
+APPROVED POSITIONING WORLD:
+- Archetype: "${world.archetype}"
+- Title: "${world.title}"
+- Target Audience: "${world.targetAudience}"
+- Category Framing: "${world.categoryFraming}"
+- Problem Framing: "${world.problemFraming}"
+- Value Proposition: "${world.valueProposition}"
+- Differentiator: "${world.differentiator}"
+- Proof Mechanism: "${world.proofMechanism}"
+- Emotional Territory: "${world.emotionalTerritory}"
+- What We Emphasize: "${world.tradeoffs.whatWeEmphasize}"
+- What We Sacrifice: "${world.tradeoffs.whatWeSacrifice}"
+
+IDEA BRIEF:
+- Product Niche: "${brief.targetUser.primaryNiche}"
+- Industry / Context: "${brief.context.industryOrCategory}"
+- Core Solution: "${brief.proposedValue.mechanicOrSolution}"
+- Key Benefit: "${brief.proposedValue.keyBenefit}"
+- Unfair Advantage: "${brief.proposedValue.unfairAdvantage}"
+
+CRITICAL INSTRUCTIONS:
+1. Brand Personality: 3 distinct traits with concrete behavior examples and an explicit 'traitToAvoid'. Set confidence between 0.88 and 0.96.
+2. Naming Territories: 2 distinct linguistic territories with semantic and phonetic logic.
+3. Name Candidates: 4 to 6 distinct, high-conviction candidate names. NEVER use lazy startup clichés like '-ly', '-ify', '-ops', '-ai', 'Copilot', 'Sync', 'Cloud', 'Flow'.
+4. Taglines: 3 taglines directly expressing the strategic proof mechanism and clear brand sacrifice with falsifiabilityScore between 0.82 and 0.96.
+5. Voice System: calibrated tonal sliders (0-100), sentence behavior, preferred terms, banned patterns, 2 weSayVsWeAvoid pairs, and concrete channel examples.
+6. Visual Metaphors & Things To Avoid.`;
+
+        const result = await provider.generateStructured(
+          prompt,
+          IdentitySynthesisOutputSchema,
+          'You are a world-class Executive Creative Director and Naming Specialist. Design high-signal, cohesive brand identities tailored to the strategic positioning.'
+        );
+
+        if (result.success && result.data) {
+          const aiData = result.data;
+          const territories: NamingTerritory[] = aiData.namingTerritories.map((t, idx) => ({
+            id: `territory-${idx + 1}`,
+            name: t.name,
+            semanticLogic: t.semanticLogic,
+            phoneticLogic: t.phoneticLogic,
+            emotionalEffect: t.emotionalEffect,
+            risks: t.risks,
+            categoryFit: t.categoryFit,
+            distinctivenessConsiderations: t.distinctivenessConsiderations,
+          }));
+
+          const candidates: NamingCandidate[] = aiData.rawNames.map((item, idx) => {
+            const audit = AntiGenericNamer.auditName(item.name, world.categoryFraming);
+            const territory =
+              territories.find((t) => t.name === item.territoryName) ||
+              territories[idx % territories.length];
+            return {
+              id: `name-candidate-${idx + 1}`,
+              name: item.name,
+              territoryId: territory.id,
+              territoryName: territory.name,
+              rationale: item.rationale,
+              semanticAssociation: item.semantic,
+              pronunciation: item.pronunciation,
+              possibleAmbiguity: item.ambiguity,
+              genericnessRisk: audit.genericnessRisk,
+              antiGenericFlags: audit.flags,
+              strategicFit: item.strategicFit,
+              confidence:
+                audit.genericnessRisk === 'low'
+                  ? 0.94
+                  : audit.genericnessRisk === 'medium'
+                  ? 0.82
+                  : 0.65,
+              status: idx === 0 ? 'selected' : 'candidate',
+              legalDisclaimer:
+                'Preliminary linguistic and phonetic analysis only. Not legal clearance or registered trademark clearance.',
+            };
+          });
+
+          const taglines: TaglineCandidate[] = aiData.taglineCandidates.map((t, idx) => ({
+            id: `tag-${idx + 1}`,
+            tagline: t.tagline,
+            supportingWorldId: world.id,
+            strategicMechanism: t.strategicMechanism,
+            falsifiabilityScore: t.falsifiabilityScore,
+            status: idx === 0 ? 'selected' : 'candidate',
+          }));
+
+          const aiVoice: VoiceSystem = {
+            tonalSliders: aiData.voiceSystem.tonalSliders,
+            sentenceBehavior: aiData.voiceSystem.sentenceBehavior,
+            vocabulary: aiData.voiceSystem.vocabulary,
+            bannedPatterns: aiData.voiceSystem.bannedPatterns,
+            weSayVsWeAvoid: aiData.voiceSystem.weSayVsWeAvoid,
+            examples: aiData.voiceSystem.examples,
+            channelAdaptations: aiData.voiceSystem.channelAdaptations,
+          };
+
+          const aiVisual: VisualSystem = {
+            palette: {
+              primary: {
+                name: 'Deep Ground',
+                hex: '#111827',
+                role: 'Foundational surface backdrop',
+                contrastOnDark: 'Base background',
+              },
+              secondary: {
+                name: 'Refined Slate',
+                hex: '#374151',
+                role: 'Structural borders and framing',
+                contrastOnDark: '3.2:1',
+              },
+              accent: {
+                name: 'Signature Amber',
+                hex: '#d97706',
+                role: 'Active signals and focal points',
+                contrastOnDark: '5.8:1',
+              },
+              neutralDark: {
+                name: 'Earthy Charcoal',
+                hex: '#1f2937',
+                role: 'Card surface layers',
+                contrastOnDark: '1.4:1',
+              },
+              neutralLight: {
+                name: 'Warm Cream',
+                hex: '#f9fafb',
+                role: 'Primary reading typography',
+                contrastOnDark: '14.2:1',
+              },
+              semantic: {
+                success: {
+                  name: 'Verified Green',
+                  hex: '#059669',
+                  role: 'Verified states and approval',
+                  contrastOnDark: '4.8:1',
+                },
+                warning: {
+                  name: 'Caution Amber',
+                  hex: '#f59e0b',
+                  role: 'Ambiguity alerts and trade-offs',
+                  contrastOnDark: '7.1:1',
+                },
+                error: {
+                  name: 'Alert Crimson',
+                  hex: '#dc2626',
+                  role: 'Critical warnings and boundary violations',
+                  contrastOnDark: '4.9:1',
+                },
+              },
+            },
+            typography: {
+              headline: {
+                family: 'Space Grotesk, system-ui, sans-serif',
+                weights: ['600', '700'],
+                category: 'sans',
+                rationale: 'Geometric authority.',
+              },
+              body: {
+                family: 'Inter, system-ui, sans-serif',
+                weights: ['400', '500'],
+                category: 'sans',
+                rationale: 'Optimal long-form readability.',
+              },
+              code: {
+                family: 'JetBrains Mono, monospace',
+                weights: ['400', '600'],
+                category: 'mono',
+                rationale: 'Data readouts.',
+              },
+              scaleNotes: 'Modular typographic scale optimized for clear hierarchy.',
+            },
+            shapes: {
+              borderRadius: (world.archetype || '').includes('Purist') ? 'rounded-lg' : 'rounded-xl',
+              geometryNotes: 'Disciplined surfaces with subtle borders.',
+              borderStyle: 'border border-zinc-800',
+            },
+            layoutBehavior: { density: 'compact', gridPrinciples: 'Strict 4px baseline.' },
+            imagery: {
+              artDirection: 'High-clarity focused imagery.',
+              renderingStyle: 'Vector geometry.',
+              contrastLevel: 'High contrast.',
+            },
+            texture: { surface: 'Matte composite.', grainLevel: 'Minimal 1%.', glassmorphism: false },
+            motionPrinciples: { timing: '150ms', easing: 'ease-out', purpose: 'Direct confirmation.' },
+            visualMetaphors: aiData.visualMetaphors,
+            thingsToAvoid: aiData.thingsToAvoid,
+          };
+
+          const imageProvider = new DefaultImageGenerationProvider();
+          const visualResult = await imageProvider.generateVisual({
+            positioningArchetype: world.archetype,
+            brandName: candidates[0].name,
+            tagline: taglines[0].tagline,
+            primaryHex: aiVisual.palette.primary.hex,
+            secondaryHex: aiVisual.palette.secondary.hex,
+            accentHex: aiVisual.palette.accent.hex,
+            visualMetaphors: aiVisual.visualMetaphors,
+            audience: world.targetAudience,
+            borderRadius: aiVisual.shapes.borderRadius,
+            assetType: 'brand_mark',
+          });
+
+          const conflicts = IdentityConsistencyChecker.auditConsistency({
+            selectedName: candidates[0],
+            selectedTagline: taglines[0],
+            voiceSystem: aiVoice,
+            visualSystem: aiVisual,
+            positioningWorld: world,
+          });
+
+          return {
+            personalityTraits: aiData.personalityTraits,
+            namingTerritories: territories,
+            namingCandidates: candidates,
+            selectedNameId: candidates[0].id,
+            taglineCandidates: taglines,
+            selectedTaglineId: taglines[0].id,
+            voiceSystem: aiVoice,
+            visualSystem: aiVisual,
+            generatedVisuals: visualResult.asset ? [visualResult.asset] : [],
+            consistencyConflicts: conflicts,
+            status: 'under_review',
+          };
+        }
+      } catch (aiErr) {
+        logger.warn('AI identity generation encountered an error, falling back to deterministic generation:', {
+          error: aiErr instanceof Error ? aiErr.message : String(aiErr),
+        });
+      }
+    }
 
     const isPurist = (world.archetype || '').includes('Purist');
     const isGatekeeper = (world.archetype || '').includes('Gatekeeper');

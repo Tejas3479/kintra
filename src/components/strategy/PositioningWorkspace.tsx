@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useBrandStore } from '@/store/useBrandStore';
+import { PositioningWorld } from '@/types/strategy';
 import {
   Sparkles,
   CheckCircle2,
@@ -30,6 +31,7 @@ export const PositioningWorkspace: React.FC = () => {
   const [editingWorldId, setEditingWorldId] = useState<string | null>(null);
   const [showHybridModal, setShowHybridModal] = useState(false);
   const [hybridTitle, setHybridTitle] = useState('');
+  const [hybridArchetype, setHybridArchetype] = useState<PositioningWorld['archetype']>('The Engineering Purist');
   const [hybridValue, setHybridValue] = useState('');
   const [hybridSacrifice, setHybridSacrifice] = useState('');
   const [rejectWorldId, setRejectWorldId] = useState<string | null>(null);
@@ -47,7 +49,7 @@ export const PositioningWorkspace: React.FC = () => {
     if (!hybridTitle.trim() || !hybridValue.trim() || !hybridSacrifice.trim()) return;
     combinePositioningWorlds(
       hybridTitle.trim(),
-      'The Engineering Purist',
+      hybridArchetype,
       hybridValue.trim(),
       hybridSacrifice.trim()
     );
@@ -343,6 +345,21 @@ export const PositioningWorkspace: React.FC = () => {
                   onChange={(e) => setHybridTitle(e.target.value)}
                   className="w-full bg-obsidian-950 border border-white/[0.1] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-champagne-400"
                 />
+              </div>
+              <div>
+                <label className="text-xs text-zinc-400 font-mono">Governing Archetype:</label>
+                <select
+                  aria-label="Governing Archetype"
+                  value={hybridArchetype}
+                  onChange={(e) => setHybridArchetype(e.target.value as PositioningWorld['archetype'])}
+                  className="w-full bg-obsidian-950 border border-white/[0.1] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-champagne-400"
+                >
+                  <option value="The Rebellious Challenger">The Rebellious Challenger</option>
+                  <option value="The Engineering Purist">The Engineering Purist</option>
+                  <option value="The Frictionless Partner">The Frictionless Partner</option>
+                  <option value="The Sovereign Gatekeeper">The Sovereign Gatekeeper</option>
+                  <option value="The Human-Centric Mentor">The Human-Centric Mentor</option>
+                </select>
               </div>
               <div>
                 <label className="text-xs text-zinc-400 font-mono">Synthesized Value Proposition:</label>

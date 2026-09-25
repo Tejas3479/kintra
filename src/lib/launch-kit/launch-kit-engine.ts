@@ -78,6 +78,14 @@ export class LaunchKitEngine {
       generatedAt: now,
     };
 
+    const isDeveloperSecurity =
+      state.metadata?.isDemoProject ||
+      activeWorld.id === 'world-purist' ||
+      brandName === 'Kintra' ||
+      /code|pull\s*request|sast|linter|ast\s*proof/i.test(
+        activeWorld.categoryFraming + ' ' + activeWorld.problemFraming + ' ' + activeWorld.differentiator
+      );
+
     // 2. Synthesize 8 Practical Launch Artifacts
     const items: LaunchKitItem[] = [
       // 1. One-Line Pitch
@@ -86,8 +94,12 @@ export class LaunchKitEngine {
         type: 'one_line_pitch',
         title: 'One-Line Pitch',
         summary: 'Ultra-concise executive thesis for profiles, taglines, and bios.',
-        content: `${brandName}: ${tagline} for mission-critical software engineering teams.`,
-        suggestedChannels: ['GitHub README Topline', 'Twitter/X Bio', 'Product Hunt Tagline', 'AngelList'],
+        content: isDeveloperSecurity
+          ? `${brandName}: ${tagline} for mission-critical software engineering teams.`
+          : `${brandName}: ${tagline} for ${activeWorld.targetAudience}.`,
+        suggestedChannels: isDeveloperSecurity
+          ? ['GitHub README Topline', 'Twitter/X Bio', 'Product Hunt Tagline', 'AngelList']
+          : ['Website Topline', 'Social Bio', 'Product Hunt Tagline', 'Pitch Deck'],
         targetAudience: activeWorld.targetAudience,
         lineage,
       },
@@ -98,7 +110,8 @@ export class LaunchKitEngine {
         type: 'homepage_hero',
         title: 'Homepage Hero Section',
         summary: 'Primary conversion hero headline, value proposition subheadline, and primary CTA.',
-        content: `HEADLINE:
+        content: isDeveloperSecurity
+          ? `HEADLINE:
 ${tagline}.
 
 SUBHEADLINE:
@@ -106,7 +119,16 @@ Stop trusting probabilistic LLM summaries with production code. ${brandName} exe
 
 CALL TO ACTION:
 [ Connect Repository — Run AST Verification ]
-Secondary: Read Technical Whitepaper →`,
+Secondary: Read Technical Whitepaper →`
+          : `HEADLINE:
+${tagline}.
+
+SUBHEADLINE:
+${activeWorld.problemFraming} ${brandName} delivers ${activeWorld.valueProposition} powered by ${activeWorld.differentiator} with ${activeWorld.proofMechanism}.
+
+CALL TO ACTION:
+[ Get Started with ${brandName} ]
+Secondary: Discover How It Works →`,
         suggestedChannels: ['Website Hero Section', 'Landing Page Above-the-Fold'],
         targetAudience: activeWorld.targetAudience,
         lineage,
@@ -118,7 +140,8 @@ Secondary: Read Technical Whitepaper →`,
         type: 'homepage_supporting_copy',
         title: 'Homepage Supporting Copy (3 Core Pillars)',
         summary: 'Structured 3-column value pillars detailing problem, differentiator, and proof mechanism.',
-        content: `PILLAR 1: THE SILENT LOGIC CRISIS
+        content: isDeveloperSecurity
+          ? `PILLAR 1: THE SILENT LOGIC CRISIS
 ${activeWorld.problemFraming}
 As automated code generation increases, code review velocity collapses. Linters only catch syntax; generalist LLMs hallucinate false positives.
 
@@ -128,7 +151,18 @@ ${brandName} maps symbol dependencies across all changed files simultaneously, v
 
 PILLAR 3: ZERO CODE EGRESS
 ${activeWorld.proofMechanism}
-Your proprietary codebase never leaves your local runner or private cloud. Verification traces execute locally, outputting surgical AST diff reports to your pull requests.`,
+Your proprietary codebase never leaves your local runner or private cloud. Verification traces execute locally, outputting surgical AST diff reports to your pull requests.`
+          : `PILLAR 1: THE CORE CHALLENGE
+${activeWorld.problemFraming}
+Traditional approaches fail to solve the root issue, forcing customers into frustrating compromises and wasted effort.
+
+PILLAR 2: OUR DIFFERENTIATOR
+${activeWorld.differentiator}
+${brandName} delivers ${activeWorld.valueProposition}. Built specifically for ${activeWorld.targetAudience}.
+
+PILLAR 3: PROOF & ACCOUNTABILITY
+${activeWorld.proofMechanism}
+We explicitly choose to emphasize ${activeWorld.tradeoffs?.whatWeEmphasize || activeWorld.differentiator} while sacrificing ${activeWorld.tradeoffs?.whatWeSacrifice || 'superficial compromises'}.`,
         suggestedChannels: ['Website Features Grid', 'Documentation Architecture Overview'],
         targetAudience: activeWorld.targetAudience,
         lineage,
@@ -140,7 +174,8 @@ Your proprietary codebase never leaves your local runner or private cloud. Verif
         type: 'launch_announcement',
         title: 'Official Launch Blog Post',
         summary: 'Authoritative founding narrative explaining the architectural thesis and launch availability.',
-        content: `Title: Introducing ${brandName}: Why We Are Replacing Guesswork with Deterministic Pull Request Intelligence
+        content: isDeveloperSecurity
+          ? `Title: Introducing ${brandName}: Why We Are Replacing Guesswork with Deterministic Pull Request Intelligence
 
 Over the past year, software teams have adopted AI code generators at breakneck speed. But while generation got 10x faster, verification fell off a cliff. Reviewers are overwhelmed by 800-line pull requests, and traditional linters can't reason about multi-file semantic mutations.
 
@@ -153,8 +188,22 @@ What this means for your engineering team:
 2. Invariant Proofs: Exact AST diff traces show precisely why a change is safe or dangerous.
 3. Zero Hype: No conversational chatbots. Just surgical, deterministic pull request telemetry.
 
-Start inspecting your repositories today at ${brandName.toLowerCase()}.dev or read our technical benchmarks in the documentation.`,
-        suggestedChannels: ['Engineering Blog', 'Substack / Medium', 'Hacker News Show HN'],
+Start inspecting your repositories today at ${brandName.toLowerCase()}.dev or read our technical benchmarks in the documentation.`
+          : `Title: Introducing ${brandName}: A New Standard in ${activeWorld.categoryFraming}
+
+Today, we are announcing the public availability of ${brandName}.
+
+${brandName} is built on an uncompromising premise: ${activeWorld.valueProposition}. Built specifically for ${activeWorld.targetAudience}, we deliver ${activeWorld.differentiator} backed by ${activeWorld.proofMechanism}.
+
+What this means for you:
+1. Dedicated Focus: Designed directly for ${activeWorld.targetAudience}.
+2. Clear Tradeoffs: We emphasize ${activeWorld.tradeoffs?.whatWeEmphasize || 'excellence'} rather than trying to be all things to all people.
+3. Verified Outcomes: Backed by ${activeWorld.proofMechanism}.
+
+Experience ${brandName} today at ${brandName.toLowerCase().replace(/[^a-z0-9]/g, '')}.com.`,
+        suggestedChannels: isDeveloperSecurity
+          ? ['Engineering Blog', 'Substack / Medium', 'Hacker News Show HN']
+          : ['Company Blog', 'Medium / Substack', 'Product Hunt'],
         targetAudience: activeWorld.targetAudience,
         lineage,
       },
@@ -165,7 +214,8 @@ Start inspecting your repositories today at ${brandName.toLowerCase()}.dev or re
         type: 'social_post',
         title: 'Practitioner Social Broadcast',
         summary: 'High-signal practitioner broadcast for LinkedIn & Technical Twitter/X.',
-        content: `Fuzzy summaries don't catch silent logic bugs in pull requests.
+        content: isDeveloperSecurity
+          ? `Fuzzy summaries don't catch silent logic bugs in pull requests.
 
 Today we're launching ${brandName}: deterministic pull request intelligence powered by ${activeWorld.differentiator}.
 
@@ -175,7 +225,16 @@ Today we're launching ${brandName}: deterministic pull request intelligence powe
 
 If you care about pull request safety in high-velocity teams, check out the documentation and benchmark telemetry at ${brandName.toLowerCase()}.dev.
 
-#SoftwareEngineering #CodeQuality #DevOps #CI`,
+#SoftwareEngineering #CodeQuality #DevOps #CI`
+          : `Most solutions in ${activeWorld.categoryFraming} force a painful compromise.
+
+Today we're launching ${brandName}: ${activeWorld.valueProposition}.
+
+• Designed for: ${activeWorld.targetAudience}
+• Differentiator: ${activeWorld.differentiator}
+• Proof: ${activeWorld.proofMechanism}
+
+Discover how ${brandName} works today at ${brandName.toLowerCase().replace(/[^a-z0-9]/g, '')}.com.`,
         suggestedChannels: ['LinkedIn', 'Twitter / X', 'Mastodon / Bluesky'],
         targetAudience: activeWorld.targetAudience,
         lineage,
@@ -187,7 +246,8 @@ If you care about pull request safety in high-velocity teams, check out the docu
         type: 'launch_email',
         title: 'Founder Launch Email to Design Partners',
         summary: 'Direct, personal founder letter to engineering leads and early access requests.',
-        content: `Subject: ${brandName} is now live — deterministic pull request verification
+        content: isDeveloperSecurity
+          ? `Subject: ${brandName} is now live — deterministic pull request verification
 
 Hi {{First_Name}},
 
@@ -205,6 +265,25 @@ Here is what you can do right now:
 We would love your feedback on our parser benchmarks. Reply directly to this email or book an architectural walk-through with our engineering team: [Schedule Session].
 
 Best regards,
+The ${brandName} Team`
+          : `Subject: Introducing ${brandName} — ${activeWorld.valueProposition}
+
+Hi {{First_Name}},
+
+We set out to address a fundamental problem: ${activeWorld.problemFraming}
+
+Today, we are opening ${brandName} to our early access partners.
+
+${brandName} delivers ${activeWorld.differentiator} backed by ${activeWorld.proofMechanism}.
+
+Here is what you can do right now:
+• Experience our core solution directly
+• Review transparent outcomes backed by verifiable proof
+• Connect directly with our founding team
+
+We would love your feedback. Reply directly to this email or visit our site to explore.
+
+Best regards,
 The ${brandName} Team`,
         suggestedChannels: ['Early Access Email List', 'Customer Advisory Board', 'VIP Waitlist'],
         targetAudience: activeWorld.targetAudience,
@@ -217,7 +296,9 @@ The ${brandName} Team`,
         type: 'elevator_pitch',
         title: '30-Second Spoken Elevator Pitch',
         summary: 'Spoken script for live networking, podcasts, demos, and partner introductions.',
-        content: `"We build ${brandName}. As developers use AI to generate more code faster, reviewing pull requests has become the biggest bottleneck in software engineering. Linters are too dumb to catch semantic bugs, and AI chatbots make things up. ${brandName} replaces guesswork with deterministic AST verification right in your CI pipeline—giving engineering teams verifiable correctness guarantees before code ever reaches production."`,
+        content: isDeveloperSecurity
+          ? `"We build ${brandName}. As developers use AI to generate more code faster, reviewing pull requests has become the biggest bottleneck in software engineering. Linters are too dumb to catch semantic bugs, and AI chatbots make things up. ${brandName} replaces guesswork with deterministic AST verification right in your CI pipeline—giving engineering teams verifiable correctness guarantees before code ever reaches production."`
+          : `"We build ${brandName}. For ${activeWorld.targetAudience} who struggle with ${activeWorld.problemFraming}, ${brandName} is the ${activeWorld.categoryFraming} that delivers ${activeWorld.valueProposition}. Unlike generic alternatives, we deliver ${activeWorld.differentiator} backed by ${activeWorld.proofMechanism}."`,
         suggestedChannels: ['Podcast Appearances', 'Live Demos', 'Conference Networking', 'Investor Intros'],
         targetAudience: activeWorld.targetAudience,
         lineage,
@@ -257,38 +338,71 @@ Governed by ${governingDecisionIds.length} approved decisions in KINTRA Decision
     ];
 
     // 3. Synthesize Concise, Usable Brand Guidelines
-    const doAndDontExamples: DoDontExample[] = [
-      {
-        category: 'Headline Copy',
-        doExample: `${tagline}. Verifiable AST invariant verification for pull requests.`,
-        dontExample: `Supercharge your 10x developer workflow with our magic all-in-one AI copilot!`,
-        explanation: 'Avoid cheap marketing hype words, overused startup clichés, and unsubstantiated promises.',
-      },
-      {
-        category: 'Technical Claims',
-        doExample: `Runs deterministic symbol analysis across changed files in your local CI container.`,
-        dontExample: `Guarantees 100% bug-free deployments forever using advanced revolutionary neural models.`,
-        explanation: 'Ground every capability in the inspectable AST proof mechanism; never claim absolute perfection.',
-      },
-      {
-        category: 'Social Engagement',
-        doExample: `Fuzzy summaries miss silent logic bugs. Today we are open-sourcing our AST benchmark suite.`,
-        dontExample: `Thrilled and excited to announce that we just dropped the most game-changing AI tool! 🚀🎉`,
-        explanation: 'Speak as technical peers with substantive signal; eliminate decorative emojis and hype filler.',
-      },
-      {
-        category: 'Product Onboarding',
-        doExample: `Connect your GitHub runner. Telemetry remains private with zero code egress outside your environment.`,
-        dontExample: `Sit back and relax while our autonomous bot takes complete control of your production codebase.`,
-        explanation: 'Respect developer autonomy and code security boundaries; never patronize practitioners.',
-      },
-      {
-        category: 'Support & Comms',
-        doExample: `We traced the parser exception in CI run #48102 to an unhandled conditional mutation. Here is the AST diff: [Trace].`,
-        dontExample: `Dear customer, we are deeply sorry for the inconvenience and promise our team is working super hard on this!`,
-        explanation: 'Replace corporate subservience and hollow apologies with immediate root-cause telemetry.',
-      },
-    ];
+    const doAndDontExamples: DoDontExample[] = isDeveloperSecurity
+      ? [
+          {
+            category: 'Headline Copy',
+            doExample: `${tagline}. Verifiable AST invariant verification for pull requests.`,
+            dontExample: `Supercharge your 10x developer workflow with our magic all-in-one AI copilot!`,
+            explanation: 'Avoid cheap marketing hype words, overused startup clichés, and unsubstantiated promises.',
+          },
+          {
+            category: 'Technical Claims',
+            doExample: `Runs deterministic symbol analysis across changed files in your local CI container.`,
+            dontExample: `Guarantees 100% bug-free deployments forever using advanced revolutionary neural models.`,
+            explanation: 'Ground every capability in the inspectable AST proof mechanism; never claim absolute perfection.',
+          },
+          {
+            category: 'Social Engagement',
+            doExample: `Fuzzy summaries miss silent logic bugs. Today we are open-sourcing our AST benchmark suite.`,
+            dontExample: `Thrilled and excited to announce that we just dropped the most game-changing AI tool! 🚀🎉`,
+            explanation: 'Speak as technical peers with substantive signal; eliminate decorative emojis and hype filler.',
+          },
+          {
+            category: 'Product Onboarding',
+            doExample: `Connect your GitHub runner. Telemetry remains private with zero code egress outside your environment.`,
+            dontExample: `Sit back and relax while our autonomous bot takes complete control of your production codebase.`,
+            explanation: 'Respect developer autonomy and code security boundaries; never patronize practitioners.',
+          },
+          {
+            category: 'Support & Comms',
+            doExample: `We traced the parser exception in CI run #48102 to an unhandled conditional mutation. Here is the AST diff: [Trace].`,
+            dontExample: `Dear customer, we are deeply sorry for the inconvenience and promise our team is working super hard on this!`,
+            explanation: 'Replace corporate subservience and hollow apologies with immediate root-cause telemetry.',
+          },
+        ]
+      : [
+          {
+            category: 'Headline Copy',
+            doExample: `${tagline}. Engineered for ${activeWorld.targetAudience}.`,
+            dontExample: `Supercharge your entire life with our magical all-in-one revolutionary platform!`,
+            explanation: 'Avoid cheap marketing hype words, overused startup clichés, and unsubstantiated promises.',
+          },
+          {
+            category: 'Technical Claims',
+            doExample: `${brandName} delivers ${activeWorld.valueProposition} backed by ${activeWorld.proofMechanism}.`,
+            dontExample: `Guarantees 100% effortless perfection for everyone in the world forever.`,
+            explanation: 'Ground every capability in verifiable evidence; never claim universal perfection.',
+          },
+          {
+            category: 'Social Engagement',
+            doExample: `Honest transparency: we emphasize ${activeWorld.tradeoffs?.whatWeEmphasize || 'craft'} and explicitly sacrifice ${activeWorld.tradeoffs?.whatWeSacrifice || 'mass convenience'}.`,
+            dontExample: `Thrilled and excited to announce that we just dropped the most game-changing app ever! 🚀🎉`,
+            explanation: 'Speak with substantive signal and authentic conviction; eliminate decorative emoji spam.',
+          },
+          {
+            category: 'Product Onboarding',
+            doExample: `Experience ${brandName} directly with clear transparent parameters and zero hidden lock-in.`,
+            dontExample: `Sign away your life and let our proprietary black-box take complete control.`,
+            explanation: 'Respect customer autonomy and decision sovereignty.',
+          },
+          {
+            category: 'Support & Comms',
+            doExample: `We reviewed the issue and isolated the exact root cause. Here is the direct resolution.`,
+            dontExample: `Dear customer, we are deeply sorry for the inconvenience and promise our team is working super hard on this!`,
+            explanation: 'Replace corporate subservience and hollow apologies with immediate, accountable resolution.',
+          },
+        ];
 
     const guidelines: BrandGuidelines = {
       brandName,
@@ -302,38 +416,61 @@ Governed by ${governingDecisionIds.length} approved decisions in KINTRA Decision
         differentiator: activeWorld.differentiator,
         proofMechanism: activeWorld.proofMechanism,
         categoryFraming: activeWorld.categoryFraming,
+        tradeoffs: activeWorld.tradeoffs
+          ? {
+              whatWeEmphasize: activeWorld.tradeoffs.whatWeEmphasize,
+              whatWeSacrifice: activeWorld.tradeoffs.whatWeSacrifice,
+            }
+          : undefined,
       },
       personality: {
         traits: identity?.personalityTraits.map((t) => ({
           name: t.name,
           definition: t.definition,
-          behavior: t.behaviorExamples[0] || 'Provide inspectable AST telemetry over subjective claims.',
+          behavior: t.behaviorExamples[0] || (isDeveloperSecurity ? 'Provide inspectable AST telemetry over subjective claims.' : 'Deliver measurable proof over marketing claims.'),
           avoid: t.traitToAvoid || 'Marketing hype and unsubstantiated promises.',
         })) || [
           {
-            name: 'Surgical Rigor',
-            definition: 'Every statement is rooted in deterministic, inspectable proof.',
-            behavior: 'Present telemetry and source diffs directly.',
+            name: isDeveloperSecurity ? 'Surgical Rigor' : 'Direct Clarity',
+            definition: isDeveloperSecurity
+              ? 'Every statement is rooted in deterministic, inspectable proof.'
+              : 'Every statement is rooted in verifiable quality and authentic outcomes.',
+            behavior: isDeveloperSecurity ? 'Present telemetry and source diffs directly.' : 'Demonstrate product proof and real outcomes.',
             avoid: 'Speculative buzzwords and generic superlatives.',
           },
         ],
       },
       messaging: {
         coreMessage: activeWorld.valueProposition,
-        pillars: [
-          {
-            pillar: 'Deterministic AST Proofs',
-            proof: activeWorld.proofMechanism,
-          },
-          {
-            pillar: 'Zero Code Egress Privacy',
-            proof: 'All AST analysis runs locally inside the private CI runner with no external training.',
-          },
-          {
-            pillar: 'Pragmatic Practitioner Signal',
-            proof: 'Direct diagnostic diff traces without conversational bot interruptions.',
-          },
-        ],
+        pillars: isDeveloperSecurity
+          ? [
+              {
+                pillar: 'Deterministic AST Proofs',
+                proof: activeWorld.proofMechanism,
+              },
+              {
+                pillar: 'Zero Code Egress Privacy',
+                proof: 'All AST analysis runs locally inside the private CI runner with no external training.',
+              },
+              {
+                pillar: 'Pragmatic Practitioner Signal',
+                proof: 'Direct diagnostic diff traces without conversational bot interruptions.',
+              },
+            ]
+          : [
+              {
+                pillar: 'Core Differentiator',
+                proof: activeWorld.differentiator,
+              },
+              {
+                pillar: 'Verifiable Proof Model',
+                proof: activeWorld.proofMechanism,
+              },
+              {
+                pillar: 'Strategic Tradeoff',
+                proof: `We emphasize ${activeWorld.tradeoffs?.whatWeEmphasize || activeWorld.differentiator} while explicitly sacrificing ${activeWorld.tradeoffs?.whatWeSacrifice || 'superficial compromises'}.`,
+              },
+            ],
         bannedBuzzwords: [
           'supercharge',
           '10x',
@@ -346,23 +483,38 @@ Governed by ${governingDecisionIds.length} approved decisions in KINTRA Decision
         ],
       },
       voice: {
-        tonalRegister: identity?.voiceSystem?.sentenceBehavior?.cadenceDescription || 'Direct, unadorned engineering precision',
-        attributes: [
-          'Direct and unadorned',
-          'Technically rigorous',
-          'Peer-to-peer respectful',
-          'Telemetry-driven',
-        ],
+        tonalRegister: identity?.voiceSystem?.sentenceBehavior?.cadenceDescription || (isDeveloperSecurity ? 'Direct, unadorned engineering precision' : 'Direct, authentic clarity'),
+        attributes: isDeveloperSecurity
+          ? [
+              'Direct and unadorned',
+              'Technically rigorous',
+              'Peer-to-peer respectful',
+              'Telemetry-driven',
+            ]
+          : [
+              'Direct and unadorned',
+              'Substantively grounded',
+              'Customer-respectful',
+              'Outcome-driven',
+            ],
         vocabularyRules: {
-          preferredWords: [
-            'deterministic',
-            'AST diff',
-            'invariant',
-            'telemetry',
-            'compiler-grade',
-            'code egress',
-            'semantic verification',
-          ],
+          preferredWords: isDeveloperSecurity
+            ? [
+                'deterministic',
+                'AST diff',
+                'invariant',
+                'telemetry',
+                'compiler-grade',
+                'code egress',
+                'semantic verification',
+              ]
+            : identity?.voiceSystem?.vocabulary?.preferredTerms || [
+                'transparent',
+                'verifiable',
+                'provenance',
+                'tailored',
+                'disciplined',
+              ],
           forbiddenWords: [
             'supercharge',
             'copilot',

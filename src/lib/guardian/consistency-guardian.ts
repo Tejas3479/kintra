@@ -786,49 +786,104 @@ export class ConsistencyGuardian {
       'Three comments or zero. Mathematically verifiable PR reviews.';
     const audience = world?.targetAudience || 'Senior Staff Engineers and DevOps Architects';
 
+    const isSecurityOrDemo =
+      brandState.metadata?.isDemoProject ||
+      brandState.selectedWorldId === 'world-purist' ||
+      /pull\s*request|sast|linter|security|ast|code\s*review/i.test(world?.valueProposition || '') ||
+      /pull\s*request|sast|linter|security|ast|code\s*review/i.test(selectedTagline);
+
     let title = '';
     let content = '';
 
-    switch (artifactType) {
-      case 'website_headline':
-        title = `${selectedName} Hero Headline`;
-        content = `${selectedTagline}\n\nDeterministic pull request review intelligence that isolates critical logic flaws with reproducible unit tests. Zero false alarms.`;
-        break;
+    if (isSecurityOrDemo) {
+      switch (artifactType) {
+        case 'website_headline':
+          title = `${selectedName} Hero Headline`;
+          content = `${selectedTagline}\n\nDeterministic pull request review intelligence that isolates critical logic flaws with reproducible unit tests. Zero false alarms.`;
+          break;
 
-      case 'landing_page_section':
-        title = `${selectedName} Value Proposition Section`;
-        content = `### Why Traditional Review Bots Fail\n\nMost PR tools generate hundreds of decorative formatting complaints that waste engineering attention. ${selectedName} operates under a strict mathematical rule: 3 comments or zero. Every notification attaches an executable repro test case that proves the defect before you merge.\n\nBuilt exclusively for ${audience}.`;
-        break;
+        case 'landing_page_section':
+          title = `${selectedName} Value Proposition Section`;
+          content = `### Why Traditional Review Bots Fail\n\nMost PR tools generate hundreds of decorative formatting complaints that waste engineering attention. ${selectedName} operates under a strict mathematical rule: 3 comments or zero. Every notification attaches an executable repro test case that proves the defect before you merge.\n\nBuilt exclusively for ${audience}.`;
+          break;
 
-      case 'linkedin_post':
-        title = `${selectedName} Founder Announcement Post`;
-        content = `Code review shouldn't be a game of probabilistic guessing.\n\nToday we're launching ${selectedName}. Instead of flooding your pull requests with speculative warnings, we enforce deterministic verification.\n\nIf we can't write a failing repro test, we don't comment. Zero noise. Surgical precision.\n\nLink in the first comment.`;
-        break;
+        case 'linkedin_post':
+          title = `${selectedName} Founder Announcement Post`;
+          content = `Code review shouldn't be a game of probabilistic guessing.\n\nToday we're launching ${selectedName}. Instead of flooding your pull requests with speculative warnings, we enforce deterministic verification.\n\nIf we can't write a failing repro test, we don't comment. Zero noise. Surgical precision.\n\nLink in the first comment.`;
+          break;
 
-      case 'social_caption':
-        title = `${selectedName} Technical Feature Snippet`;
-        content = `Three comments or zero. Because a code review bot should never create more noise than the bug itself. #devtools #codereview #${selectedName.toLowerCase()}`;
-        break;
+        case 'social_caption':
+          title = `${selectedName} Technical Feature Snippet`;
+          content = `Three comments or zero. Because a code review bot should never create more noise than the bug itself. #devtools #codereview #${selectedName.toLowerCase()}`;
+          break;
 
-      case 'launch_email':
-        title = `${selectedName} Beta Access Email`;
-        content = `Subject: Deterministic PR reviews for your repository\n\nHi {{first_name}},\n\nIf your senior engineers spend 40% of their week wading through false-alarm review comments, we built ${selectedName} for you.\n\nWe don't post suggestions with "might" or "could possibly". We attach executable unit test proofs directly to GitHub PRs.\n\nReply to this email for private beta credentials.\n\nBest,\nThe ${selectedName} Team`;
-        break;
+        case 'launch_email':
+          title = `${selectedName} Beta Access Email`;
+          content = `Subject: Deterministic PR reviews for your repository\n\nHi {{first_name}},\n\nIf your senior engineers spend 40% of their week wading through false-alarm review comments, we built ${selectedName} for you.\n\nWe don't post suggestions with "might" or "could possibly". We attach executable unit test proofs directly to GitHub PRs.\n\nReply to this email for private beta credentials.\n\nBest,\nThe ${selectedName} Team`;
+          break;
 
-      case 'pitch_paragraph':
-        title = `${selectedName} Investor Memo Pitch`;
-        content = `${selectedName} is the deterministic pull request review engine for high-velocity software teams. While legacy linters and stochastic chatbots hallucinate superficial stylistic complaints, ${selectedName} isolates critical logic flaws and generates executable repro cases with zero false positives. We are replacing subjective review theater with mathematical certainty.`;
-        break;
+        case 'pitch_paragraph':
+          title = `${selectedName} Investor Memo Pitch`;
+          content = `${selectedName} is the deterministic pull request review engine for high-velocity software teams. While legacy linters and stochastic chatbots hallucinate superficial stylistic complaints, ${selectedName} isolates critical logic flaws and generates executable repro cases with zero false positives. We are replacing subjective review theater with mathematical certainty.`;
+          break;
 
-      case 'product_onboarding_copy':
-        title = `${selectedName} GitHub App Install Flow`;
-        content = `Step 1 of 3: Connect your GitHub organization.\n\n${selectedName} will analyze incoming pull requests against your test suite. We will never post more than 3 comments on a single diff, and every comment will include an executable reproduction command.`;
-        break;
+        case 'product_onboarding_copy':
+          title = `${selectedName} GitHub App Install Flow`;
+          content = `Step 1 of 3: Connect your GitHub organization.\n\n${selectedName} will analyze incoming pull requests against your test suite. We will never post more than 3 comments on a single diff, and every comment will include an executable reproduction command.`;
+          break;
 
-      case 'support_response':
-        title = `${selectedName} Technical Support Response`;
-        content = `Hi Alex,\n\nThanks for reaching out. The review comment on PR #142 was triggered because our symbolic execution engine detected an unbounded recursive loop at line 84. You can reproduce the stack overflow locally with the attached curl command: \`npm run test:repro-142\`.\n\nLet us know if you need further trace logs.\n\nBest,\n${selectedName} Engineering`;
-        break;
+        case 'support_response':
+          title = `${selectedName} Technical Support Response`;
+          content = `Hi Alex,\n\nThanks for reaching out. The review comment on PR #142 was triggered because our symbolic execution engine detected an unbounded recursive loop at line 84. You can reproduce the stack overflow locally with the attached curl command: \`npm run test:repro-142\`.\n\nLet us know if you need further trace logs.\n\nBest,\n${selectedName} Engineering`;
+          break;
+      }
+    } else {
+      const valueProp = world?.valueProposition || `Precision-engineered brand experience calibrated for ${audience}.`;
+      const problemFraming = world?.problemFraming || 'Traditional alternatives are fragmented, uncalibrated, and filled with noise.';
+      const diff = world?.differentiator || 'uncompromising clarity and verified performance';
+      const cleanSlug = selectedName.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+      switch (artifactType) {
+        case 'website_headline':
+          title = `${selectedName} Hero Headline`;
+          content = `${selectedTagline}\n\n${valueProp}`;
+          break;
+
+        case 'landing_page_section':
+          title = `${selectedName} Value Proposition Section`;
+          content = `### The Standard Has Shifted\n\n${problemFraming}\n\n${selectedName} was engineered specifically to solve this through ${diff}. Calibrated directly for ${audience}.`;
+          break;
+
+        case 'linkedin_post':
+          title = `${selectedName} Founder Announcement Post`;
+          content = `The status quo in our industry is broken.\n\nToday we're officially launching ${selectedName}. Instead of settling for generic compromises, we engineered ${selectedName} around a single principle: ${diff}.\n\n${selectedTagline}\n\nBuilt from first principles for ${audience}. Link in the first comment.`;
+          break;
+
+        case 'social_caption':
+          title = `${selectedName} Core Feature Snippet`;
+          content = `${selectedTagline} Engineered exclusively for ${audience}. Discover how at ${cleanSlug}.com #${cleanSlug}`;
+          break;
+
+        case 'launch_email':
+          title = `${selectedName} Early Access Invitation`;
+          content = `Subject: Introducing ${selectedName}: ${selectedTagline}\n\nHi {{first_name}},\n\nIf your team is exhausted by ${problemFraming.toLowerCase()}, we built ${selectedName} for you.\n\nWe provide ${diff}, purpose-built for ${audience}.\n\nReply directly to this email to activate early private access.\n\nBest,\nThe ${selectedName} Team`;
+          break;
+
+        case 'pitch_paragraph':
+          title = `${selectedName} Executive Summary`;
+          content = `${selectedName} is establishing a new category benchmark for ${audience}. While legacy solutions remain commoditized and inefficient, ${selectedName} delivers ${valueProp} through ${diff}. We are turning friction into an enduring competitive moat.`;
+          break;
+
+        case 'product_onboarding_copy':
+          title = `${selectedName} Workspace Onboarding`;
+          content = `Welcome to ${selectedName}.\n\nYour workspace is now calibrated for ${diff}. We have aligned your configuration to the exact requirements of ${audience}.`;
+          break;
+
+        case 'support_response':
+          title = `${selectedName} Customer Support`;
+          content = `Hi there,\n\nThank you for contacting ${selectedName} support. Our team investigated your inquiry. Guided by our standard of ${diff}, we verified your telemetry and resolved the configuration.\n\nPlease let us know if we can assist further.\n\nBest,\nThe ${selectedName} Team`;
+          break;
+      }
     }
 
     const now = new Date().toISOString();

@@ -52,6 +52,10 @@ export interface BrandGuidelines {
     differentiator: string;
     proofMechanism: string;
     categoryFraming: string;
+    tradeoffs?: {
+      whatWeEmphasize: string;
+      whatWeSacrifice: string;
+    };
   };
   personality: {
     traits: Array<{

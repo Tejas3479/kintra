@@ -181,3 +181,53 @@ export const CreativeIdentitySchema = z.object({
   status: z.enum(['draft', 'under_review', 'approved']),
   approvedAt: z.string().optional(),
 });
+
+export const IdentitySynthesisOutputSchema = z.object({
+  personalityTraits: z.array(BrandPersonalityTraitSchema).min(3).max(5),
+  namingTerritories: z.array(NamingTerritorySchema).min(2).max(4),
+  rawNames: z.array(
+    z.object({
+      name: z.string().min(2),
+      territoryName: z.string().min(2),
+      rationale: z.string().min(10),
+      semantic: z.string().min(5),
+      pronunciation: z.string().min(2),
+      ambiguity: z.string().min(2),
+      strategicFit: z.string().min(5),
+    })
+  ).min(3).max(8),
+  taglineCandidates: z.array(
+    z.object({
+      tagline: z.string().min(5),
+      strategicMechanism: z.string().min(5),
+      falsifiabilityScore: z.number().min(0).max(1),
+    })
+  ).min(2).max(5),
+  voiceSystem: z.object({
+    tonalSliders: z.object({
+      precision: z.number().min(0).max(100),
+      warmth: z.number().min(0).max(100),
+      authority: z.number().min(0).max(100),
+      energy: z.number().min(0).max(100),
+    }),
+    sentenceBehavior: z.object({
+      averageLength: z.enum(['concise', 'balanced', 'elaborate']),
+      voicePreference: z.enum(['active_direct', 'collaborative', 'formal']),
+      cadenceDescription: z.string().min(5),
+    }),
+    vocabulary: z.object({
+      preferredTerms: z.array(z.string()).min(2),
+      technicalDensity: z.enum(['accessible', 'practitioner', 'academic']),
+      signaturePhrases: z.array(z.string()).min(2),
+    }),
+    bannedPatterns: z.array(z.string()).min(2),
+    weSayVsWeAvoid: z.array(WeSayVsWeAvoidPairSchema).min(1),
+    examples: z.array(VoiceExampleSchema).min(1),
+    channelAdaptations: z.record(z.string(), z.string()),
+  }),
+  visualMetaphors: z.array(z.string()).min(1),
+  thingsToAvoid: z.array(z.string()).min(1),
+});
+
+export type IdentitySynthesisOutput = z.infer<typeof IdentitySynthesisOutputSchema>;
+

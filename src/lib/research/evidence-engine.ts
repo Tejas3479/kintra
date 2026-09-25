@@ -222,24 +222,48 @@ export class EvidenceEngine {
 
     const { competitors, conflicts } = this.extractCompetitorProfiles(evidenceRecords, rawIdea);
 
+    const isSecurity =
+      /pull\s*request|code\s*review|developer|github|sast|linter|security|ci\/cd|pr/i.test(
+        categoryName + ' ' + rawIdea
+      );
+
+    const categoryDefaults = isSecurity
+      ? [
+          'Overpromising with vague buzzwords ("revolutionize", "seamlessly supercharge")',
+          'Requiring developers to visit an external third-party dashboard',
+          'Charging punitive per-seat SaaS taxes rather than value-aligned pricing',
+        ]
+      : [
+          `Generic market messaging promising all things to all customers in ${categoryName}`,
+          'Cumbersome, fragmented customer onboarding with high initial friction',
+          'Standardized commodity pricing disconnected from measurable end outcomes',
+        ];
+
+    const differentiatorGaps = isSecurity
+      ? [
+          'Radical signal-to-noise ratio: maximum 3 comments per PR',
+          '100% in-flow GitHub integration with zero dashboard login requirement',
+          'Deterministic verification explaining the exact logic flaw rather than generic CVE codes',
+        ]
+      : [
+          `Uncompromising clarity: solving the primary friction point in ${categoryName} without unnecessary feature bloat`,
+          'Direct in-flow integration into existing customer habits and daily routines',
+          'Verifiable proof mechanism delivering tangible, auditable outcomes from day one',
+        ];
+
+    const overallUncertainty = isSecurity
+      ? 'Market evidence confirms strong developer desire for speed, but willingness to trust AI merge gates requires rigorous verification.'
+      : `Market evidence confirms demand for modern solutions in ${categoryName}, but long-term retention requires establishing authentic trust and proven differentiation over legacy alternatives.`;
+
     return {
       id: `landscape-${Date.now()}`,
       categoryName,
       competitors,
       evidenceRecords,
-      categoryDefaults: [
-        'Overpromising with vague buzzwords ("revolutionize", "seamlessly supercharge")',
-        'Requiring developers to visit an external third-party dashboard',
-        'Charging punitive per-seat SaaS taxes rather than value-aligned pricing',
-      ],
-      differentiatorGaps: [
-        'Radical signal-to-noise ratio: maximum 3 comments per PR',
-        '100% in-flow GitHub integration with zero dashboard login requirement',
-        'Deterministic verification explaining the exact logic flaw rather than generic CVE codes',
-      ],
+      categoryDefaults,
+      differentiatorGaps,
       conflicts,
-      overallUncertainty:
-        'Market evidence confirms strong developer desire for speed, but willingness to trust AI merge gates requires rigorous verification.',
+      overallUncertainty,
       analyzedAt: new Date().toISOString(),
     };
   }

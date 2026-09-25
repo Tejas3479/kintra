@@ -22,6 +22,9 @@ export const PresentationModeModal: React.FC = () => {
 
   const kit = project.launchKit || topLaunchKit;
   const guidelines = kit?.guidelines;
+  const activeWorld =
+    project.positioningWorlds.find((w) => w.id === project.selectedWorldId) ||
+    project.positioningWorlds[0];
   const brandName = guidelines?.brandName || guidelines?.naming.approvedName || project.metadata.name;
   const tagline = guidelines?.tagline || 'Autonomous Brand Intelligence';
 
@@ -167,7 +170,7 @@ export const PresentationModeModal: React.FC = () => {
                 </span>
               </div>
               <p className="text-sm sm:text-base text-zinc-200 leading-relaxed font-sans italic border-l-2 border-champagne-500/80 pl-4 py-1">
-                &ldquo;{kit?.items.find((i) => i.id === 'spoken_pitch')?.content ||
+                &ldquo;{kit?.items.find((i) => i.type === 'elevator_pitch' || i.id.includes('elevator') || i.id === 'spoken_pitch')?.content ||
                   project.ideaBrief?.proposedValue?.keyBenefit ||
                   project.ideaBrief?.problem?.corePain ||
                   project.rawFounderInput ||
@@ -230,14 +233,18 @@ export const PresentationModeModal: React.FC = () => {
                     <div>
                       <span className="text-[10px] font-mono text-zinc-400 uppercase">What We Emphasize:</span>
                       <p className="text-sm font-semibold text-white">
-                        Deterministic mathematical proofs, reproducible diff telemetry, and zero code egress.
+                        {guidelines?.positioning.tradeoffs?.whatWeEmphasize ||
+                          activeWorld?.tradeoffs.whatWeEmphasize ||
+                          'Deterministic mathematical proofs, reproducible diff telemetry, and zero code egress.'}
                       </p>
                     </div>
 
                     <div className="border-t border-white/[0.06] pt-2">
                       <span className="text-[10px] font-mono text-red-300 uppercase">What We Explicitly Sacrifice:</span>
                       <p className="text-sm text-zinc-300">
-                        Generic conversational AI bots, superficial hype slogans, and consumer commodity workflows.
+                        {guidelines?.positioning.tradeoffs?.whatWeSacrifice ||
+                          activeWorld?.tradeoffs.whatWeSacrifice ||
+                          'Generic conversational AI bots, superficial hype slogans, and consumer commodity workflows.'}
                       </p>
                     </div>
                   </div>
@@ -482,8 +489,8 @@ export const PresentationModeModal: React.FC = () => {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2">
-              {kit?.items.slice(0, 4).map((item, idx) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2 scrollbar-thin">
+              {kit?.items.map((item, idx) => (
                 <div key={item.id} className="monolith-card rounded-xl p-4 flex flex-col justify-between space-y-3">
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">

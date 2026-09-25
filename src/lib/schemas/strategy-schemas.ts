@@ -104,3 +104,10 @@ export const DecisionGraphStateSchema = z.object({
   nodes: z.record(z.string(), DecisionNodeSchema),
   edges: z.array(DecisionEdgeSchema),
 });
+
+export const PositioningWorldsOutputSchema = z.object({
+  worlds: z.array(PositioningWorldSchema).min(3).max(5),
+});
+
+export type PositioningWorldsOutput = z.infer<typeof PositioningWorldsOutputSchema>;
+

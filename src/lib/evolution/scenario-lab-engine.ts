@@ -269,84 +269,175 @@ export class ScenarioLabEngine {
       state.creativeIdentity?.personalityTraits?.map((t) => t.name).join(', ') ||
       'Direct, unadorned engineering precision';
 
-    switch (type) {
-      case 'website_launch':
-        return {
-          content: `${tagline}.\n\n${brandName} runs ${differentiator} on every code change before merge. Stop relying on fuzzy LLM summaries; verify structural diff invariants with ${proofMechanism}.`,
-          alignedDecisions: [
-            `Audience: Explicitly crafted for ${targetAudience}`,
-            `Differentiator: ${differentiator}`,
-            `Proof Mechanism: ${proofMechanism}`,
-            `Tone: ${toneDescription}`,
-          ],
-          description: 'Directly grounded in the approved Positioning World and Voice System.',
-        };
+    const isSecurityOrDemo =
+      state.metadata?.isDemoProject ||
+      state.selectedWorldId === 'world-purist' ||
+      /pull\s*request|sast|linter|security|ast|code\s*review/i.test(differentiator || '') ||
+      /pull\s*request|sast|linter|security|ast|code\s*review/i.test(proofMechanism || '') ||
+      /pull\s*request|sast|linter|security|ast|code\s*review/i.test(tagline || '');
 
-      case 'social_announcement':
-        return {
-          content: `Fuzzy code summaries don't catch silent logic flaws. Today we are launching ${brandName}: deterministic pull request intelligence powered by ${differentiator}.\n\nInspect your first repository telemetry at ${brandName.toLowerCase()}.dev.`,
-          alignedDecisions: [
-            'Avoids all hype adjectives and vanity emojis',
-            `Articulates the sacrifice: Rejects speculative AI wrappers in favor of ${proofMechanism}`,
-            'Direct call to action to inspect real technical telemetry',
-          ],
-          description: 'Authentic practitioner broadcast honoring the brand voice rules.',
-        };
+    if (isSecurityOrDemo) {
+      switch (type) {
+        case 'website_launch':
+          return {
+            content: `${tagline}.\n\n${brandName} runs ${differentiator} on every code change before merge. Stop relying on fuzzy LLM summaries; verify structural diff invariants with ${proofMechanism}.`,
+            alignedDecisions: [
+              `Audience: Explicitly crafted for ${targetAudience}`,
+              `Differentiator: ${differentiator}`,
+              `Proof Mechanism: ${proofMechanism}`,
+              `Tone: ${toneDescription}`,
+            ],
+            description: 'Directly grounded in the approved Positioning World and Voice System.',
+          };
 
-      case 'onboarding_screen':
-        return {
-          content: `Connect your GitHub repository. ${brandName} executes local AST syntax verification within your CI pipeline. Telemetry remains fully inspectable in your workflow runner with zero code egress.`,
-          alignedDecisions: [
-            'Empowers the engineer with transparent execution details',
-            'Affirms the privacy and zero code-egress invariant',
-            'Eliminates black-box automation anxiety',
-          ],
-          description: 'Technical onboarding copy respecting developer agency and security boundaries.',
-        };
+        case 'social_announcement':
+          return {
+            content: `Fuzzy code summaries don't catch silent logic flaws. Today we are launching ${brandName}: deterministic pull request intelligence powered by ${differentiator}.\n\nInspect your first repository telemetry at ${brandName.toLowerCase()}.dev.`,
+            alignedDecisions: [
+              'Avoids all hype adjectives and vanity emojis',
+              `Articulates the sacrifice: Rejects speculative AI wrappers in favor of ${proofMechanism}`,
+              'Direct call to action to inspect real technical telemetry',
+            ],
+            description: 'Authentic practitioner broadcast honoring the brand voice rules.',
+          };
 
-      case 'sales_email':
-        return {
-          content: `Subject: Eliminating pull request logic escapes in high-throughput repos\n\nI reviewed your team's open-source release velocity. Traditional linters miss multi-file semantic mutations, while generalist LLMs hallucinate false positives.\n\n${brandName} provides ${differentiator} with ${proofMechanism}. If you're auditing PR safety this quarter, here is the technical benchmark documentation.`,
-          alignedDecisions: [
-            `Calibrated specifically for ${targetAudience}`,
-            'Offers peer-level technical documentation over sales pressure',
-            'Identifies the exact problem trigger without sensationalism',
-          ],
-          description: 'Respectful, highly credible technical outreach to architectural decision makers.',
-        };
+        case 'onboarding_screen':
+          return {
+            content: `Connect your GitHub repository. ${brandName} executes local AST syntax verification within your CI pipeline. Telemetry remains fully inspectable in your workflow runner with zero code egress.`,
+            alignedDecisions: [
+              'Empowers the engineer with transparent execution details',
+              'Affirms the privacy and zero code-egress invariant',
+              'Eliminates black-box automation anxiety',
+            ],
+            description: 'Technical onboarding copy respecting developer agency and security boundaries.',
+          };
 
-      case 'investor_pitch':
-        return {
-          content: `${brandName} replaces probabilistic code guessers with deterministic semantic verification in the developer pull request lifecycle. As automated code generation explodes 10x, verifying correctness at merge becomes the mission-critical bottleneck. Our ${differentiator} provides verifiable guarantees backed by ${proofMechanism}.`,
-          alignedDecisions: [
-            'Grounds the market thesis in macroeconomic developer trends',
-            'Defends the technical moat with deterministic AST architecture',
-            'Presents unambiguous category leadership positioning',
-          ],
-          description: 'Rigorous strategic narrative ready for technical partner review.',
-        };
+        case 'sales_email':
+          return {
+            content: `Subject: Eliminating pull request logic escapes in high-throughput repos\n\nI reviewed your team's open-source release velocity. Traditional linters miss multi-file semantic mutations, while generalist LLMs hallucinate false positives.\n\n${brandName} provides ${differentiator} with ${proofMechanism}. If you're auditing PR safety this quarter, here is the technical benchmark documentation.`,
+            alignedDecisions: [
+              `Calibrated specifically for ${targetAudience}`,
+              'Offers peer-level technical documentation over sales pressure',
+              'Identifies the exact problem trigger without sensationalism',
+            ],
+            description: 'Respectful, highly credible technical outreach to architectural decision makers.',
+          };
 
-      case 'advertisement':
-        return {
-          content: `Fuzzy summaries don't prevent production incidents. Run ${differentiator} on every pull request with ${brandName}. Inspect the AST diff telemetry.`,
-          alignedDecisions: [
-            'High-contrast contrarian hook against commodity AI bots',
-            'Short, punchy technical vocabulary',
-            'Affirms proof mechanism in under 25 words',
-          ],
-          description: 'High-signal developer advertisement emphasizing verification over speed.',
-        };
+        case 'investor_pitch':
+          return {
+            content: `${brandName} replaces probabilistic code guessers with deterministic semantic verification in the developer pull request lifecycle. As automated code generation explodes 10x, verifying correctness at merge becomes the mission-critical bottleneck. Our ${differentiator} provides verifiable guarantees backed by ${proofMechanism}.`,
+            alignedDecisions: [
+              'Grounds the market thesis in macroeconomic developer trends',
+              'Defends the technical moat with deterministic AST architecture',
+              'Presents unambiguous category leadership positioning',
+            ],
+            description: 'Rigorous strategic narrative ready for technical partner review.',
+          };
 
-      case 'support_response':
-        return {
-          content: `We analyzed the AST parser trace from your CI run #89412 using ${brandName}'s diagnostic engine. The issue stems from an unhandled conditional mutation in the TypeScript compiler pass. Here is the exact AST node diff and the patch: [Diff Trace].`,
-          alignedDecisions: [
-            'Zero corporate apology filler; immediate root-cause telemetry',
-            'Provides concrete reproducible diff trace',
-            'Reinforces the technical partner relationship',
-          ],
-          description: 'Surgical problem-solving that elevates technical support into a brand asset.',
-        };
+        case 'advertisement':
+          return {
+            content: `Fuzzy summaries don't prevent production incidents. Run ${differentiator} on every pull request with ${brandName}. Inspect the AST diff telemetry.`,
+            alignedDecisions: [
+              'High-contrast contrarian hook against commodity AI bots',
+              'Short, punchy technical vocabulary',
+              'Affirms proof mechanism in under 25 words',
+            ],
+            description: 'High-signal developer advertisement emphasizing verification over speed.',
+          };
+
+        case 'support_response':
+          return {
+            content: `We analyzed the AST parser trace from your CI run #89412 using ${brandName}'s diagnostic engine. The issue stems from an unhandled conditional mutation in the TypeScript compiler pass. Here is the exact AST node diff and the patch: [Diff Trace].`,
+            alignedDecisions: [
+              'Zero corporate apology filler; immediate root-cause telemetry',
+              'Provides concrete reproducible diff trace',
+              'Reinforces the technical partner relationship',
+            ],
+            description: 'Surgical problem-solving that elevates technical support into a brand asset.',
+          };
+      }
+    } else {
+      const cleanSlug = brandName.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+      switch (type) {
+        case 'website_launch':
+          return {
+            content: `${tagline}.\n\n${brandName} delivers ${differentiator}. Engineered from first principles to solve persistent category challenges with ${proofMechanism}.`,
+            alignedDecisions: [
+              `Audience: Explicitly crafted for ${targetAudience}`,
+              `Differentiator: ${differentiator}`,
+              `Proof Mechanism: ${proofMechanism}`,
+              `Tone: ${toneDescription}`,
+            ],
+            description: 'Directly grounded in the approved Positioning World and Voice System.',
+          };
+
+        case 'social_announcement':
+          return {
+            content: `Generic compromises fail when quality matters. Today we are launching ${brandName}: engineered around ${differentiator} and verified through ${proofMechanism}.\n\nExplore our architecture at ${cleanSlug}.com.`,
+            alignedDecisions: [
+              'Avoids superficial hype and vanity buzzwords',
+              `Articulates the sacrifice: Prioritizes ${proofMechanism} over generic commodity features`,
+              `Clear call to action targeted directly at ${targetAudience}`,
+            ],
+            description: 'Authentic practitioner broadcast honoring the brand voice rules.',
+          };
+
+        case 'onboarding_screen':
+          return {
+            content: `Welcome to ${brandName}. Your environment is calibrated for ${differentiator}. All workflows are governed by ${proofMechanism} to guarantee measurable outcomes.`,
+            alignedDecisions: [
+              'Empowers the user with transparent operational clarity',
+              `Affirms the invariant of ${proofMechanism}`,
+              'Eliminates workflow friction and uncertainty',
+            ],
+            description: 'High-clarity onboarding copy respecting user agency and brand integrity.',
+          };
+
+        case 'sales_email':
+          return {
+            content: `Subject: Introducing ${brandName}: ${differentiator}\n\nHi {{first_name}},\n\nIf you deal with the ongoing challenges of existing legacy alternatives, we built ${brandName} specifically for ${targetAudience}.\n\n${brandName} delivers ${differentiator} backed by ${proofMechanism}. If you are evaluating strategic improvements this quarter, here is our technical brief.`,
+            alignedDecisions: [
+              `Calibrated specifically for ${targetAudience}`,
+              'Offers rigorous documentation over superficial sales pressure',
+              'Identifies the core operational bottleneck without sensationalism',
+            ],
+            description: 'Respectful, highly credible outreach to key decision makers.',
+          };
+
+        case 'investor_pitch':
+          return {
+            content: `${brandName} redefines the standard for ${targetAudience}. While legacy incumbents rely on outdated, fragmented approaches, ${brandName} delivers ${differentiator} powered by ${proofMechanism}. We are turning systemic inefficiency into an enduring, defensible advantage.`,
+            alignedDecisions: [
+              'Grounds the market thesis in macroeconomic shifts',
+              `Defends the defensible moat with ${proofMechanism}`,
+              'Presents unambiguous category leadership positioning',
+            ],
+            description: 'Rigorous strategic narrative ready for institutional partner review.',
+          };
+
+        case 'advertisement':
+          return {
+            content: `Eliminate compromises with ${differentiator}. Experience ${brandName}, engineered exclusively for ${targetAudience}.`,
+            alignedDecisions: [
+              'High-contrast hook highlighting core differentiation',
+              'Crisp, high-signal positioning',
+              'Affirms value proposition in under 25 words',
+            ],
+            description: 'High-signal advertisement emphasizing verified differentiation over vanity.',
+          };
+
+        case 'support_response':
+          return {
+            content: `Hi there,\n\nWe investigated your inquiry using ${brandName}'s diagnostic telemetry. Grounded in our commitment to ${differentiator}, we isolated the root cause and verified the resolution with ${proofMechanism}.\n\nPlease let us know if you need any additional assistance.\n\nBest,\nThe ${brandName} Team`,
+            alignedDecisions: [
+              'Zero corporate fluff; immediate root-cause transparency',
+              `Reinforces ${proofMechanism} during customer touchpoints`,
+              'Upholds practitioner-level credibility',
+            ],
+            description: 'Rigorous problem-solving that elevates customer support into a brand asset.',
+          };
+      }
     }
   }
 

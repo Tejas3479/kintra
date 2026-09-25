@@ -700,7 +700,13 @@ export const useBrandStore = create<BrandStoreState>()(
       },
 
       runMarketResearch: async (query?: string) => {
-        const targetQuery = query || get().project.rawFounderInput || 'Developer code security pull requests';
+        const brief = get().project.ideaBrief;
+        const targetQuery =
+          query ||
+          brief?.context?.industryOrCategory ||
+          brief?.problem?.corePain ||
+          get().project.rawFounderInput ||
+          'Modern product innovation';
         set({ isLoading: true, loadingMessage: 'Analyzing market landscape and compiling evidence ledger...', error: null });
         const signal = getAbortSignal('market_research');
 
@@ -2324,19 +2330,6 @@ export const useBrandStore = create<BrandStoreState>()(
             },
           };
         });
-
-        if (typeof window !== 'undefined') {
-          fetch('/api/evolution', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              action: 'repair_scenario',
-              scenarioArtifact: scenario,
-              findingId,
-              brandState: get().project,
-            }),
-          }).catch(() => {});
-        }
       },
 
       manuallyEditScenario: (scenarioId: string, newContent: string) => {
@@ -2354,35 +2347,24 @@ export const useBrandStore = create<BrandStoreState>()(
             },
           };
         });
-
-        if (typeof window !== 'undefined') {
-          fetch('/api/evolution', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              action: 'manually_edit_scenario',
-              scenarioArtifact: scenario,
-              newContent,
-              brandState: get().project,
-            }),
-          }).catch(() => {});
-        }
       },
 
       // Assumption Evolution Engine Actions
       proposeAssumptionChange: (category: AssumptionCategory, proposedValue: string, rationale: string) => {
         const currentWorld = get().project.positioningWorlds.find((w) => w.id === get().project.selectedWorldId);
+        const identity = get().project.creativeIdentity;
+        const selectedTagline = identity?.taglineCandidates.find((t) => t.id === identity.selectedTaglineId)?.tagline;
         let currentValue = '';
         if (category === 'target_audience') {
-          currentValue = currentWorld?.targetAudience || get().project.ideaBrief?.targetUser.primaryNiche || 'Senior Engineers';
+          currentValue = currentWorld?.targetAudience || get().project.ideaBrief?.targetUser.primaryNiche || 'Target Customer';
         } else if (category === 'pricing_tier') {
-          currentValue = 'Enterprise Security (High-touch procurement)';
+          currentValue = 'Mid-Market / Premium Tier';
         } else if (category === 'emotional_territory') {
-          currentValue = currentWorld?.emotionalTerritory || 'Quiet Engineering Rigor';
+          currentValue = currentWorld?.emotionalTerritory || selectedTagline || 'Core Brand Purpose';
         } else if (category === 'primary_problem') {
-          currentValue = currentWorld?.problemFraming || get().project.ideaBrief?.problem.corePain || 'Silent Logic Flaws in PRs';
+          currentValue = currentWorld?.problemFraming || get().project.ideaBrief?.problem.corePain || 'Primary Customer Pain';
         } else {
-          currentValue = currentWorld?.categoryFraming || 'Developer Tooling';
+          currentValue = currentWorld?.categoryFraming || get().project.ideaBrief?.context.industryOrCategory || 'Category Context';
         }
 
         const request: AssumptionChangeRequest = {

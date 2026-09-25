@@ -39,9 +39,12 @@ export class SvgBrandVisualGenerator {
     const safeBrandName = escapeXml(brandName ? brandName.toUpperCase() : 'BRAND');
 
     // Determine geometry based on archetype
-    const isPurist = positioningArchetype.toLowerCase().includes('purist');
-    const isGatekeeper = positioningArchetype.toLowerCase().includes('gatekeeper');
-
+    const arch = positioningArchetype.toLowerCase();
+    const isPurist = arch.includes('purist');
+    const isGatekeeper = arch.includes('gatekeeper');
+    const isChallenger = arch.includes('challenger') || arch.includes('rebellious');
+    const isPartner = arch.includes('partner') || arch.includes('frictionless');
+    const isMentor = arch.includes('mentor') || arch.includes('human');
 
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="100%" height="100%" class="rounded-xl shadow-2xl">
   <defs>
@@ -73,6 +76,21 @@ export class SvgBrandVisualGenerator {
       ? `<!-- Sovereign Gatekeeper Motif (Shielded hexagonal node) -->
   <polygon points="120,50 180,85 180,155 120,190 60,155 60,85" fill="none" stroke="url(#grad-accent)" stroke-width="3.5" />
   <path d="M 80 120 L 110 150 L 165 95" fill="none" stroke="${safeAccent}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />`
+      : isChallenger
+      ? `<!-- Rebellious Challenger Motif (High-voltage angular disruptor chevron) -->
+  <polygon points="120,45 155,100 135,100 155,155 95,115 118,115" fill="${safeAccent}" fill-opacity="0.2" stroke="url(#grad-accent)" stroke-width="2.5" stroke-linejoin="round" />
+  <polygon points="120,65 140,105 125,105 138,145 105,118 120,118" fill="url(#grad-accent)" />`
+      : isPartner
+      ? `<!-- Frictionless Partner Motif (Interlocking infinity dual-orbit) -->
+  <path d="M 90,120 C 90,95 120,95 120,120 C 120,145 150,145 150,120 C 150,95 120,95 120,120 C 120,145 90,145 90,120 Z" fill="none" stroke="url(#grad-accent)" stroke-width="3.5" stroke-linecap="round" />
+  <circle cx="90" cy="120" r="6" fill="${safeAccent}" />
+  <circle cx="150" cy="120" r="6" fill="${safeAccent}" />`
+      : isMentor
+      ? `<!-- Human-Centric Mentor Motif (Radiating resonant guidance arcs) -->
+  <circle cx="120" cy="120" r="14" fill="${safeAccent}" fill-opacity="0.25" stroke="url(#grad-accent)" stroke-width="2.5" />
+  <path d="M 92,120 A 28,28 0 0,1 148,120" fill="none" stroke="${safeAccent}" stroke-width="2" stroke-linecap="round" opacity="0.8" />
+  <path d="M 76,120 A 44,44 0 0,1 164,120" fill="none" stroke="${safeAccent}" stroke-width="2" stroke-linecap="round" opacity="0.5" />
+  <path d="M 60,120 A 60,60 0 0,1 180,120" fill="none" stroke="${safeAccent}" stroke-width="2" stroke-linecap="round" opacity="0.3" stroke-dasharray="3 3" />`
       : `<!-- Velocity Flow Motif (Dynamic converging vectors) -->
   <circle cx="120" cy="120" r="55" fill="none" stroke="url(#grad-accent)" stroke-width="3" />
   <path d="M 90 90 L 150 120 L 90 150 Z" fill="${safeAccent}" fill-opacity="0.2" stroke="${safeAccent}" stroke-width="2" />`

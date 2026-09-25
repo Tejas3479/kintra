@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
 
     switch (data.action) {
       case 'generate_worlds': {
-        const worlds = StrategyService.generateWorlds(data.brief, data.evidenceRecords);
+        const worlds = await StrategyService.generateWorldsAsync(data.brief, data.evidenceRecords);
         const contradictions = StrategyService.auditWorlds(worlds, data.evidenceRecords);
         return NextResponse.json({ success: true, data: { worlds, contradictions } });
       }
