@@ -91,22 +91,22 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
   const report = selectedArtifact?.validationReport;
 
   return (
-    <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 space-y-6 shadow-2xl">
+    <section className="monolith-card rounded-2xl p-6 sm:p-8 space-y-8">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-zinc-800 gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-white/[0.06] gap-4">
         <div>
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-emerald-950/80 border border-emerald-700/50 rounded-lg text-emerald-400">
+            <div className="p-2 bg-champagne-500/10 border border-champagne-500/25 rounded-lg text-champagne-400">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-zinc-100 flex items-center gap-2">
-                Consistency Guardian & Artifact Validation
-                <span className="text-xs px-2.5 py-0.5 rounded-full font-mono font-normal bg-zinc-800 text-zinc-300 border border-zinc-700">
-                  Stage 6
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <span className="text-titanium-shimmer">Consistency Guardian & Artifact Validation</span>
+                <span className="text-xs px-2.5 py-0.5 rounded-full font-mono font-normal bg-obsidian-900 text-champagne-400 border border-white/[0.06]">
+                  Stage 5
                 </span>
               </h2>
-              <p className="text-sm text-zinc-400">
+              <p className="text-xs text-zinc-400 mt-1">
                 Audits marketing copy, onboarding, and outreach against the locked Brand Decision Graph.
               </p>
             </div>
@@ -119,7 +119,7 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
             aria-label="Select artifact type to generate"
             value={selectedTypeToGen}
             onChange={(e) => setSelectedTypeToGen(e.target.value as GuardianArtifactType)}
-            className="bg-zinc-900 border border-zinc-700 text-zinc-200 text-xs rounded-lg px-3 py-2 focus:ring-emerald-500"
+            className="bg-obsidian-900 border border-white/[0.08] text-zinc-200 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-champagne-400"
           >
             {Object.entries(ARTIFACT_TYPE_LABELS).map(([k, v]) => (
               <option key={k} value={k}>
@@ -130,14 +130,14 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
           <button
             onClick={handleGenerate}
             disabled={isLoading || !isStrategyReady}
-            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-lg text-xs font-semibold flex items-center space-x-1.5 shadow-lg shadow-emerald-950/50 transition-colors"
+            className="btn-monolith-primary px-4 py-2 rounded-xl text-xs font-semibold flex items-center space-x-1.5 disabled:opacity-50"
           >
             <Wand2 className="w-3.5 h-3.5" />
             <span>Generate Artifact</span>
           </button>
           <button
             onClick={() => setShowCustomModal(true)}
-            className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg text-xs font-medium border border-zinc-700 transition-colors"
+            className="px-3 py-2 bg-obsidian-900 hover:bg-obsidian-850 text-zinc-300 rounded-xl text-xs font-medium border border-white/[0.08] hover:border-champagne-500/30 transition-colors"
           >
             + Custom
           </button>
@@ -146,20 +146,20 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
 
       {/* Stage Gating Warning */}
       {!isIdentityReady && (
-        <div className="p-4 bg-amber-950/40 border border-amber-800/60 rounded-lg flex items-start space-x-3 text-amber-300 text-sm">
-          <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5 text-amber-400" />
-          <div>
-            <div className="font-semibold text-amber-200">Creative Identity Stage Not Locked</div>
-            <div className="text-xs text-amber-300/90 mt-1">
+        <div className="p-4 bg-amber-950/20 border border-amber-800/40 rounded-xl flex items-start space-x-3 text-amber-300 text-xs">
+          <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5 text-amber-400" />
+          <div className="space-y-0.5">
+            <span className="font-bold font-mono">Creative Identity Stage Not Locked:</span>
+            <p className="text-zinc-300">
               For complete 9-dimension auditing, approve your Positioning Strategy and Creative Identity (Name, Voice, Visuals) above. The Guardian will calibrate validation against active defaults in the meantime.
-            </div>
+            </p>
           </div>
         </div>
       )}
 
       {/* Artifact Navigation Tabs */}
       {artifacts.length > 0 && (
-        <div className="flex items-center space-x-2 overflow-x-auto pb-2 border-b border-zinc-800/80">
+        <div className="flex items-center space-x-2 overflow-x-auto pb-2 border-b border-white/[0.06]">
           {artifacts.map((art) => {
             const isSelected = selectedArtifact?.id === art.id;
             const meta = ARTIFACT_TYPE_LABELS[art.artifactType] || { icon: '📄', label: art.artifactType };
@@ -169,10 +169,10 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
               <button
                 key={art.id}
                 onClick={() => selectArtifact(art.id)}
-                className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
+                className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${
                   isSelected
-                    ? 'bg-zinc-800 text-white border border-emerald-500/50 shadow-md'
-                    : 'bg-zinc-900/60 text-zinc-400 hover:bg-zinc-900 border border-zinc-800'
+                    ? 'monolith-card-gold ring-1 ring-champagne-400/80 text-white shadow-sm'
+                    : 'bg-obsidian-950/70 text-zinc-400 hover:text-zinc-200 hover:bg-obsidian-900/80 border border-white/[0.05]'
                 }`}
               >
                 <span>{meta.icon}</span>
@@ -192,19 +192,19 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
 
       {/* Empty State */}
       {artifacts.length === 0 && (
-        <div className="text-center py-16 border-2 border-dashed border-zinc-800 rounded-xl space-y-4">
-          <div className="w-12 h-12 rounded-full bg-zinc-900 border border-zinc-700 flex items-center justify-center mx-auto text-zinc-400">
+        <div className="bg-obsidian-950/70 border border-dashed border-white/[0.08] rounded-2xl p-12 text-center space-y-4">
+          <div className="w-12 h-12 rounded-full bg-champagne-500/10 border border-champagne-500/25 flex items-center justify-center mx-auto text-champagne-400">
             <FileText className="w-6 h-6" />
           </div>
-          <div>
-            <h3 className="text-sm font-semibold text-zinc-200">No brand artifacts generated yet</h3>
-            <p className="text-xs text-zinc-500 max-w-sm mx-auto mt-1">
+          <div className="space-y-1">
+            <h3 className="text-base font-semibold text-white">No brand artifacts generated yet</h3>
+            <p className="text-xs text-zinc-400 max-w-sm mx-auto">
               Select an artifact type above (e.g. Website Headline, Launch Email) to synthesize copy and run the 9-dimension Consistency Guardian.
             </p>
           </div>
           <button
             onClick={handleGenerate}
-            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow-lg shadow-emerald-950/50"
+            className="btn-monolith-primary px-5 py-2.5 rounded-xl text-xs font-semibold"
           >
             Generate Website Headline
           </button>
@@ -215,7 +215,7 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
       {selectedArtifact && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Left Column: Artifact Content & Controls (5 Cols) */}
-          <div className="lg:col-span-5 space-y-4 bg-zinc-900/70 border border-zinc-800 rounded-xl p-5">
+          <div className="lg:col-span-5 space-y-4 bg-obsidian-950/80 border border-white/[0.06] rounded-xl p-5">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-semibold text-zinc-100 flex items-center gap-2">
@@ -232,7 +232,7 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
               </div>
 
               {/* Version History Indicator */}
-              <span className="text-[10px] px-2 py-1 rounded bg-zinc-800 text-zinc-300 font-mono border border-zinc-700">
+              <span className="text-[10px] px-2 py-1 rounded bg-obsidian-900 text-zinc-300 font-mono border border-white/[0.06]">
                 v{selectedArtifact.versionHistory.length}
               </span>
             </div>
@@ -250,7 +250,7 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
                         setIsEditingContent(true);
                       }
                     }}
-                    className="text-emerald-400 hover:text-emerald-300 flex items-center gap-1 font-medium"
+                    className="text-champagne-400 hover:text-champagne-300 flex items-center gap-1 font-medium transition-colors"
                   >
                     {isEditingContent ? <Check className="w-3 h-3" /> : <Edit3 className="w-3 h-3" />}
                     <span>{isEditingContent ? 'Save & Audit' : 'Edit Manually'}</span>
@@ -264,10 +264,10 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
                   value={editedText}
                   onChange={(e) => setEditedText(e.target.value)}
                   rows={10}
-                  className="w-full bg-zinc-950 border border-emerald-500/60 rounded-lg p-3 text-xs text-zinc-100 font-mono focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  className="w-full bg-obsidian-900 border border-champagne-500/60 rounded-xl p-3 text-xs text-zinc-100 font-mono focus:outline-none focus:ring-1 focus:ring-champagne-400"
                 />
               ) : (
-                <div className="bg-zinc-950/90 border border-zinc-800 rounded-lg p-4 text-xs text-zinc-200 font-sans whitespace-pre-wrap leading-relaxed max-h-[380px] overflow-y-auto">
+                <div className="bg-obsidian-900/80 border border-white/[0.06] rounded-xl p-4 text-xs text-zinc-200 font-sans whitespace-pre-wrap leading-relaxed max-h-[380px] overflow-y-auto shadow-inner">
                   {selectedArtifact.content}
                 </div>
               )}
@@ -275,15 +275,15 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
 
             {/* Version History Carousel / Log */}
             {selectedArtifact.versionHistory.length > 1 && (
-              <div className="border-t border-zinc-800/80 pt-3">
-                <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-2">
+              <div className="border-t border-white/[0.06] pt-3">
+                <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-2 font-mono">
                   Version History
                 </span>
                 <div className="space-y-1.5 max-h-32 overflow-y-auto pr-1">
                   {selectedArtifact.versionHistory.map((ver) => (
                     <div
                       key={ver.version}
-                      className="text-[11px] p-2 rounded bg-zinc-950/70 border border-zinc-800/60 flex items-center justify-between"
+                      className="text-[11px] p-2 rounded-lg bg-obsidian-900/80 border border-white/[0.04] flex items-center justify-between"
                     >
                       <span className="font-mono text-zinc-300">v{ver.version}</span>
                       <span className="text-zinc-500 truncate max-w-[160px]">{ver.editReason || ver.editedBy}</span>
@@ -297,11 +297,11 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
             )}
 
             {/* Bottom Actions */}
-            <div className="flex flex-wrap gap-2 pt-2 border-t border-zinc-800">
+            <div className="flex flex-wrap gap-2 pt-2 border-t border-white/[0.06]">
               <button
                 onClick={() => validateArtifact(selectedArtifact.id)}
                 disabled={isLoading}
-                className="flex-1 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg text-xs font-medium border border-zinc-700 flex items-center justify-center space-x-1.5"
+                className="flex-1 px-3 py-2 bg-obsidian-900 hover:bg-obsidian-850 text-zinc-200 rounded-xl text-xs font-medium border border-white/[0.08] hover:border-champagne-500/30 flex items-center justify-center space-x-1.5 transition-colors"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 <span>Re-Audit</span>
@@ -311,7 +311,7 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
                 <button
                   onClick={() => regenerateArtifact(selectedArtifact.id)}
                   disabled={isLoading}
-                  className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg text-xs font-medium border border-zinc-700 flex items-center space-x-1.5"
+                  className="px-3 py-2 bg-obsidian-900 hover:bg-obsidian-850 text-zinc-200 rounded-xl text-xs font-medium border border-white/[0.08] hover:border-champagne-500/30 flex items-center space-x-1.5 transition-colors"
                 >
                   <Sparkles className="w-3.5 h-3.5" />
                   <span>Regenerate</span>
@@ -321,7 +321,7 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
               {selectedArtifact.isLocked ? (
                 <button
                   onClick={() => unlockArtifact(selectedArtifact.id)}
-                  className="px-3 py-2 bg-amber-950/60 hover:bg-amber-900/60 text-amber-300 border border-amber-800/60 rounded-lg text-xs font-medium flex items-center space-x-1.5"
+                  className="px-3 py-2 bg-amber-950/60 hover:bg-amber-900/60 text-amber-300 border border-amber-800/60 rounded-xl text-xs font-medium flex items-center space-x-1.5 transition-colors"
                 >
                   <Unlock className="w-3.5 h-3.5" />
                   <span>Unlock</span>
@@ -329,7 +329,7 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
               ) : (
                 <button
                   onClick={() => lockApprovedArtifact(selectedArtifact.id)}
-                  className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow-md flex items-center space-x-1.5"
+                  className="btn-monolith-primary px-3.5 py-2 rounded-xl text-xs font-semibold shadow-md flex items-center space-x-1.5"
                 >
                   <Lock className="w-3.5 h-3.5" />
                   <span>Lock Approved Version</span>
@@ -342,8 +342,8 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
           <div className="lg:col-span-7 space-y-6">
             {/* 9-Dimension Overview Cards */}
             {report && (
-              <div className="bg-zinc-900/70 border border-zinc-800 rounded-xl p-5 space-y-4">
-                <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
+              <div className="bg-obsidian-950/80 border border-white/[0.06] rounded-xl p-5 space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
                   <div>
                     <h3 className="text-sm font-semibold text-zinc-200 flex items-center gap-2">
                       <span>9-Dimension Brand Integrity Analysis</span>
@@ -393,13 +393,13 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
 
             {/* Findings & Repair Station */}
             {report && report.findings.length > 0 && (
-              <div className="bg-zinc-900/70 border border-zinc-800 rounded-xl p-5 space-y-4">
+              <div className="bg-obsidian-950/80 border border-white/[0.06] rounded-xl p-5 space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-semibold text-zinc-200 flex items-center gap-2">
-                    <ShieldAlert className="w-4 h-4 text-amber-400" />
+                    <ShieldAlert className="w-4 h-4 text-champagne-400" />
                     <span>Audit Findings ({report.findings.length})</span>
                   </h3>
-                  <span className="text-xs text-zinc-400">
+                  <span className="text-xs text-zinc-400 font-mono">
                     Causal explanations strictly grounded in the Brand Decision Graph
                   </span>
                 </div>
@@ -416,14 +416,14 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
                         key={finding.id}
                         className={`p-4 rounded-xl border text-xs space-y-3 transition-all ${
                           isApplied
-                            ? 'bg-zinc-950/50 border-zinc-800 opacity-60'
+                            ? 'bg-obsidian-950/50 border-white/[0.04] opacity-60'
                             : isIgnored
-                            ? 'bg-zinc-950/40 border-zinc-800/60 opacity-50'
+                            ? 'bg-obsidian-950/40 border-white/[0.03] opacity-50'
                             : isBlocking
                             ? 'bg-red-950/25 border-red-800/60 text-zinc-200'
                             : isHigh
                             ? 'bg-amber-950/25 border-amber-800/60 text-zinc-200'
-                            : 'bg-zinc-900 border-zinc-800 text-zinc-300'
+                            : 'bg-obsidian-900/80 border border-white/[0.05] text-zinc-300'
                         }`}
                       >
                         {/* Finding Header */}
@@ -435,7 +435,7 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
                                   ? 'bg-red-900/80 text-red-200 border border-red-700'
                                   : isHigh
                                   ? 'bg-amber-900/80 text-amber-200 border border-amber-700'
-                                  : 'bg-zinc-800 text-zinc-300 border border-zinc-700'
+                                  : 'bg-obsidian-900 text-zinc-300 border border-white/[0.08]'
                               }`}
                             >
                               {finding.severity}
@@ -447,13 +447,13 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
                         </div>
 
                         {/* Exact Evidence Excerpt */}
-                        <div className="bg-zinc-950 p-2.5 rounded border border-zinc-800/80 font-mono text-zinc-400 text-[11px]">
+                        <div className="bg-obsidian-950 p-2.5 rounded-lg border border-white/[0.05] font-mono text-zinc-400 text-[11px]">
                           <span className="text-zinc-500">Detected: </span>
                           <span className="text-red-300">&quot;{finding.evidence}&quot;</span>
                         </div>
 
                         {/* Structured Explanation (WHAT, WHY, WHICH, HOW) */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 bg-zinc-950/60 p-3 rounded-lg border border-zinc-800/60 text-[11px] leading-relaxed">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 bg-obsidian-950/70 p-3 rounded-xl border border-white/[0.04] text-[11px] leading-relaxed">
                           <div>
                             <span className="font-semibold text-zinc-400">WHAT is wrong: </span>
                             <span className="text-zinc-300">{finding.explanation.whatIsWrong}</span>
@@ -462,13 +462,13 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
                             <span className="font-semibold text-zinc-400">WHY it matters: </span>
                             <span className="text-zinc-300">{finding.explanation.whyItMatters}</span>
                           </div>
-                          <div className="md:col-span-2 pt-1 border-t border-zinc-800/50">
-                            <span className="font-semibold text-amber-300">WHICH brand decision: </span>
+                          <div className="md:col-span-2 pt-1 border-t border-white/[0.04]">
+                            <span className="font-semibold text-champagne-300">WHICH brand decision: </span>
                             <span className="text-zinc-200 font-mono font-medium">
                               {finding.explanation.whichDecisionConflicts}
                             </span>
                           </div>
-                          <div className="md:col-span-2 pt-1 border-t border-zinc-800/50">
+                          <div className="md:col-span-2 pt-1 border-t border-white/[0.04]">
                             <span className="font-semibold text-emerald-400">HOW to correct: </span>
                             <span className="text-zinc-200">{finding.explanation.howToCorrect}</span>
                           </div>
@@ -476,7 +476,7 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
 
                         {/* Repair Station Actions */}
                         {!isApplied && !isIgnored && !selectedArtifact.isLocked && (
-                          <div className="flex items-center justify-between pt-2 border-t border-zinc-800/80">
+                          <div className="flex items-center justify-between pt-2 border-t border-white/[0.05]">
                             <div className="flex items-center space-x-2">
                               <span className="text-[10px] text-zinc-500 font-mono">Suggested repair:</span>
                               <span className="text-[11px] text-emerald-400 font-mono bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-900/50">
@@ -496,7 +496,7 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
                               </button>
                               <button
                                 onClick={() => acceptRepair(selectedArtifact.id, finding.id)}
-                                className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[11px] font-semibold shadow-sm transition-colors flex items-center space-x-1"
+                                className="btn-monolith-primary px-3 py-1 rounded-lg text-[11px] font-semibold flex items-center space-x-1"
                               >
                                 <Check className="w-3 h-3" />
                                 <span>Accept Fix</span>
@@ -526,7 +526,7 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
 
             {/* Zero findings clean state */}
             {report && report.findings.length === 0 && (
-              <div className="bg-emerald-950/20 border border-emerald-900/50 rounded-xl p-8 text-center space-y-3">
+              <div className="bg-emerald-950/20 border border-emerald-900/40 rounded-2xl p-8 text-center space-y-3">
                 <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto" />
                 <h4 className="text-sm font-semibold text-emerald-300">100% Brand Consistent</h4>
                 <p className="text-xs text-zinc-400 max-w-md mx-auto">
@@ -535,7 +535,7 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
                 {!selectedArtifact.isLocked && (
                   <button
                     onClick={() => lockApprovedArtifact(selectedArtifact.id)}
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow-lg"
+                    className="btn-monolith-primary px-5 py-2 rounded-xl text-xs font-semibold"
                   >
                     Lock Approved Canonical Version
                   </button>
@@ -548,16 +548,16 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
 
       {/* Modal: Ignore Finding with Rationale */}
       {ignoreModalFinding && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
-          <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 max-w-md w-full space-y-4 shadow-2xl">
-            <h3 className="text-sm font-bold text-zinc-100 flex items-center gap-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
+          <div className="monolith-card rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl border border-white/[0.1]">
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-amber-400" />
-              Ignore Finding
+              <span>Ignore Finding</span>
             </h3>
             <p className="text-xs text-zinc-400">
               Provide a rationale for ignoring this finding. The rationale will be recorded in the audit ledger:
             </p>
-            <div className="p-3 bg-zinc-950 rounded border border-zinc-800 text-xs text-zinc-300">
+            <div className="p-3 bg-obsidian-950 rounded-xl border border-white/[0.06] text-xs text-zinc-300">
               {ignoreModalFinding.issue}
             </div>
             <textarea
@@ -566,12 +566,12 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
               onChange={(e) => setIgnoreReason(e.target.value)}
               placeholder="e.g. Deliberately using this phrasing for a specific partner campaign..."
               rows={3}
-              className="w-full bg-zinc-950 border border-zinc-700 rounded-lg p-2.5 text-xs text-zinc-100 focus:outline-none focus:ring-1 focus:ring-amber-500"
+              className="w-full bg-obsidian-950 border border-white/[0.08] rounded-xl p-2.5 text-xs text-zinc-100 focus:outline-none focus:border-amber-400"
             />
             <div className="flex justify-end space-x-2">
               <button
                 onClick={() => setIgnoreModalFinding(null)}
-                className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded text-xs"
+                className="px-3 py-1.5 bg-obsidian-900 hover:bg-obsidian-850 text-zinc-400 hover:text-white rounded-xl text-xs border border-white/[0.06] transition-colors"
               >
                 Cancel
               </button>
@@ -586,7 +586,7 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
                   }
                   setIgnoreModalFinding(null);
                 }}
-                className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded text-xs font-semibold"
+                className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-semibold shadow-sm transition-colors"
               >
                 Confirm Ignore
               </button>
@@ -597,11 +597,11 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
 
       {/* Modal: New Custom Artifact */}
       {showCustomModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
-          <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 max-w-lg w-full space-y-4 shadow-2xl">
-            <h3 className="text-sm font-bold text-zinc-100 flex items-center gap-2">
-              <FileText className="w-4 h-4 text-emerald-400" />
-              Create Custom Artifact for Audit
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
+          <div className="monolith-card rounded-2xl p-6 max-w-lg w-full space-y-4 shadow-2xl border border-white/[0.1]">
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <FileText className="w-4 h-4 text-champagne-400" />
+              <span>Create Custom Artifact for Audit</span>
             </h3>
             <div className="space-y-3">
               <div>
@@ -612,7 +612,7 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
                   value={customName}
                   onChange={(e) => setCustomName(e.target.value)}
                   placeholder="e.g. TechCrunch Launch Pitch, Q3 Newsletter"
-                  className="w-full bg-zinc-950 border border-zinc-700 rounded-lg p-2.5 text-xs text-zinc-100 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  className="w-full bg-obsidian-950 border border-white/[0.08] rounded-xl p-2.5 text-xs text-zinc-100 focus:outline-none focus:border-champagne-400"
                 />
               </div>
               <div>
@@ -621,7 +621,7 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
                   aria-label="Custom artifact type"
                   value={customType}
                   onChange={(e) => setCustomType(e.target.value as GuardianArtifactType)}
-                  className="w-full bg-zinc-950 border border-zinc-700 rounded-lg p-2 text-xs text-zinc-100 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  className="w-full bg-obsidian-950 border border-white/[0.08] rounded-xl p-2 text-xs text-zinc-100 focus:outline-none focus:border-champagne-400"
                 >
                   {Object.entries(ARTIFACT_TYPE_LABELS).map(([k, v]) => (
                     <option key={k} value={k}>
@@ -638,21 +638,21 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
                   onChange={(e) => setCustomContent(e.target.value)}
                   placeholder="Paste or write your marketing headline, pitch, or email copy here..."
                   rows={6}
-                  className="w-full bg-zinc-950 border border-zinc-700 rounded-lg p-2.5 text-xs text-zinc-100 font-mono focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  className="w-full bg-obsidian-950 border border-white/[0.08] rounded-xl p-2.5 text-xs text-zinc-100 font-mono focus:outline-none focus:border-champagne-400"
                 />
               </div>
             </div>
             <div className="flex justify-end space-x-2 pt-2">
               <button
                 onClick={() => setShowCustomModal(false)}
-                className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded text-xs"
+                className="px-3 py-1.5 bg-obsidian-900 hover:bg-obsidian-850 text-zinc-400 hover:text-white rounded-xl text-xs border border-white/[0.06] transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleCreateCustom}
                 disabled={!customName.trim() || !customContent.trim()}
-                className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded text-xs font-semibold"
+                className="btn-monolith-primary px-4 py-1.5 rounded-xl text-xs font-semibold disabled:opacity-50"
               >
                 Create & Audit
               </button>
@@ -660,6 +660,6 @@ export const ConsistencyGuardianWorkspace: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+    </section>
   );
 };
