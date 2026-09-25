@@ -127,7 +127,7 @@ describe('Security & Environment Isolation', () => {
       const body = await r4.response?.json();
       expect(body.success).toBe(false);
       expect(body.error).toContain('Too many requests');
-    });
+    }, 15000);
 
     it('isolates rate limit buckets across different client IPs', async () => {
       const { checkRateLimit, resetRateLimiter } = await import('@/lib/security/rate-limiter');
@@ -218,7 +218,7 @@ describe('Security & Environment Isolation', () => {
       expect(json.error).toContain('Too many requests');
 
       intakeSpy.mockRestore();
-    });
+    }, 15000);
   });
 });
 

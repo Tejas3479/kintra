@@ -168,7 +168,7 @@ import {
 } from './strategy-schemas';
 import { CreativeIdentitySchema } from './identity-schemas';
 import { BrandArtifactSchema } from './guardian-schemas';
-import { ScenarioArtifactSchema } from './evolution-schemas';
+import { ScenarioArtifactSchema, BrandBranchSchema } from './evolution-schemas';
 import { LaunchKitSchema } from './launch-kit-schemas';
 
 export const CanonicalBrandStateSchema = z.object({
@@ -206,7 +206,7 @@ export const CanonicalBrandStateSchema = z.object({
   selectedArtifactId: z.string().nullable().optional().default(null),
   scenarioArtifacts: z.array(ScenarioArtifactSchema).optional().default([]),
   selectedScenarioId: z.string().nullable().optional().default(null),
-  branches: z.array(z.any()).optional().default([]),
+  branches: z.array(BrandBranchSchema).optional().default([]),
   currentBranchId: z.string().optional(),
   launchKit: LaunchKitSchema.nullable().optional().default(null),
   validationHistory: z.array(ValidationResultSchema),

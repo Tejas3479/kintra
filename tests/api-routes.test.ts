@@ -368,6 +368,7 @@ describe('API Routes Integration & Strict Schema Validation Suite', () => {
       const baseBranch: BrandBranch = {
         id: 'branch-main',
         name: 'Main Track',
+        description: 'Main track baseline',
         createdAt: new Date().toISOString(),
         snapshot: {
           id: 'snap-1',
@@ -381,6 +382,7 @@ describe('API Routes Integration & Strict Schema Validation Suite', () => {
       const targetBranch: BrandBranch = {
         id: 'branch-ciso',
         name: 'CISO Compliance Track',
+        description: 'CISO compliance track variation',
         createdAt: new Date().toISOString(),
         snapshot: {
           id: 'snap-2',

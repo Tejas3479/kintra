@@ -300,7 +300,7 @@ export class StrategyService {
     logger.info('Generating Positioning Worlds asynchronously:', { briefId: brief.id });
 
     const env = getServerEnv();
-    if (env.isDemoMode || !env.geminiApiKey || brief.id === 'brief-prguard-1') {
+    if (env.isDemoMode || !env.geminiApiKey) {
       return this.generateWorlds(brief, evidenceRecords);
     }
 

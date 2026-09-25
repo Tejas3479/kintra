@@ -8,17 +8,18 @@ import { logger } from '@/lib/logger';
 import { enforceRateLimit, RATE_LIMIT_STANDARD } from '@/lib/security/rate-limiter';
 import { IdeaBriefSchema } from '@/lib/schemas/brand-schemas';
 import { PositioningWorldSchema } from '@/lib/schemas/strategy-schemas';
+import { EvidenceRecordSchema } from '@/lib/schemas/research-schemas';
 
 const StrategyRequestSchema = z.discriminatedUnion('action', [
   z.object({
     action: z.literal('generate_worlds'),
     brief: IdeaBriefSchema,
-    evidenceRecords: z.array(z.any()).optional().default([]),
+    evidenceRecords: z.array(EvidenceRecordSchema).optional().default([]),
   }),
   z.object({
     action: z.literal('audit_contradictions'),
     world: PositioningWorldSchema,
-    evidenceRecords: z.array(z.any()).optional().default([]),
+    evidenceRecords: z.array(EvidenceRecordSchema).optional().default([]),
   }),
 ]);
 

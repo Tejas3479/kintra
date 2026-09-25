@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { BrandBranch } from '@/types/evolution';
 import { ArtifactValidationReportSchema } from './guardian-schemas';
 
 export const ScenarioTemplateTypeSchema = z.enum([
@@ -131,3 +132,18 @@ export const BranchComparisonDiffSchema = z.object({
   divergenceScore: z.number().min(0).max(100),
   generatedAt: z.string(),
 });
+
+export const BrandBranchSchema: z.ZodType<BrandBranch> = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  description: z.string(),
+  parentBranchId: z.string().optional(),
+  createdAt: z.string(),
+  snapshot: z.object({
+    id: z.string(),
+    version: z.number(),
+    label: z.string(),
+    timestamp: z.string(),
+    state: z.any(),
+  }),
+}) as unknown as z.ZodType<BrandBranch>;

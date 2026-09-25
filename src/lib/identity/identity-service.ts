@@ -34,13 +34,8 @@ export class IdentityService {
     });
 
     const env = getServerEnv();
-    const isSecurityOrDemo =
-      brief.id === 'brief-prguard-1' ||
-      /pull\s*request|sast|linter|security|ci\/cd|code\s*review/i.test(
-        brief.context.industryOrCategory + ' ' + brief.problem.corePain + ' ' + world.categoryFraming
-      );
 
-    if (!isSecurityOrDemo && !env.isDemoMode && env.geminiApiKey) {
+    if (!env.isDemoMode && env.geminiApiKey) {
       try {
         const provider = getAIProvider();
         const prompt = `Synthesize a comprehensive, high-conviction Creative Brand Identity derived directly from the approved Positioning World and Idea Brief.

@@ -43,6 +43,7 @@ import { LaunchKit } from '@/types/launch-kit';
 import { LaunchKitEngine } from '@/lib/launch-kit/launch-kit-engine';
 import { CanonicalBrandStateSchema } from '@/lib/schemas/brand-schemas';
 import { INITIAL_DEMO_PROJECT } from '@/fixtures/demo-brands';
+import { logger } from '@/lib/logger';
 
 // In-flight abort controllers to cancel superseded operations
 const inFlightControllers = new Map<string, AbortController>();
@@ -2422,7 +2423,8 @@ export const useBrandStore = create<BrandStoreState>()(
           return;
         }
 
-        const result = BrandEvolutionEngine.applyEvolution(request, get().project, choice, branchName);
+        const baselineProject = get().project;
+        const result = BrandEvolutionEngine.applyEvolution(request, baselineProject, choice, branchName);
 
         // Apply update or branch
         set((s) => {
@@ -2450,11 +2452,15 @@ export const useBrandStore = create<BrandStoreState>()(
             body: JSON.stringify({
               action: 'apply_evolution',
               changeRequest: request,
-              brandState: get().project,
+              brandState: baselineProject,
               choice,
               branchName,
             }),
-          }).catch(() => {});
+          }).catch((err) => {
+            logger.warn('Backend evolution sync encountered an error, local state preserved:', {
+              error: err instanceof Error ? err.message : String(err),
+            });
+          });
         }
       },
 

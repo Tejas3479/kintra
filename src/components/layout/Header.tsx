@@ -16,6 +16,11 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Play,
+  Settings,
+  Activity,
+  CheckCircle2,
+  AlertCircle,
+  X,
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -50,6 +55,43 @@ export const Header: React.FC<HeaderProps> = ({
   const [snapshotLabel, setSnapshotLabel] = useState('');
   const [showSnapshotDialog, setShowSnapshotDialog] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
+
+  const [engineStatus, setEngineStatus] = useState<{
+    hasApiKey: boolean;
+    isDemoMode: boolean;
+    hasTavilyKey: boolean;
+    model: string;
+    searchProvider: string;
+  } | null>(null);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [isPinging, setIsPinging] = useState(false);
+  const [pingLatency, setPingLatency] = useState<number | null>(null);
+  const [pingError, setPingError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch('/api/health')
+      .then((res) => res.json())
+      .then((data) => setEngineStatus(data))
+      .catch(() => {});
+  }, []);
+
+  const handleTestConnection = async () => {
+    setIsPinging(true);
+    setPingError(null);
+    try {
+      const res = await fetch('/api/health', { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        setPingLatency(data.latencyMs);
+      } else {
+        setPingError(data.error || 'Connection failed.');
+      }
+    } catch (err) {
+      setPingError(err instanceof Error ? err.message : 'Network failure');
+    } finally {
+      setIsPinging(false);
+    }
+  };
 
   // F5 keyboard shortcut: toggle presentation deck in studio mode
   useEffect(() => {
@@ -219,6 +261,33 @@ export const Header: React.FC<HeaderProps> = ({
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 DAG_ACTIVE
               </span>
+
+              {/* Live Engine Telemetry Pill */}
+              {engineStatus && (
+                <button
+                  type="button"
+                  onClick={() => setShowSettingsModal(true)}
+                  className={`hidden lg:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold border transition-all cursor-pointer ${
+                    engineStatus.hasApiKey && !engineStatus.isDemoMode
+                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20'
+                      : 'bg-amber-500/10 border-amber-500/30 text-amber-300 hover:bg-amber-500/20'
+                  }`}
+                  title="Click to view AI Engine Telemetry & Health"
+                >
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      engineStatus.hasApiKey && !engineStatus.isDemoMode
+                        ? 'bg-emerald-400 animate-pulse'
+                        : 'bg-amber-400'
+                    }`}
+                  />
+                  <span>
+                    {engineStatus.hasApiKey && !engineStatus.isDemoMode
+                      ? 'AI: gemini-3.8-flash'
+                      : 'AI: Deterministic Fallback'}
+                  </span>
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -310,6 +379,16 @@ export const Header: React.FC<HeaderProps> = ({
               >
                 <RotateCcw className="w-3.5 h-3.5" />
               </button>
+
+              {/* AI Telemetry & Settings */}
+              <button
+                type="button"
+                onClick={() => setShowSettingsModal(true)}
+                className="text-xs p-1.5 rounded-lg hover:bg-obsidian-900 text-zinc-400 hover:text-champagne-300 transition-colors border border-transparent hover:border-white/[0.08] cursor-pointer"
+                title="AI Engine Telemetry & Connection Status"
+              >
+                <Settings className="w-3.5 h-3.5" />
+              </button>
             </>
           )}
         </div>
@@ -364,6 +443,111 @@ export const Header: React.FC<HeaderProps> = ({
           <button onClick={() => setImportError(null)} className="text-red-400 hover:text-white">
             Dismiss
           </button>
+        </div>
+      )}
+
+      {/* AI Telemetry & Settings Modal */}
+      {showSettingsModal && (
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="monolith-card-gold rounded-2xl p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5 border border-champagne-500/40 animate-workspace-enter text-left">
+            <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
+              <div className="flex items-center gap-2">
+                <Activity className="w-5 h-5 text-champagne-400" />
+                <h3 className="text-base font-bold text-white">AI Engine & Model Telemetry</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSettingsModal(false)}
+                className="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-white/[0.05]"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-obsidian-950 p-3 rounded-xl border border-white/[0.06] space-y-1">
+                  <span className="text-zinc-400 text-[10px] font-mono uppercase">Primary LLM</span>
+                  <div className="font-bold text-zinc-100 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-champagne-400" />
+                    <span>{engineStatus?.model || 'gemini-3.8-flash'}</span>
+                  </div>
+                </div>
+
+                <div className="bg-obsidian-950 p-3 rounded-xl border border-white/[0.06] space-y-1">
+                  <span className="text-zinc-400 text-[10px] font-mono uppercase">Live Search Provider</span>
+                  <div className="font-bold text-zinc-100 flex items-center gap-1.5">
+                    <span className={`w-2 h-2 rounded-full ${engineStatus?.hasTavilyKey ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                    <span>{engineStatus?.hasTavilyKey ? 'Tavily Web Search' : 'Curated Hybrid Index'}</span>
+                  </div>
+                </div>
+
+                <div className="bg-obsidian-950 p-3 rounded-xl border border-white/[0.06] space-y-1">
+                  <span className="text-zinc-400 text-[10px] font-mono uppercase">API Key Status</span>
+                  <div className="font-bold flex items-center gap-1.5">
+                    {engineStatus?.hasApiKey ? (
+                      <span className="text-emerald-400 flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Configured on Server
+                      </span>
+                    ) : (
+                      <span className="text-amber-400 flex items-center gap-1">
+                        <AlertCircle className="w-3.5 h-3.5" /> Missing (Fallback Active)
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="bg-obsidian-950 p-3 rounded-xl border border-white/[0.06] space-y-1">
+                  <span className="text-zinc-400 text-[10px] font-mono uppercase">Execution Mode</span>
+                  <div className="font-bold text-zinc-200">
+                    {engineStatus?.hasApiKey && !engineStatus?.isDemoMode
+                      ? 'Live Dynamic Synthesis'
+                      : 'Deterministic Simulation'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Ping Test Section */}
+              <div className="bg-obsidian-950/80 p-3.5 rounded-xl border border-white/[0.06] space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-zinc-200 font-mono text-[11px]">
+                    Probe Live Model Round-Trip
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleTestConnection}
+                    disabled={isPinging}
+                    className="btn-monolith-primary px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                  >
+                    <Activity className={`w-3.5 h-3.5 ${isPinging ? 'animate-spin' : ''}`} />
+                    <span>{isPinging ? 'Pinging...' : 'Test Connection'}</span>
+                  </button>
+                </div>
+                {pingLatency !== null && (
+                  <p className="text-emerald-400 font-mono text-[11px] flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    Ping successful! Round-trip Latency: {pingLatency}ms
+                  </p>
+                )}
+                {pingError && (
+                  <p className="text-amber-400 font-mono text-[11px] flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    {pingError}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2 border-t border-white/[0.06]">
+              <button
+                type="button"
+                onClick={() => setShowSettingsModal(false)}
+                className="px-4 py-2 bg-obsidian-900 hover:bg-obsidian-850 text-zinc-300 rounded-xl text-xs font-medium border border-white/[0.08] cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </header>

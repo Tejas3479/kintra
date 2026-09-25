@@ -10,6 +10,7 @@ import { logger } from '@/lib/logger';
 import { enforceRateLimit, RATE_LIMIT_STANDARD } from '@/lib/security/rate-limiter';
 import { IdeaBriefSchema } from '@/lib/schemas/brand-schemas';
 import { PositioningWorldSchema } from '@/lib/schemas/strategy-schemas';
+import { EvidenceRecordSchema } from '@/lib/schemas/research-schemas';
 import {
   NamingCandidateSchema,
   TaglineCandidateSchema,
@@ -22,7 +23,7 @@ const IdentityRequestSchema = z.discriminatedUnion('action', [
     action: z.literal('generate_identity'),
     world: PositioningWorldSchema,
     brief: IdeaBriefSchema,
-    evidenceRecords: z.array(z.any()).optional().default([]),
+    evidenceRecords: z.array(EvidenceRecordSchema).optional().default([]),
   }),
   z.object({
     action: z.literal('audit_consistency'),

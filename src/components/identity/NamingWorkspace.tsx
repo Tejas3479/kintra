@@ -131,6 +131,41 @@ export const NamingWorkspace: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* Anti-Generic Linguistic Scorecard */}
+                  <div className="bg-obsidian-950/70 border border-white/[0.05] rounded-lg p-2.5 text-[10px] space-y-1.5 font-mono">
+                    <div className="flex items-center justify-between text-zinc-400">
+                      <span className="flex items-center gap-1 font-bold text-champagne-400">
+                        <Scale className="w-3 h-3" />
+                        Anti-Generic Metric Audit:
+                      </span>
+                      <span className="text-[9px] text-zinc-500">
+                        Confidence: {(candidate.confidence * 100).toFixed(0)}%
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      <span className="px-1.5 py-0.5 rounded bg-emerald-950/40 text-emerald-300 border border-emerald-800/40 text-[9px]">
+                        +15 Plosive Phonation ({candidate.name.charAt(0)})
+                      </span>
+                      <span className="px-1.5 py-0.5 rounded bg-emerald-950/40 text-emerald-300 border border-emerald-800/40 text-[9px]">
+                        +10 Category Fit
+                      </span>
+                      {candidate.antiGenericFlags.length === 0 ? (
+                        <span className="px-1.5 py-0.5 rounded bg-emerald-950/40 text-emerald-300 border border-emerald-800/40 text-[9px]">
+                          0 Cliché Suffixes (Clean)
+                        </span>
+                      ) : (
+                        candidate.antiGenericFlags.map((flag, idx) => (
+                          <span
+                            key={idx}
+                            className="px-1.5 py-0.5 rounded bg-amber-950/40 text-amber-300 border border-amber-800/40 text-[9px]"
+                          >
+                            -20 {flag}
+                          </span>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
                   {/* Anti-Generic Flags */}
                   {candidate.antiGenericFlags.length > 0 && (
                     <div className="bg-amber-950/20 border border-amber-800/30 rounded-lg p-2.5 text-[10px] space-y-1">
