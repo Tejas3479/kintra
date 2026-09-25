@@ -2,16 +2,38 @@
 
 import React, { useState } from 'react';
 import { useBrandStore } from '@/store/useBrandStore';
-import { Download, Upload, Bookmark, RotateCcw, Sparkles, ShieldCheck, ArrowRight } from 'lucide-react';
+import {
+  Download,
+  Upload,
+  Bookmark,
+  RotateCcw,
+  Sparkles,
+  ShieldCheck,
+  ArrowRight,
+  Menu,
+  ChevronRight,
+  PanelLeftClose,
+  PanelLeftOpen,
+} from 'lucide-react';
 
 interface HeaderProps {
   viewMode?: 'landing' | 'studio';
   onToggleViewMode?: (mode: 'landing' | 'studio') => void;
+  activeStageTitle?: string;
+  onToggleMobileSidebar?: () => void;
+  isMobileSidebarOpen?: boolean;
+  onToggleCollapseSidebar?: () => void;
+  isSidebarCollapsed?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   viewMode = 'landing',
   onToggleViewMode,
+  activeStageTitle,
+  onToggleMobileSidebar,
+  isMobileSidebarOpen,
+  onToggleCollapseSidebar,
+  isSidebarCollapsed,
 }) => {
   const {
     project,
@@ -68,7 +90,36 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="border-b border-white/[0.06] bg-obsidian-950/85 backdrop-blur-xl sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Left: Brand Identity & Mode Switcher */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
+          {viewMode === 'studio' && onToggleMobileSidebar && (
+            <button
+              type="button"
+              onClick={onToggleMobileSidebar}
+              className="lg:hidden p-1.5 rounded-lg bg-obsidian-900 border border-white/[0.08] text-zinc-300 hover:text-white hover:border-champagne-500/35 transition-colors cursor-pointer"
+              aria-label="Toggle Stage Navigation Sidebar"
+              aria-expanded={isMobileSidebarOpen}
+              title="Open Navigation"
+            >
+              <Menu className="w-4 h-4 text-champagne-400" />
+            </button>
+          )}
+
+          {viewMode === 'studio' && onToggleCollapseSidebar && (
+            <button
+              type="button"
+              onClick={onToggleCollapseSidebar}
+              className="hidden lg:flex p-1.5 rounded-lg bg-obsidian-900 border border-white/[0.08] text-zinc-400 hover:text-white hover:border-champagne-500/35 transition-colors cursor-pointer"
+              aria-label={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              {isSidebarCollapsed ? (
+                <PanelLeftOpen className="w-4 h-4 text-champagne-400" />
+              ) : (
+                <PanelLeftClose className="w-4 h-4 text-zinc-400" />
+              )}
+            </button>
+          )}
+
           <button
             onClick={() => onToggleViewMode?.('landing')}
             className="flex items-center gap-2.5 text-left group cursor-pointer"
@@ -112,6 +163,16 @@ export const Header: React.FC<HeaderProps> = ({
                 <span>Studio</span>
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
               </button>
+            </div>
+          )}
+
+          {/* Active Stage Breadcrumb when in studio mode */}
+          {viewMode === 'studio' && activeStageTitle && (
+            <div className="hidden md:flex items-center gap-1.5 text-xs text-zinc-400 font-mono">
+              <ChevronRight className="w-3.5 h-3.5 text-zinc-600" />
+              <span className="text-champagne-300 font-semibold px-2 py-0.5 rounded-md bg-champagne-500/10 border border-champagne-500/20">
+                {activeStageTitle}
+              </span>
             </div>
           )}
 
