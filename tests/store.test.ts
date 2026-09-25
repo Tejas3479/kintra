@@ -162,4 +162,26 @@ describe('useBrandStore Workspace & User Control', () => {
       expect(useBrandStore.getState().launchKit).not.toBeNull();
     }
   });
+
+  it('caps branch creation to 5 to protect memory and local storage quota', () => {
+    useBrandStore.getState().loadDemoProject();
+
+    for (let i = 1; i <= 8; i++) {
+      useBrandStore.getState().createBranch(`Branch Variant #${i}`);
+    }
+
+    const { branches } = useBrandStore.getState();
+    expect(branches.length).toBeLessThanOrEqual(5);
+    expect(branches[branches.length - 1].name).toBe('Branch Variant #8');
+  });
+
+  it('cancels in-flight operations and resets loading state via cancelOperation', () => {
+    useBrandStore.setState({ isLoading: true, loadingMessage: 'Running deep synthesis...' });
+    expect(useBrandStore.getState().isLoading).toBe(true);
+
+    useBrandStore.getState().cancelOperation('discovery_intake');
+    expect(useBrandStore.getState().isLoading).toBe(false);
+    expect(useBrandStore.getState().loadingMessage).toBe('');
+  });
 });
+

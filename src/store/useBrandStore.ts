@@ -44,6 +44,46 @@ import { LaunchKitEngine } from '@/lib/launch-kit/launch-kit-engine';
 import { CanonicalBrandStateSchema } from '@/lib/schemas/brand-schemas';
 import { INITIAL_DEMO_PROJECT } from '@/fixtures/demo-brands';
 
+// In-flight abort controllers to cancel superseded operations
+const inFlightControllers = new Map<string, AbortController>();
+
+export function getAbortSignal(key: string): AbortSignal {
+  const existing = inFlightControllers.get(key);
+  if (existing) {
+    try {
+      existing.abort();
+    } catch {
+      // Ignore abort errors
+    }
+  }
+  const controller = new AbortController();
+  inFlightControllers.set(key, controller);
+  return controller.signal;
+}
+
+export function cancelInFlightOperation(key: string): void {
+  const existing = inFlightControllers.get(key);
+  if (existing) {
+    try {
+      existing.abort();
+    } catch {
+      // Ignore
+    }
+    inFlightControllers.delete(key);
+  }
+}
+
+export function clearAbortSignal(key: string): void {
+  inFlightControllers.delete(key);
+}
+
+export function isAbortError(err: unknown): boolean {
+  return (
+    (err instanceof Error && (err.name === 'AbortError' || err.message.includes('aborted'))) ||
+    (typeof err === 'object' && err !== null && 'name' in err && (err as { name: string }).name === 'AbortError')
+  );
+}
+
 interface BrandStoreState {
   // Active Project State
   project: CanonicalBrandState;
@@ -64,6 +104,7 @@ interface BrandStoreState {
   exportProjectJSON: () => string;
   importProjectJSON: (jsonString: string) => { success: boolean; error?: string };
   resetProject: (preserveSnapshots?: boolean) => void;
+  cancelOperation: (operationKey: string) => void;
 
   // Actions: Discovery Flow
   setRawFounderInput: (input: string) => void;
@@ -388,6 +429,11 @@ export const useBrandStore = create<BrandStoreState>()(
         }));
       },
 
+      cancelOperation: (operationKey: string) => {
+        cancelInFlightOperation(operationKey);
+        set({ isLoading: false, loadingMessage: '' });
+      },
+
       setRawFounderInput: (input: string) => {
         set((s) => ({
           project: {
@@ -400,12 +446,14 @@ export const useBrandStore = create<BrandStoreState>()(
 
       runIntakeAnalysis: async (rawIdea: string) => {
         set({ isLoading: true, loadingMessage: 'Deconstructing idea into facts & assumptions...', error: null });
+        const signal = getAbortSignal('discovery_intake');
 
         try {
           const res = await fetch('/api/discovery', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'intake', rawIdea }),
+            signal,
           });
 
           const json = await res.json();
@@ -437,8 +485,13 @@ export const useBrandStore = create<BrandStoreState>()(
             },
           }));
 
+          clearAbortSignal('discovery_intake');
           return true;
         } catch (err: unknown) {
+          clearAbortSignal('discovery_intake');
+          if (isAbortError(err)) {
+            return false;
+          }
           set({
             isLoading: false,
             loadingMessage: '',
@@ -524,6 +577,7 @@ export const useBrandStore = create<BrandStoreState>()(
           return;
         }
 
+        const signal = getAbortSignal('discovery_next_question');
         try {
           const res = await fetch('/api/discovery', {
             method: 'POST',
@@ -533,6 +587,7 @@ export const useBrandStore = create<BrandStoreState>()(
               rawIdea: rawFounderInput,
               history: interviewState.history,
             }),
+            signal,
           });
 
           const json = await res.json();
@@ -557,7 +612,10 @@ export const useBrandStore = create<BrandStoreState>()(
               },
             }));
           }
-        } catch {
+          clearAbortSignal('discovery_next_question');
+        } catch (err) {
+          clearAbortSignal('discovery_next_question');
+          if (isAbortError(err)) return;
           // Fallback to completing interview if next question fails
           set((s) => ({
             project: {
@@ -571,6 +629,7 @@ export const useBrandStore = create<BrandStoreState>()(
       synthesizeBrief: async () => {
         const { rawFounderInput, extractedFacts, hypotheses, interviewState } = get().project;
         set({ isLoading: true, loadingMessage: 'Synthesizing strategic Idea Brief...', error: null });
+        const signal = getAbortSignal('discovery_synthesize');
 
         try {
           const res = await fetch('/api/discovery', {
@@ -583,6 +642,7 @@ export const useBrandStore = create<BrandStoreState>()(
               assumptions: hypotheses,
               history: interviewState.history,
             }),
+            signal,
           });
 
           const json = await res.json();
@@ -603,8 +663,13 @@ export const useBrandStore = create<BrandStoreState>()(
             },
           }));
 
+          clearAbortSignal('discovery_synthesize');
           return true;
         } catch (err: unknown) {
+          clearAbortSignal('discovery_synthesize');
+          if (isAbortError(err)) {
+            return false;
+          }
           set({
             isLoading: false,
             loadingMessage: '',
@@ -617,6 +682,7 @@ export const useBrandStore = create<BrandStoreState>()(
       runMarketResearch: async (query?: string) => {
         const targetQuery = query || get().project.rawFounderInput || 'Developer code security pull requests';
         set({ isLoading: true, loadingMessage: 'Analyzing market landscape and compiling evidence ledger...', error: null });
+        const signal = getAbortSignal('market_research');
 
         try {
           const res = await fetch('/api/research', {
@@ -626,6 +692,7 @@ export const useBrandStore = create<BrandStoreState>()(
               query: targetQuery,
               rawIdea: get().project.rawFounderInput,
             }),
+            signal,
           });
 
           const json = await res.json();
@@ -646,8 +713,13 @@ export const useBrandStore = create<BrandStoreState>()(
             },
           }));
 
+          clearAbortSignal('market_research');
           return true;
         } catch (err: unknown) {
+          clearAbortSignal('market_research');
+          if (isAbortError(err)) {
+            return false;
+          }
           set({
             isLoading: false,
             loadingMessage: '',
@@ -718,6 +790,7 @@ export const useBrandStore = create<BrandStoreState>()(
         }
 
         set({ isLoading: true, loadingMessage: 'Synthesizing high-contrast strategic positioning worlds...', error: null });
+        const signal = getAbortSignal('strategy_worlds');
 
         try {
           let worlds: PositioningWorld[];
@@ -732,6 +805,7 @@ export const useBrandStore = create<BrandStoreState>()(
                 brief: ideaBrief,
                 evidenceRecords: marketLandscape?.evidenceRecords || [],
               }),
+              signal,
             });
 
             const json = await res.json();
@@ -741,13 +815,16 @@ export const useBrandStore = create<BrandStoreState>()(
             } else {
               throw new Error(json.error || 'Failed to generate positioning worlds.');
             }
-          } catch {
+          } catch (fetchErr) {
+            if (isAbortError(fetchErr)) return false;
             // Direct service fallback (e.g. offline, test environment, or API route unreachable)
             worlds = StrategyService.generateWorlds(ideaBrief, marketLandscape?.evidenceRecords || []);
             contradictions = worlds.flatMap((w) =>
               ContradictionDetector.auditPositioningWorld(w, marketLandscape?.evidenceRecords || [])
             );
           }
+
+          clearAbortSignal('strategy_worlds');
 
           set((s) => ({
             isLoading: false,
@@ -763,6 +840,10 @@ export const useBrandStore = create<BrandStoreState>()(
 
           return true;
         } catch (err: unknown) {
+          clearAbortSignal('strategy_worlds');
+          if (isAbortError(err)) {
+            return false;
+          }
           set({
             isLoading: false,
             loadingMessage: '',
@@ -1112,6 +1193,8 @@ export const useBrandStore = create<BrandStoreState>()(
           error: null,
         });
 
+        const signal = getAbortSignal('creative_identity');
+
         try {
           let identityData: CreativeIdentity;
           try {
@@ -1124,6 +1207,7 @@ export const useBrandStore = create<BrandStoreState>()(
                 brief: ideaBrief,
                 evidenceRecords: marketLandscape?.evidenceRecords || [],
               }),
+              signal,
             });
 
             const json = await res.json();
@@ -1132,7 +1216,8 @@ export const useBrandStore = create<BrandStoreState>()(
             } else {
               throw new Error(json.error || 'Failed to generate creative identity.');
             }
-          } catch {
+          } catch (fetchErr) {
+            if (isAbortError(fetchErr)) return false;
             // Direct service fallback (e.g. offline, test environment, or API route unreachable)
             identityData = await IdentityService.generateIdentity(
               selectedWorld,
@@ -1140,6 +1225,8 @@ export const useBrandStore = create<BrandStoreState>()(
               marketLandscape?.evidenceRecords || []
             );
           }
+
+          clearAbortSignal('creative_identity');
 
           set((s) => ({
             isLoading: false,
@@ -1154,6 +1241,10 @@ export const useBrandStore = create<BrandStoreState>()(
 
           return true;
         } catch (err: unknown) {
+          clearAbortSignal('creative_identity');
+          if (isAbortError(err)) {
+            return false;
+          }
           set({
             isLoading: false,
             loadingMessage: '',
@@ -2384,7 +2475,7 @@ export const useBrandStore = create<BrandStoreState>()(
         };
 
         set((s) => {
-          const updated = [...s.branches, newBranch].slice(-10); // cap branches to 10
+          const updated = [...s.branches, newBranch].slice(-5); // cap branches to 5 to protect memory & quota
           return {
             branches: updated,
             activeBranchId: newBranch.id,
@@ -2424,6 +2515,8 @@ export const useBrandStore = create<BrandStoreState>()(
 
       generateLaunchKit: async () => {
         set({ isLoading: true, loadingMessage: 'Synthesizing Launch Kit & Brand Guidelines...', error: null });
+        const signal = getAbortSignal('launch_kit');
+
         try {
           const state = get().project;
           let launchKit: LaunchKit;
@@ -2433,6 +2526,7 @@ export const useBrandStore = create<BrandStoreState>()(
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ action: 'generate', state }),
+              signal,
             });
             if (res.ok) {
               const data = await res.json();
@@ -2440,9 +2534,12 @@ export const useBrandStore = create<BrandStoreState>()(
             } else {
               launchKit = LaunchKitEngine.generateLaunchKit(state);
             }
-          } catch {
+          } catch (fetchErr) {
+            if (isAbortError(fetchErr)) return false;
             launchKit = LaunchKitEngine.generateLaunchKit(state);
           }
+
+          clearAbortSignal('launch_kit');
 
           set((s) => ({
             launchKit,
@@ -2457,6 +2554,10 @@ export const useBrandStore = create<BrandStoreState>()(
           }));
           return true;
         } catch (err: unknown) {
+          clearAbortSignal('launch_kit');
+          if (isAbortError(err)) {
+            return false;
+          }
           set({
             error: err instanceof Error ? err.message : 'Failed to generate Launch Kit',
             isLoading: false,
@@ -2506,15 +2607,43 @@ export const useBrandStore = create<BrandStoreState>()(
             window.localStorage.setItem(name, value);
           } catch (storageErr) {
             console.warn('LocalStorage write failed or quota exceeded:', storageErr);
-            // Attempt to recover by pruning snapshots if quota exceeded
+            // Multi-tier recovery: progressively prune snapshots, branches, and deep snapshots
             try {
               const parsed = JSON.parse(value);
-              if (parsed?.state?.snapshots && parsed.state.snapshots.length > 2) {
-                parsed.state.snapshots = parsed.state.snapshots.slice(0, 2);
-                window.localStorage.setItem(name, JSON.stringify(parsed));
+              if (parsed?.state) {
+                // Tier 1: Prune historical snapshots to 1 latest
+                if (Array.isArray(parsed.state.snapshots) && parsed.state.snapshots.length > 1) {
+                  parsed.state.snapshots = parsed.state.snapshots.slice(-1);
+                }
+
+                // Tier 2: Prune historical branches to active branch + 1 most recent
+                if (Array.isArray(parsed.state.branches) && parsed.state.branches.length > 2) {
+                  const activeId = parsed.state.activeBranchId;
+                  const active = parsed.state.branches.find((b: { id?: string }) => b.id === activeId);
+                  const others = parsed.state.branches.filter((b: { id?: string }) => b.id !== activeId).slice(-1);
+                  parsed.state.branches = active ? [active, ...others] : parsed.state.branches.slice(-2);
+                  if (parsed.state.project?.branches) {
+                    parsed.state.project.branches = parsed.state.branches;
+                  }
+                }
+
+                try {
+                  window.localStorage.setItem(name, JSON.stringify(parsed));
+                  return;
+                } catch {
+                  // Tier 3: Strip redundant history if still failing
+                  parsed.state.snapshots = [];
+                  if (Array.isArray(parsed.state.branches)) {
+                    parsed.state.branches = parsed.state.branches.slice(-1);
+                    if (parsed.state.project?.branches) {
+                      parsed.state.project.branches = parsed.state.branches;
+                    }
+                  }
+                  window.localStorage.setItem(name, JSON.stringify(parsed));
+                }
               }
-            } catch {
-              // Ignore fallback write error
+            } catch (recoveryErr) {
+              console.warn('LocalStorage quota recovery fallback failed:', recoveryErr);
             }
           }
         },
