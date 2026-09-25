@@ -84,7 +84,7 @@ export const LaunchKitWorkspace: React.FC = () => {
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xs font-mono font-bold uppercase tracking-wider text-champagne-400 bg-champagne-500/10 px-2.5 py-0.5 rounded border border-champagne-500/25 flex items-center gap-1.5">
               <Rocket className="w-3.5 h-3.5 text-champagne-400" />
-              <span>Stage 8: Practical Output Layer</span>
+              <span>Stage 7: Practical Output Layer</span>
             </span>
             <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-900/40 flex items-center gap-1">
               <ShieldCheck className="w-3 h-3" />

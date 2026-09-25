@@ -181,6 +181,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       input: 'All Approved Decisions',
       output: 'Full Brand Guidelines & JSON',
     },
+    {
+      num: 8,
+      title: 'Brand Decision Graph & Ledger',
+      badge: 'Causal Lineage DAG',
+      description: 'An immutable, versioned causal Directed Acyclic Graph tracing all approved brand commitments, explicit tradeoffs, and dependencies across stages.',
+      metric: 'Cryptographic DAG Lineage',
+      input: 'Governed decisions from all stages',
+      output: 'Immutable Decision Graph & Visual DAG',
+    },
   ];
 
   return (
@@ -217,7 +226,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           {/* Eyebrow Pill */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-obsidian-900/90 border border-champagne-500/30 text-champagne-300 text-xs font-mono shadow-gold-glow animate-float">
             <span className="w-2 h-2 rounded-full bg-champagne-400 animate-pulse" />
-            <span className="font-semibold text-champagne-200">INKLOOM 2026</span>
+            <span className="font-semibold text-champagne-200">KINTRA 2026</span>
             <span className="text-zinc-600">•</span>
             <span>Autonomous Brand Intelligence & Consistency Engine</span>
           </div>
@@ -276,7 +285,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
             <div className="monolith-card rounded-xl p-4 border border-white/[0.06] hover:border-champagne-500/20 transition-all">
               <div className="text-2xl font-extrabold text-white font-mono tracking-tight flex items-center gap-1.5">
-                <span>7</span>
+                <span>8</span>
                 <span className="text-xs font-normal text-zinc-400 font-mono">STAGES</span>
               </div>
               <div className="text-xs text-zinc-400 font-medium mt-1">Governed Operating Workspaces</div>
@@ -557,7 +566,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* ========================================================================= */}
-      {/* 7-STAGE PIPELINE INTERACTIVE EXPLORER                                    */}
+      {/* 8-STAGE PIPELINE INTERACTIVE EXPLORER                                    */}
       {/* ========================================================================= */}
       <section className="py-16 md:py-24 bg-obsidian-900/40 border-y border-white/[0.04]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -566,7 +575,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               End-to-End Autonomous Pipeline
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-              The 7 Governed Brand Workspaces
+              The 8 Governed Brand Workspaces
             </h2>
             <p className="text-sm sm:text-base text-zinc-400">
               Step through the causal workflow that takes a raw founder idea from epistemic discovery to a complete production launch kit.
@@ -605,7 +614,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <div className="lg:col-span-7 space-y-5">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-mono px-2.5 py-1 rounded-md bg-champagne-500/10 text-champagne-300 border border-champagne-500/25">
-                      Stage {current.num} of 7
+                      Stage {current.num} of 8
                     </span>
                     <span className="text-xs font-mono text-zinc-500 uppercase">• {current.badge}</span>
                   </div>

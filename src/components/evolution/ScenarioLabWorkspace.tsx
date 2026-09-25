@@ -99,7 +99,7 @@ export const ScenarioLabWorkspace: React.FC = () => {
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
               <span className="text-titanium-shimmer">Scenario Lab & Controlled Evolution</span>
               <span className="text-xs px-2.5 py-0.5 rounded-full font-mono font-normal bg-obsidian-900 text-champagne-400 border border-white/[0.06]">
-                Stage 7
+                Stage 6
               </span>
             </h2>
           </div>
