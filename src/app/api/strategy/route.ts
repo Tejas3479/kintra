@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { StrategyService } from '@/lib/strategy/strategy-service';
 import { ContradictionDetector } from '@/lib/strategy/contradiction-detector';
 import { logger } from '@/lib/logger';
+import { enforceRateLimit, RATE_LIMIT_STANDARD } from '@/lib/security/rate-limiter';
 import { IdeaBriefSchema } from '@/lib/schemas/brand-schemas';
 import { PositioningWorldSchema } from '@/lib/schemas/strategy-schemas';
 
@@ -21,6 +22,9 @@ const StrategyRequestSchema = z.discriminatedUnion('action', [
 
 export async function POST(req: NextRequest) {
   try {
+    const rateLimitError = enforceRateLimit(req, 'strategy', RATE_LIMIT_STANDARD);
+    if (rateLimitError) return rateLimitError;
+
     const body = await req.json();
     const parsed = StrategyRequestSchema.safeParse(body);
 

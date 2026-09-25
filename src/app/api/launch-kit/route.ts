@@ -3,6 +3,7 @@ import { LaunchKitEngine } from '@/lib/launch-kit/launch-kit-engine';
 import { CanonicalBrandStateSchema } from '@/lib/schemas/brand-schemas';
 import { LaunchKitSchema } from '@/lib/schemas/launch-kit-schemas';
 import { logger } from '@/lib/logger';
+import { enforceRateLimit, RATE_LIMIT_HEAVY } from '@/lib/security/rate-limiter';
 import { z } from 'zod';
 
 const LaunchKitRequestSchema = z.discriminatedUnion('action', [
@@ -22,6 +23,9 @@ const LaunchKitRequestSchema = z.discriminatedUnion('action', [
 
 export async function POST(req: NextRequest) {
   try {
+    const rateLimitError = enforceRateLimit(req, 'launch-kit', RATE_LIMIT_HEAVY);
+    if (rateLimitError) return rateLimitError;
+
     const body = await req.json();
     const parsed = LaunchKitRequestSchema.safeParse(body);
 

@@ -5,6 +5,7 @@ import { IdentityConsistencyChecker } from '@/lib/identity/identity-consistency-
 import { AntiGenericNamer } from '@/lib/identity/anti-generic-namer';
 import { DefaultImageGenerationProvider } from '@/lib/identity/image-provider';
 import { logger } from '@/lib/logger';
+import { enforceRateLimit, RATE_LIMIT_STANDARD } from '@/lib/security/rate-limiter';
 import { IdeaBriefSchema } from '@/lib/schemas/brand-schemas';
 import { PositioningWorldSchema } from '@/lib/schemas/strategy-schemas';
 import {
@@ -53,6 +54,9 @@ const IdentityRequestSchema = z.discriminatedUnion('action', [
 
 export async function POST(req: NextRequest) {
   try {
+    const rateLimitError = enforceRateLimit(req, 'identity', RATE_LIMIT_STANDARD);
+    if (rateLimitError) return rateLimitError;
+
     const body = await req.json();
     const parsed = IdentityRequestSchema.safeParse(body);
 

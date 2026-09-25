@@ -4,6 +4,7 @@ import { getResearchProvider } from '@/lib/research/research-provider';
 import { EvidenceEngine } from '@/lib/research/evidence-engine';
 import { MarketLandscapeSchema } from '@/lib/schemas/research-schemas';
 import { logger } from '@/lib/logger';
+import { enforceRateLimit, RATE_LIMIT_STANDARD } from '@/lib/security/rate-limiter';
 
 const ResearchRequestSchema = z.object({
   query: z.string().min(1, 'Missing required research search query.'),
@@ -12,6 +13,9 @@ const ResearchRequestSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    const rateLimitError = enforceRateLimit(req, 'research', RATE_LIMIT_STANDARD);
+    if (rateLimitError) return rateLimitError;
+
     const body = await req.json();
     const parsed = ResearchRequestSchema.safeParse(body);
 

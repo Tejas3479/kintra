@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { ScenarioLabEngine } from '@/lib/evolution/scenario-lab-engine';
 import { BrandEvolutionEngine } from '@/lib/evolution/brand-evolution-engine';
 import { logger } from '@/lib/logger';
+import { enforceRateLimit, RATE_LIMIT_HEAVY } from '@/lib/security/rate-limiter';
 import { CanonicalBrandStateSchema } from '@/lib/schemas/brand-schemas';
 import {
   ScenarioTemplateTypeSchema,
@@ -60,6 +61,9 @@ const EvolutionRequestSchema = z.discriminatedUnion('action', [
 
 export async function POST(req: NextRequest) {
   try {
+    const rateLimitError = enforceRateLimit(req, 'evolution', RATE_LIMIT_HEAVY);
+    if (rateLimitError) return rateLimitError;
+
     const body = await req.json();
     const parsed = EvolutionRequestSchema.safeParse(body);
 

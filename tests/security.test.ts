@@ -83,5 +83,143 @@ describe('Security & Environment Isolation', () => {
     expect(occurrences).toBe(1);
     expect(wrapped).toContain('&lt;/untrusted_external_content&gt;');
   });
+
+  describe('Server-Side Rate Limiter', () => {
+    it('allows requests within threshold and blocks requests exceeding limit', async () => {
+      const { checkRateLimit, resetRateLimiter } = await import('@/lib/security/rate-limiter');
+      const { NextRequest } = await import('next/server');
+      resetRateLimiter();
+
+      const makeReq = (ip = '10.0.0.1') =>
+        new NextRequest('http://localhost:3000/api/discovery', {
+          method: 'POST',
+          headers: {
+            'x-forwarded-for': ip,
+            'x-test-ratelimit': 'true',
+            'x-test-ratelimit-limit': '3',
+          },
+        });
+
+      // 1st request - allowed
+      const r1 = checkRateLimit(makeReq(), { endpoint: 'test-endpoint', maxRequests: 3 });
+      expect(r1.allowed).toBe(true);
+      expect(r1.remaining).toBe(2);
+
+      // 2nd request - allowed
+      const r2 = checkRateLimit(makeReq(), { endpoint: 'test-endpoint', maxRequests: 3 });
+      expect(r2.allowed).toBe(true);
+      expect(r2.remaining).toBe(1);
+
+      // 3rd request - allowed
+      const r3 = checkRateLimit(makeReq(), { endpoint: 'test-endpoint', maxRequests: 3 });
+      expect(r3.allowed).toBe(true);
+      expect(r3.remaining).toBe(0);
+
+      // 4th request - blocked (429)
+      const r4 = checkRateLimit(makeReq(), { endpoint: 'test-endpoint', maxRequests: 3 });
+      expect(r4.allowed).toBe(false);
+      expect(r4.remaining).toBe(0);
+      expect(r4.retryAfter).toBeGreaterThanOrEqual(1);
+      expect(r4.response).toBeDefined();
+      expect(r4.response?.status).toBe(429);
+      expect(r4.response?.headers.get('Retry-After')).toBeDefined();
+
+      const body = await r4.response?.json();
+      expect(body.success).toBe(false);
+      expect(body.error).toContain('Too many requests');
+    });
+
+    it('isolates rate limit buckets across different client IPs', async () => {
+      const { checkRateLimit, resetRateLimiter } = await import('@/lib/security/rate-limiter');
+      const { NextRequest } = await import('next/server');
+      resetRateLimiter();
+
+      const reqA = new NextRequest('http://localhost:3000/api/test', {
+        method: 'POST',
+        headers: {
+          'x-forwarded-for': '192.168.1.5',
+          'x-test-ratelimit': 'true',
+          'x-test-ratelimit-limit': '1',
+        },
+      });
+
+      const reqB = new NextRequest('http://localhost:3000/api/test', {
+        method: 'POST',
+        headers: {
+          'x-forwarded-for': '192.168.1.6',
+          'x-test-ratelimit': 'true',
+          'x-test-ratelimit-limit': '1',
+        },
+      });
+
+      // IP A uses its quota
+      expect(checkRateLimit(reqA, { endpoint: 'isolated', maxRequests: 1 }).allowed).toBe(true);
+      expect(checkRateLimit(reqA, { endpoint: 'isolated', maxRequests: 1 }).allowed).toBe(false);
+
+      // IP B still has its own fresh quota
+      expect(checkRateLimit(reqB, { endpoint: 'isolated', maxRequests: 1 }).allowed).toBe(true);
+      expect(checkRateLimit(reqB, { endpoint: 'isolated', maxRequests: 1 }).allowed).toBe(false);
+    });
+
+    it('extracts IP correctly from forwarded header list', async () => {
+      const { getClientIp } = await import('@/lib/security/rate-limiter');
+      const { NextRequest } = await import('next/server');
+
+      const req = new NextRequest('http://localhost:3000/api/test', {
+        headers: {
+          'x-forwarded-for': '203.0.113.195, 70.41.3.18, 150.172.238.178',
+        },
+      });
+
+      expect(getClientIp(req)).toBe('203.0.113.195');
+    });
+
+    it('returns 429 when API route is hit beyond rate limit with test header', async () => {
+      const { resetRateLimiter } = await import('@/lib/security/rate-limiter');
+      const { POST: discoveryPost } = await import('@/app/api/discovery/route');
+      const { DiscoveryAIService } = await import('@/lib/ai-service');
+      const { NextRequest } = await import('next/server');
+      resetRateLimiter();
+
+      const intakeSpy = vi.spyOn(DiscoveryAIService, 'extractInitialIntake').mockResolvedValue({
+        extractedFacts: [],
+        hypotheses: [],
+        initialQuestions: [],
+      });
+
+      const makeDiscoveryReq = () =>
+        new NextRequest('http://localhost:3000/api/discovery', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-forwarded-for': '10.99.99.1',
+            'x-test-ratelimit': 'true',
+            'x-test-ratelimit-limit': '2',
+          },
+          body: JSON.stringify({
+            action: 'intake',
+            rawIdea: 'Automated CI security tool for pull requests.',
+          }),
+        });
+
+      // 1st request: 200
+      const res1 = await discoveryPost(makeDiscoveryReq());
+      expect(res1.status).toBe(200);
+
+      // 2nd request: 200
+      const res2 = await discoveryPost(makeDiscoveryReq());
+      expect(res2.status).toBe(200);
+
+      // 3rd request: 429 Rate Limit Exceeded
+      const res3 = await discoveryPost(makeDiscoveryReq());
+      expect(res3.status).toBe(429);
+      const json = await res3.json();
+      expect(json.success).toBe(false);
+      expect(json.error).toContain('Too many requests');
+
+      intakeSpy.mockRestore();
+    });
+  });
 });
+
 

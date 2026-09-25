@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { DiscoveryAIService } from '@/lib/ai-service';
 import { logger } from '@/lib/logger';
+import { enforceRateLimit, RATE_LIMIT_STANDARD } from '@/lib/security/rate-limiter';
 import {
   ExtractedFactSchema,
   HypothesisSchema,
@@ -29,6 +30,9 @@ const DiscoveryRequestSchema = z.discriminatedUnion('action', [
 
 export async function POST(req: NextRequest) {
   try {
+    const rateLimitError = enforceRateLimit(req, 'discovery', RATE_LIMIT_STANDARD);
+    if (rateLimitError) return rateLimitError;
+
     const body = await req.json();
     const parsed = DiscoveryRequestSchema.safeParse(body);
 

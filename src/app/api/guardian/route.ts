@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { ConsistencyGuardian } from '@/lib/guardian/consistency-guardian';
 import { logger } from '@/lib/logger';
+import { enforceRateLimit, RATE_LIMIT_STANDARD } from '@/lib/security/rate-limiter';
 import { CanonicalBrandStateSchema } from '@/lib/schemas/brand-schemas';
 import { BrandArtifactSchema, GuardianArtifactTypeSchema } from '@/lib/schemas/guardian-schemas';
 
@@ -25,6 +26,9 @@ const GuardianRequestSchema = z.discriminatedUnion('action', [
 
 export async function POST(req: NextRequest) {
   try {
+    const rateLimitError = enforceRateLimit(req, 'guardian', RATE_LIMIT_STANDARD);
+    if (rateLimitError) return rateLimitError;
+
     const body = await req.json();
     const parsed = GuardianRequestSchema.safeParse(body);
 
